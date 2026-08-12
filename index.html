@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Renew LMS — v1 Prototype</title>
+<style>
+:root{
+  color-scheme: light;
+  --surface:#fcfcfb; --page:#f9f9f7; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,0.10);
+  --accent:#2a78d6; --accent-soft:#e3eefb;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --good-text:#006300;
+  --rush:#e34948;
+  --ng-ink:#5b21b6; --warn-ink:#8a5b00;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --surface:#1a1a19; --page:#0d0d0d; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,0.10);
+    --accent:#3987e5; --accent-soft:#16283e;
+    --good-text:#0ca30c;
+    --ng-ink:#b39ddb; --warn-ink:#e0b053;
+  }
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:var(--page); color:var(--ink);
+  padding-bottom:calc(64px + env(safe-area-inset-bottom));
+}
+header.app{
+  position:sticky; top:0; z-index:40; background:var(--surface);
+  border-bottom:1px solid var(--grid);
+  padding:10px 14px; display:flex; align-items:center; gap:10px;
+}
+header.app h1{font-size:16px; margin:0; font-weight:700; letter-spacing:.2px;}
+header.app .sub{font-size:11px; color:var(--muted); display:block; font-weight:500;}
+.role-pick{margin-left:auto;}
+select,input,textarea,button{font-family:inherit; font-size:14px; color:var(--ink);}
+select,input,textarea{
+  background:var(--surface); border:1px solid var(--baseline); border-radius:8px; padding:8px 10px;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:12px 14px 24px;}
+.demo-note{font-size:11px; color:var(--muted); text-align:center; margin:4px 0 10px;}
+
+/* ---- nav ---- */
+nav.tabs{
+  position:fixed; bottom:0; left:0; right:0; z-index:40;
+  background:var(--surface); border-top:1px solid var(--grid);
+  display:flex; padding-bottom:env(safe-area-inset-bottom);
+}
+nav.tabs button{
+  flex:1; background:none; border:none; padding:9px 2px 7px; cursor:pointer;
+  font-size:11px; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:2px;
+}
+nav.tabs button .ic{font-size:19px; line-height:1;}
+nav.tabs button.on{color:var(--accent); font-weight:700;}
+
+/* ---- cards & tiles ---- */
+.card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:12px;}
+.card h3{margin:0 0 8px; font-size:13px; color:var(--ink2); font-weight:700; text-transform:uppercase; letter-spacing:.5px;}
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px;}
+.tile{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 6px; text-align:center; cursor:pointer;}
+.tile .num{font-size:26px; font-weight:700; line-height:1.1;}
+.tile .lbl{font-size:10.5px; color:var(--ink2); margin-top:2px;}
+.tile.alert .num{color:var(--critical);}
+@media (max-width:420px){ .tile .num{font-size:22px;} }
+
+/* ---- capacity meters ---- */
+.meter-row{display:flex; align-items:center; gap:8px; margin:7px 0;}
+.meter-row .dep{width:74px; font-size:12px; color:var(--ink2); flex:none;}
+.meter{flex:1; height:14px; background:var(--page); border:1px solid var(--grid); border-radius:4px; position:relative; overflow:hidden;}
+.meter .fill{position:absolute; left:0; top:0; bottom:0; border-radius:3px 0 0 3px;}
+.meter .capline{position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--baseline);}
+.meter-row .val{width:88px; flex:none; font-size:11px; color:var(--ink2); text-align:right; font-variant-numeric:tabular-nums;}
+
+/* ---- lists ---- */
+.case-row{
+  display:flex; align-items:center; gap:10px; padding:10px 4px;
+  border-bottom:1px solid var(--grid); cursor:pointer;
+}
+.case-row:last-child{border-bottom:none;}
+.case-row .cid{font-weight:700; font-size:13.5px; white-space:nowrap;}
+.case-row .cmeta{flex:1; min-width:0;}
+.case-row .l1{font-size:13px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+.case-row .l2{font-size:11.5px; color:var(--muted); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.case-row .ship{font-size:11px; color:var(--ink2); text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+.badge{font-size:9.5px; font-weight:700; padding:2px 6px; border-radius:99px; border:1px solid; white-space:nowrap;}
+.b-rush{color:var(--critical); border-color:var(--critical);}
+.b-over{color:#fff; background:var(--critical); border-color:var(--critical);}
+.b-house{color:var(--accent); border-color:var(--accent);}
+.b-link{color:var(--ink2); border-color:var(--baseline);}
+.b-flag{color:var(--warn-ink); border-color:var(--warn); background:none;}
+.b-ng{color:var(--ng-ink); border-color:#8b5cf6;}
+.b-done{color:var(--good-text); border-color:var(--good);}
+.b-stall{color:var(--serious); border-color:var(--serious);}
+.dept-chip{font-size:10.5px; color:var(--ink2); background:var(--page); border:1px solid var(--grid); border-radius:5px; padding:1px 6px;}
+
+/* ---- board ---- */
+.board{display:grid; grid-template-columns:1fr; gap:12px;}
+@media (min-width:760px){ .board{grid-template-columns:5fr 7fr;} }
+.qcase{
+  display:flex; align-items:center; gap:8px; padding:9px 8px; margin:6px 0;
+  border:1px solid var(--grid); border-radius:10px; cursor:pointer; background:var(--surface);
+}
+.qcase.sel{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+.tech-row{padding:8px 4px; border-bottom:1px solid var(--grid);}
+.tech-row:last-child{border-bottom:none;}
+.tech-head{display:flex; align-items:center; gap:8px;}
+.tech-head .tname{font-size:13.5px; font-weight:600;}
+.tech-head .thrs{margin-left:auto; font-size:11px; color:var(--ink2); font-variant-numeric:tabular-nums;}
+.tech-load{height:6px; background:var(--page); border-radius:3px; margin:5px 0 3px; overflow:hidden; border:1px solid var(--grid);}
+.tech-load i{display:block; height:100%; border-radius:3px;}
+.tech-cases{font-size:11px; color:var(--muted);}
+.assign-btn{
+  border:1px solid var(--accent); color:var(--accent); background:none; border-radius:8px;
+  font-size:11.5px; font-weight:700; padding:4px 10px; cursor:pointer;
+}
+.assign-hint{font-size:12px; color:var(--ink2); background:var(--accent-soft); border-radius:8px; padding:8px 10px; margin-bottom:8px;}
+.assign-hint.sticky{position:sticky; top:56px; z-index:30; box-shadow:0 2px 8px rgba(0,0,0,.12);}
+
+/* ---- case detail sheet ---- */
+.sheet-bg{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; display:flex; align-items:flex-end; justify-content:center;}
+@media(min-width:760px){ .sheet-bg{align-items:center;} }
+.sheet{
+  background:var(--page); width:100%; max-width:680px; max-height:92vh; overflow-y:auto;
+  border-radius:16px 16px 0 0; padding:14px 16px calc(20px + env(safe-area-inset-bottom));
+}
+@media(min-width:760px){ .sheet{border-radius:16px; max-height:86vh;} }
+.sheet h2{margin:0; font-size:18px;}
+.sheet .close{float:right; border:none; background:var(--surface); border:1px solid var(--grid); border-radius:99px; width:30px; height:30px; font-size:15px; cursor:pointer; color:var(--ink2);}
+.kv{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12.5px; color:var(--ink2); margin:8px 0 2px;}
+.kv b{color:var(--ink);}
+
+/* ---- timeline ---- */
+.track{margin:10px 0 4px;}
+.track-title{font-size:11px; font-weight:700; color:var(--ink2); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; display:flex; gap:6px; align-items:center;}
+.step{display:flex; gap:10px; position:relative; padding:0 0 2px;}
+.step .rail{width:14px; flex:none; display:flex; flex-direction:column; align-items:center;}
+.step .dot{width:12px; height:12px; border-radius:99px; border:2px solid var(--baseline); background:var(--surface); flex:none; margin-top:3px;}
+.step.done .dot{background:var(--good); border-color:var(--good);}
+.step.in .dot{background:var(--surface); border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+.step .line{width:2px; flex:1; background:var(--grid); min-height:10px;}
+.step:last-child .line{display:none;}
+.step .sbody{flex:1; padding-bottom:9px; min-width:0;}
+.step .sname{font-size:13px; font-weight:600;}
+.step.done .sname{color:var(--ink2); font-weight:500;}
+.step .sinfo{font-size:11px; color:var(--muted); margin-top:1px;}
+.step.in .sname{color:var(--accent);}
+.ng-track{margin-left:22px; border-left:2px dashed #8b5cf6; padding-left:10px;}
+
+/* ---- buttons ---- */
+.btnrow{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+.btn{
+  border:1px solid var(--baseline); background:var(--surface); color:var(--ink);
+  border-radius:10px; padding:9px 13px; font-size:13px; font-weight:600; cursor:pointer;
+}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+.btn.danger{border-color:var(--critical); color:var(--critical);}
+.btn.big{padding:16px; font-size:16px; width:100%;}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+
+/* ---- notes / events ---- */
+.note{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin:6px 0; font-size:13px;}
+.note .who{font-size:11px; color:var(--muted); margin-bottom:2px;}
+.evt{font-size:12px; color:var(--ink2); padding:5px 0; border-bottom:1px solid var(--grid);}
+.evt:last-child{border:none;}
+.evt .t{color:var(--muted); font-size:10.5px;}
+.evt.warn{color:var(--warn-ink);}
+
+/* ---- bench ---- */
+.bench-step{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; text-align:center;}
+.bench-step .big-name{font-size:22px; font-weight:700; margin:4px 0;}
+.bench-step .big-case{font-size:15px; color:var(--ink2);}
+.scanbox{
+  border:2px dashed var(--baseline); border-radius:14px; padding:26px 14px; text-align:center;
+  color:var(--ink2); font-size:14px; cursor:pointer; background:var(--surface);
+}
+.scanbox .ic{font-size:34px; display:block; margin-bottom:6px;}
+
+/* ---- inbox ---- */
+.inbox-item{display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--grid); font-size:13px;}
+.inbox-item:last-child{border:none;}
+.inbox-item .ic{flex:none;}
+.inbox-item .bx{flex:1;}
+.inbox-item .t{font-size:10.5px; color:var(--muted);}
+
+/* ---- ticket ---- */
+.ticket{background:#fff; color:#0b0b0b; border-radius:12px; border:1px solid var(--grid); padding:18px; max-width:420px; margin:0 auto;}
+.barcode{display:flex; align-items:flex-end; height:54px; gap:0; margin:10px 0 2px; justify-content:center;}
+.barcode i{display:inline-block; background:#000; height:100%;}
+.barcode-num{text-align:center; font-size:13px; letter-spacing:3px; font-weight:700; margin-bottom:8px;}
+.ticket table{width:100%; border-collapse:collapse; font-size:12.5px;}
+.ticket td{padding:4px 2px; border-bottom:1px solid #eee; vertical-align:top;}
+.ticket .steps td{font-size:11.5px;}
+.ticket .chk{width:13px; height:13px; border:1.5px solid #555; display:inline-block; border-radius:3px; vertical-align:middle;}
+@media print{
+  body *{visibility:hidden;}
+  .sheet-bg{position:static; background:none;}
+  .ticket, .ticket *{visibility:visible;}
+  .ticket{position:absolute; left:0; top:0; box-shadow:none; border:none;}
+}
+
+/* ---- filters ---- */
+.filters{display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; -webkit-overflow-scrolling:touch;}
+.fchip{border:1px solid var(--baseline); background:var(--surface); color:var(--ink2); border-radius:99px; padding:5px 12px; font-size:12px; white-space:nowrap; cursor:pointer;}
+.fchip.on{background:var(--ink); color:var(--surface); border-color:var(--ink);}
+.searchrow{display:flex; gap:8px; margin-bottom:8px;}
+.searchrow input{flex:1;}
+
+/* modal small */
+.modal{background:var(--page); border-radius:14px; padding:16px; width:92%; max-width:440px; max-height:80vh; overflow-y:auto;}
+.modal h3{margin:0 0 10px; font-size:15px; color:var(--ink);}
+.opt-row{display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--grid); border-radius:10px; padding:10px 12px; margin:6px 0; font-size:13.5px; cursor:pointer;}
+.opt-row:active{border-color:var(--accent);}
+label.f{display:block; font-size:12px; color:var(--ink2); margin:10px 0 4px; font-weight:600;}
+
+/* ---- v1.6 polish ---- */
+.card{box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.tile{box-shadow:0 1px 3px rgba(0,0,0,.05); transition:transform .08s ease;}
+.tile:active{transform:scale(.96);}
+.btn{transition:transform .08s ease, box-shadow .15s ease;}
+.btn:active{transform:scale(.96);}
+.btn.primary{box-shadow:0 2px 8px rgba(42,120,214,.28);}
+.fchip, .qcase, .my-row, .kb-card{transition:border-color .12s ease, box-shadow .12s ease;}
+.qcase:hover, .kb-card:hover{border-color:var(--accent);}
+nav.tabs button .ic{padding:2px 14px; border-radius:10px; transition:background .15s ease;}
+nav.tabs button.on .ic{background:var(--accent-soft);}
+header.app{box-shadow:0 1px 0 var(--grid), inset 0 -2px 0 var(--accent-soft);}
+.logo-molar{width:26px; height:26px; flex:none; margin-right:2px;}
+.tech-row.dragover{background:var(--accent-soft); border-radius:10px;}
+.qcase[draggable="true"]{cursor:grab;}
+.qcase.dragging{opacity:.5;}
+
+/* ---- Pearl the mascot, v2: walks in, stops, delivers, walks off ---- */
+#pearl{position:fixed; bottom:calc(58px + env(safe-area-inset-bottom)); left:-110px; z-index:60; display:none; cursor:pointer; filter:drop-shadow(0 3px 4px rgba(0,0,0,.22));}
+#pearl.walking{display:block; animation:pearl-walk 13s cubic-bezier(.4,0,.6,1) forwards;}
+#pearl .body{animation:pearl-waddle .4s ease-in-out infinite alternate; transform-origin:50% 85%;}
+#pearl .p-eyes{animation:pearl-blink 3.4s infinite; transform-origin:32px 26px;}
+#pearl .bub{
+  position:absolute; bottom:calc(100% + 8px); left:-6px; width:max-content; max-width:210px;
+  background:var(--surface); color:var(--ink); border:2px solid var(--ink);
+  border-radius:14px 14px 14px 3px; padding:8px 11px; font-size:12.5px; font-weight:700; line-height:1.35;
+  box-shadow:0 3px 10px rgba(0,0,0,.12);
+  opacity:0; transform:scale(.6); transform-origin:bottom left;
+  animation:pearl-bub 13s ease-in-out forwards;
+}
+@keyframes pearl-walk{
+  0%{left:-110px;} 34%{left:calc(50vw - 100px);} 63%{left:calc(50vw - 100px);} 100%{left:105vw;}
+}
+@keyframes pearl-waddle{ from{transform:rotate(-5deg) translateY(0);} to{transform:rotate(5deg) translateY(-2.5px);} }
+@keyframes pearl-blink{ 0%,93%,100%{transform:scaleY(1);} 95%,97%{transform:scaleY(.08);} }
+@keyframes pearl-bub{
+  0%,32%{opacity:0; transform:scale(.6);}
+  37%{opacity:1; transform:scale(1.06);}
+  40%{transform:scale(1);}
+  62%{opacity:1; transform:scale(1);}
+  70%,100%{opacity:0; transform:scale(.85);}
+}
+@media (prefers-reduced-motion: reduce){ #pearl{display:none !important;} }
+
+/* ---- v1.7 aesthetic pass ---- */
+body{background:radial-gradient(1100px 320px at 50% -140px, var(--accent-soft), transparent), var(--page);}
+h2.pagetitle{font-size:21px; font-weight:800; letter-spacing:-.4px;}
+.card{border-radius:16px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 5px 16px rgba(0,0,0,.05);}
+.card h3{font-size:11.5px; letter-spacing:.9px;}
+.tile{border-radius:16px;}
+.tile .num{letter-spacing:-1px; font-size:27px;}
+.btn{border-radius:12px;}
+.btn.primary{border:none; background:linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 82%, #000));}
+nav.tabs{border-top:none; box-shadow:0 -4px 20px rgba(0,0,0,.08); border-radius:18px 18px 0 0;}
+nav.tabs button{font-weight:600;}
+.sheet{border-radius:22px 22px 0 0;}
+.sheet::before{content:''; display:block; width:42px; height:4px; background:var(--baseline); border-radius:99px; margin:0 auto 10px;}
+@media(min-width:760px){ .sheet{border-radius:22px;} .sheet::before{display:none;} }
+.meter{height:16px; border-radius:8px;}
+.meter .fill{border-radius:8px;}
+.fchip{border-radius:12px; padding:6px 13px;}
+.assign-hint{border-radius:12px;}
+.badge{letter-spacing:.4px; padding:2.5px 7px;}
+.scanbox{border-radius:18px; border-width:2.5px;}
+.scanbox:active{transform:scale(.98);}
+.modal{border-radius:18px;}
+.bench-step{border-radius:18px; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 5px 16px rgba(0,0,0,.05);}
+.kb-col{border-radius:14px;}
+.rk-stat{border-radius:12px;}
+.rk-stat .v{letter-spacing:-.5px;}
+
+/* ---- calendar ---- */
+.cal-head{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+.cal-head b{font-size:15px; flex:1; text-align:center;}
+.cal-nav{border:1px solid var(--baseline); background:var(--surface); border-radius:10px; width:34px; height:34px; font-size:15px; cursor:pointer; color:var(--ink);}
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+.cal .dow{font-size:10px; color:var(--muted); text-align:center; font-weight:700; padding:2px 0;}
+.cal-cell{
+  min-height:52px; background:var(--surface); border:1px solid var(--grid); border-radius:10px;
+  padding:3px 4px; cursor:pointer; position:relative; transition:border-color .12s ease;
+}
+.cal-cell:hover{border-color:var(--accent);}
+.cal-cell.off{opacity:.35; cursor:default;}
+.cal-cell.today{border-color:var(--accent); border-width:2px;}
+.cal-cell.sel{background:var(--accent-soft); border-color:var(--accent);}
+.cal-cell .dnum{font-size:11px; font-weight:700; color:var(--ink2);}
+.cal-dots{display:flex; flex-wrap:wrap; gap:2px; margin-top:3px;}
+.cal-dots i{width:7px; height:7px; border-radius:3px; display:block;}
+.cal-more{font-size:9px; color:var(--muted); font-weight:700;}
+.cal-out{position:absolute; bottom:2px; right:4px; font-size:9.5px;}
+
+/* ---- chat hub ---- */
+.thread-row{display:flex; align-items:center; gap:10px; padding:11px 4px; border-bottom:1px solid var(--grid); cursor:pointer;}
+.thread-row:last-child{border-bottom:none;}
+.thread-row .tr-avatar{width:38px; height:38px; border-radius:12px; flex:none; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#fff;}
+.thread-row .tr-main{flex:1; min-width:0;}
+.thread-row .tr-top{display:flex; gap:6px; align-items:center;}
+.thread-row .tr-top b{font-size:13.5px;}
+.thread-row .tr-prev{font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:1px;}
+.thread-row .tr-when{font-size:10.5px; color:var(--muted); white-space:nowrap;}
+.unread-dot{width:9px; height:9px; border-radius:99px; background:var(--accent); flex:none;}
+.appr-card{
+  border:2px solid var(--warn); background:var(--surface); border-radius:14px; padding:10px 12px; margin-bottom:10px;
+  font-size:13px;
+}
+.appr-card .btnrow{margin:8px 0 0;}
+.chat-full{display:flex; flex-direction:column;}
+.chat-full .chat{max-height:none; flex:1;}
+
+/* ---- pipeline card ---- */
+.pipe-row{display:flex; align-items:center; gap:8px; padding:8px 2px; border-bottom:1px solid var(--grid); cursor:pointer;}
+.pipe-row:last-child{border:none;}
+.pipe-row .arrow{color:var(--muted); font-size:11px; white-space:nowrap;}
+
+/* ---- confetti ---- */
+.confetti{position:fixed; inset:0; pointer-events:none; z-index:80; overflow:hidden;}
+.confetti i{position:absolute; top:-14px; width:8px; height:13px; border-radius:2px; animation:cfall 1.7s ease-in forwards;}
+@keyframes cfall{ to{ transform:translateY(106vh) rotate(560deg); } }
+@media (prefers-reduced-motion: reduce){ .confetti{display:none;} }
+.field{width:100%;}
+.empty{color:var(--muted); font-size:13px; padding:12px 0; text-align:center;}
+h2.pagetitle{font-size:17px; margin:2px 0 10px;}
+.subtle{font-size:12px; color:var(--muted);}
+
+/* ---- segmented toggle ---- */
+.seg{display:inline-flex; border:1px solid var(--baseline); border-radius:10px; overflow:hidden; margin-bottom:10px;}
+.seg button{border:none; background:var(--surface); color:var(--ink2); padding:7px 13px; font-size:12.5px; font-weight:600; cursor:pointer;}
+.seg button.on{background:var(--ink); color:var(--surface);}
+
+/* ---- kanban ---- */
+.kb{display:flex; gap:10px; overflow-x:auto; padding:2px 2px 14px; -webkit-overflow-scrolling:touch; align-items:flex-start;}
+.kb-col{flex:0 0 240px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:8px; min-height:120px;}
+.kb-col.dragover{outline:2px solid var(--accent);}
+.kb-col h4{margin:2px 4px 8px; font-size:12px; color:var(--ink2); text-transform:uppercase; letter-spacing:.5px; display:flex; justify-content:space-between;}
+.kb-card{background:var(--page); border:1px solid var(--grid); border-left:4px solid var(--baseline); border-radius:9px; padding:8px 9px; margin-bottom:7px; cursor:pointer; font-size:12.5px;}
+.kb-card.sel{outline:2px solid var(--accent);}
+.kb-card .kc-top{display:flex; gap:6px; align-items:center; font-weight:700; font-size:12.5px;}
+.kb-card .kc-step{color:var(--ink2); margin-top:2px; font-size:11.5px;}
+.kb-card .kc-bot{display:flex; justify-content:space-between; margin-top:4px; font-size:10.5px; color:var(--muted);}
+.kb-legend{display:flex; gap:10px; flex-wrap:wrap; font-size:10.5px; color:var(--ink2); margin:0 0 8px;}
+.kb-legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px;}
+
+/* ---- my work list (bench) ---- */
+.my-row{display:flex; align-items:center; gap:8px; padding:9px 8px; margin:6px 0; border:1px solid var(--grid); border-radius:10px; cursor:pointer; background:var(--surface);}
+.my-row.working{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft);}
+.my-row .st{font-size:10px; font-weight:700; padding:2px 6px; border-radius:99px; border:1px solid var(--baseline); color:var(--ink2);}
+.my-row .st.in{color:var(--accent); border-color:var(--accent);}
+
+.linklike{background:none; border:none; color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; padding:0;}
+.chek{display:flex; align-items:center; gap:8px; font-size:13.5px; padding:8px 2px;}
+
+/* ---- case chat ---- */
+.chat{display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; padding:2px;}
+.chat-msg{background:var(--surface); border:1px solid var(--grid); border-radius:12px 12px 12px 3px; padding:7px 10px; font-size:13px; max-width:92%; align-self:flex-start;}
+.chat-msg.mine{align-self:flex-end; border-radius:12px 12px 3px 12px; background:var(--accent-soft); border-color:var(--accent);}
+.chat-msg .cwho{font-size:10.5px; color:var(--muted); margin-bottom:2px; font-weight:600;}
+.chat-msg .cping{display:inline-block; font-size:10px; font-weight:700; color:var(--accent); border:1px solid var(--accent); border-radius:99px; padding:1px 7px; margin-bottom:3px;}
+.chat-in{display:flex; gap:6px; margin-top:8px;}
+.chat-in input{flex:1;}
+.chat-ping{margin-top:6px; display:flex; gap:6px; align-items:center; font-size:12px; color:var(--ink2);}
+.chat-ping select{padding:5px 8px; font-size:12px;}
+
+/* ---- remake mini-bars ---- */
+.rk-row{display:flex; align-items:center; gap:8px; margin:4px 0;}
+.rk-row .lbl{width:150px; font-size:12px; color:var(--ink2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.rk-row .bar{flex:1; height:12px; background:var(--page); border:1px solid var(--grid); border-radius:4px; overflow:hidden;}
+.rk-row .bar i{display:block; height:100%; background:var(--accent); border-radius:3px 0 0 3px;}
+.rk-row .n{width:26px; text-align:right; font-size:12px; color:var(--ink2); font-variant-numeric:tabular-nums;}
+.rk-stats{display:flex; gap:8px; margin:4px 0 10px;}
+.rk-stat{flex:1; text-align:center; background:var(--page); border:1px solid var(--grid); border-radius:10px; padding:7px 4px;}
+.rk-stat .v{font-size:19px; font-weight:700;}
+.rk-stat .k{font-size:10.5px; color:var(--ink2);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ===================== Renew LMS v1 Prototype — data model & seed ===================== */
+/* All data is in-memory sample data. Resets on reload. */
+
+const now = () => new Date();
+const hoursAgo = h => new Date(Date.now() - h*3600e3);
+const daysFromNow = d => { const x = new Date(); x.setDate(x.getDate()+d); return x; };
+const fmtDate = d => d.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+const fmtWhen = d => d.toLocaleDateString(undefined,{month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined,{hour:'numeric', minute:'2-digit'});
+const dayDiff = d => Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate()) - new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/86400e3);
+
+const DEPTS = ['Scanning','Design','Milling','Printing','Finishing','QC','Shipping'];
+
+const TECHS = [
+  {id:'t1',  name:'Richard C.', dept:'Finishing', role:'lead'},
+  {id:'t2',  name:'Mel R.',     dept:'Finishing', role:'tech'},
+  {id:'t3',  name:'Diego S.',   dept:'Finishing', role:'tech'},
+  {id:'t4',  name:'Kayla P.',   dept:'Finishing', role:'tech'},
+  {id:'t5',  name:'Lena V.',    dept:'Design',    role:'lead'},
+  {id:'t6',  name:'Priya M.',   dept:'Design',    role:'tech'},
+  {id:'t7',  name:'Tomas B.',   dept:'Design',    role:'tech'},
+  {id:'t8',  name:'Jake H.',    dept:'Milling',   role:'tech'},
+  {id:'t9',  name:'Sam T.',     dept:'Milling',   role:'tech'},
+  {id:'t10', name:'Aria K.',    dept:'Printing',  role:'tech'},
+  {id:'t11', name:'Marco D.',   dept:'Scanning',  role:'tech'},
+  {id:'t12', name:'Ines F.',    dept:'QC',        role:'tech'},
+  {id:'t13', name:'Ben W.',     dept:'Shipping',  role:'tech'},
+  {id:'t14', name:'Dana L.',    dept:'Front Desk',role:'frontdesk'},
+  {id:'t0',  name:'Dr. Weiss',  dept:'Management',role:'owner'},   // lab owner — approvals, oversight
+];
+const tech = id => TECHS.find(t=>t.id===id);
+const HOURS_PER_DAY = 6.5; // productive bench hours per tech
+
+/* ---- skills matrix: default = every step of your own department at primary level.
+   Overrides: 0 = can't do it (yet), 1 = primary, 2 = backup / cross-trained. ---- */
+const SKILL_OVERRIDES = {
+  t4:  {'Structure':0},                                   // Kayla — still training on structure
+  t12: {'Cement/Polish':2, 'Finishing':2},                // Ines (QC) cross-trained as finishing backup
+  t3:  {'QC':2},                                          // Diego can cover QC in a pinch
+  t7:  {'Scanning':2},                                    // Tomas can scan
+};
+
+/* ---- absences: from/to are inclusive date offsets from today (0 = today) ---- */
+let ABSENCES = [
+  {tid:'t3', from:0, to:0, note:'out sick'},              // Diego out today
+  {tid:'t6', from:4, to:8, note:'vacation'},              // Priya out next week
+];
+
+/* ---- Workflows (from the documented 3Shape production flows) ---- */
+const WORKFLOWS = {
+  tryin: {
+    name:'Denture Try-in', endState:'ship',
+    main:[
+      {n:'Scanning', d:'Scanning', h:0.5},
+      {n:'Set Teeth', d:'Design', h:1.5},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design', d:'Design', h:1.0},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'CAM-Print', d:'Printing', h:1.0},
+      {n:'Finishing', d:'Finishing', h:1.5},
+      {n:'QC', d:'QC', h:0.3},
+      {n:'Shipping', d:'Shipping', h:0.2},
+    ]
+  },
+  proto: {
+    name:'Prototype (Digital)', endState:'ship',
+    main:[
+      {n:'Scanning', d:'Scanning', h:0.5},
+      {n:'Set Teeth', d:'Design', h:1.5},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design', d:'Design', h:1.0},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'CAM-Print', d:'Printing', h:1.0},
+      {n:'Finishing', d:'Finishing', h:1.5},
+      {n:'QC', d:'QC', h:0.3},
+      {n:'Shipping', d:'Shipping', h:0.2},
+    ]
+  },
+  final: {
+    name:'Final Denture', endState:'ship', linked:true,
+    main:[
+      {n:'Final Design', d:'Design', h:1.0},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'CAM-Mill', d:'Milling', h:1.5},
+      {n:'Finishing', d:'Finishing', h:2.0},
+      {n:'QC', d:'QC', h:0.3},
+      {n:'Shipping', d:'Shipping', h:0.2},
+    ]
+  },
+  flange: {
+    name:'Flangeless (Immediate)', endState:'inhouse',
+    main:[
+      {n:'Scanning', d:'Scanning', h:0.5},
+      {n:'Set Teeth', d:'Design', h:1.5},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design', d:'Design', h:1.0},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'CAM-Print', d:'Printing', h:1.0},
+      {n:'CAM-Mill', d:'Milling', h:1.0},
+      {n:'Finishing', d:'Finishing', h:1.5},
+      {n:'QC', d:'QC', h:0.3},
+    ]
+  },
+  sleeve: {
+    name:'Sleeve Final (w/ NG)', endState:'ship',
+    main:[
+      {n:'Final Design', d:'Design', h:2.0},
+      {n:'Split Bar/Sleeve', d:'Design', h:0.5},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'CAM-Mill', d:'Milling', h:2.0},
+      {n:'Contour/Sinter', d:'Milling', h:1.5},
+      {n:'Inspection', d:'QC', h:0.5},
+      {n:'Adjustment/Prep', d:'Finishing', h:1.0},
+      {n:'Stain', d:'Finishing', h:1.0},
+      {n:'Structure', d:'Finishing', h:1.5},
+      {n:'Cement/Polish', d:'Finishing', h:1.0},
+      {n:'QC', d:'QC', h:0.5},
+      {n:'Shipping', d:'Shipping', h:0.2},
+    ],
+    // Night-guard parallel track: spawns when main completes Adjustment/Prep (idx 6);
+    // main QC (idx 10) is gated until the NG track is complete.
+    ng:[
+      {n:'NG Scanning', d:'Scanning', h:0.3},
+      {n:'NG Design', d:'Design', h:0.8},
+      {n:'CAM-Print (NG)', d:'Printing', h:0.8},
+    ],
+    forkAfter:6, joinAt:10,
+  },
+};
+
+/* ---- Reason codes (same 21-code / 6-group list as the remake tracker) ---- */
+const REASONS = {
+  'Design':['Occlusion','Midline / esthetic setup','Margin / intaglio','Wrong mould or shade in design'],
+  'CAD / Data':['Scan error','Rx entered wrong','Wrong file sent'],
+  'Fabrication':['Print defect','Mill defect','Sintering defect','Nesting / support error'],
+  'Fit':['Passivity / Quarter Turn fail','Doesn\'t seat','Screw access misaligned'],
+  'Finishing':['Fracture / chip','Shade / stain mismatch','Over-adjusted','Cementation defect'],
+  'External':['Doctor-requested change','Damaged in shipping','Patient-driven change'],
+};
+
+const DOCTORS = [
+  {doc:'Dr. Nguyen', clinic:'Summit Smiles'},
+  {doc:'Dr. Patel', clinic:'Ridgeline Dental'},
+  {doc:'Dr. Okafor', clinic:'Harbor Dental Group'},
+  {doc:'Dr. Weiss', clinic:'In-house practice'},
+];
+
+/* ---- Case factory ---- */
+let caseSeq = 2680;
+const DEPT_SEED_TECH = {Scanning:'t11', Design:'t6', Milling:'t8', Printing:'t10', Finishing:'t3', QC:'t12', Shipping:'t13'};
+function mkSteps(defs){ return defs.map(s=>({status:'todo', assignee:null, start:null, end:null})); }
+function mkCase(o){
+  const wf = WORKFLOWS[o.wf];
+  const c = {
+    id:'R-'+(o.id||caseSeq++),
+    patient:o.patient, doctor:o.doctor, clinic:o.clinic,
+    wf:o.wf, rush:!!o.rush, linkedTo:o.linkedTo||null,
+    created:o.created||daysFromNow(-5), ship:o.ship,
+    tracks:{ main:{steps:mkSteps(wf.main)} },
+    notes:o.notes||[], events:[], flag:null, nudges:[],
+    moveLog:o.moveLog||[],
+  };
+  // advance main to given index; mark statuses
+  const adv = o.at||0;
+  for(let i=0;i<adv;i++){ const st=c.tracks.main.steps[i]; st.status='done'; st.assignee=DEPT_SEED_TECH[wf.main[i].d]||null; st.end=hoursAgo((adv-i)*20 + (o.age||0)); }
+  if(o.status==='in'){ const st=c.tracks.main.steps[adv]; st.status='in'; st.assignee=o.assignee; st.start=hoursAgo(1.5); }
+  else if(o.assignee){ c.tracks.main.steps[adv].assignee=o.assignee; }
+  if(o.ngAt!==undefined && wf.ng){
+    c.tracks.ng={steps:mkSteps(wf.ng)};
+    for(let i=0;i<o.ngAt;i++){ const st=c.tracks.ng.steps[i]; st.status='done'; st.end=hoursAgo((o.ngAt-i)*8); }
+    if(o.ngStatus==='in'){ const st=c.tracks.ng.steps[o.ngAt]; st.status='in'; st.assignee=o.ngAssignee; st.start=hoursAgo(0.7); }
+    else if(o.ngAssignee){ c.tracks.ng.steps[o.ngAt].assignee=o.ngAssignee; }
+  }
+  if(o.doneCase){
+    c.tracks.main.steps.forEach((st,i)=>{ st.status='done'; st.assignee=DEPT_SEED_TECH[wf.main[i].d]||null; st.end=hoursAgo((wf.main.length-i)*6+(o.doneAgeH||18)); });
+    if(c.tracks.ng) c.tracks.ng.steps.forEach(st=>{ st.status='done'; st.end=hoursAgo(30); });
+  }
+  c.events.push({when:c.created, who:o.creator||'Dana L.', text:'Case created' + (c.linkedTo?' — linked to '+c.linkedTo:''), type:'sys'});
+  (o.extraEvents||[]).forEach(e=>c.events.push(e));
+  return c;
+}
+
+let CASES = [
+  // HERO: sleeve w/ NG mid-parallel — case IS visible in finishing while NG runs
+  mkCase({wf:'sleeve', patient:'Alvarez, M.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+    ship:daysFromNow(2), at:7, status:'in', assignee:'t2', by:'t8',
+    ngAt:1, ngStatus:'in', ngAssignee:'t6',
+    created:daysFromNow(-16),
+    notes:[{who:'Richard C.', when:hoursAgo(26), text:'Sent out briefly for physical scan after Adjustment/Prep — back on my bench. NG design running in parallel, watch the QC gate.'},
+           {who:'Dr. Patel', when:daysFromNow(-14), text:'Patient wants slightly warmer incisal shade than the try-in. See attached photos in Communicate.'}],
+    extraEvents:[{when:hoursAgo(26), who:'System', text:'Night-guard track started (parallel)', type:'sys'}]}),
+  // sleeve at CAM-Mill
+  mkCase({wf:'sleeve', patient:'Brooks, T.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    ship:daysFromNow(6), at:3, status:'in', assignee:'t8', created:daysFromNow(-9)}),
+  // sleeve — inspection failed, moved back (remake-style event)
+  mkCase({wf:'sleeve', patient:'Castillo, R.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(4), at:3, assignee:'t9', created:daysFromNow(-11), rush:true,
+    notes:[{who:'Ines F.', when:hoursAgo(20), text:'Failed inspection — bar doesn\'t seat passively on the model. Sent back to CAM-Mill.'}],
+    moveLog:[{when:hoursAgo(20), by:'Richard C.', from:'Inspection', to:'CAM-Mill', group:'Fit', code:'Doesn\'t seat', rtype:'Internal remake', person:'Sam T.'}],
+    extraEvents:[{when:hoursAgo(20), who:'Richard C.', text:'Moved back: Inspection → CAM-Mill. Reason: Fit — Doesn\'t seat', type:'moveback'}]}),
+  // try-in at Set Teeth
+  mkCase({wf:'tryin', patient:'Dawson, K.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    ship:daysFromNow(5), at:1, status:'in', assignee:'t7', created:daysFromNow(-2)}),
+  // try-in waiting on approval (lives in chat)
+  mkCase({wf:'tryin', patient:'Egan, S.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+    ship:daysFromNow(3), at:2, created:daysFromNow(-4),
+    notes:[{who:'Tomas B.', when:hoursAgo(9), text:'Setup done. Midline shifted 0.5mm left per the photos — take a look before it goes out.'},
+           {who:'Lena V.', when:hoursAgo(8), text:'Checking it this morning. Photos are with Dr. Patel too.'}]}),
+  // try-in in finishing, UNASSIGNED, ships tomorrow
+  mkCase({wf:'tryin', patient:'Farrell, J.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(1), at:6, created:daysFromNow(-6), rush:true}),
+  // proto at CAM-Print
+  mkCase({wf:'proto', patient:'Gill, A.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    ship:daysFromNow(4), at:5, status:'in', assignee:'t10', created:daysFromNow(-3)}),
+  // proto at QC, ships today
+  mkCase({wf:'proto', patient:'Huang, L.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+    ship:daysFromNow(0), at:7, assignee:'t12', created:daysFromNow(-7)}),
+  // final denture linked, in finishing, ships today
+  mkCase({wf:'final', patient:'Ito, N.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(0), at:3, status:'in', assignee:'t3', linkedTo:'R-2588', created:daysFromNow(-8),
+    notes:[{who:'Diego S.', when:hoursAgo(2), text:'Try-in notes said reduce buccal fullness UL — carried over to final.'}]}),
+  // final denture at Final Design
+  mkCase({wf:'final', patient:'Jones, P.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    ship:daysFromNow(7), at:0, assignee:'t5', linkedTo:'R-2601', created:daysFromNow(-1)}),
+  // flangeless in-house, finishing, unassigned, seat today
+  mkCase({wf:'flange', patient:'Kim, D.', doctor:'Dr. Weiss', clinic:'In-house practice',
+    ship:daysFromNow(0), at:7, created:daysFromNow(-5),
+    notes:[{who:'Dr. Weiss', when:daysFromNow(-1), text:'Surgery moved up to this afternoon — needs to be chairside by 1pm.'}]}),
+  // try-in STALLED at scanning 3 days, unassigned, overdue
+  mkCase({wf:'tryin', patient:'Lopez, V.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+    ship:daysFromNow(-1), at:0, created:daysFromNow(-4), age:50,
+    extraEvents:[{when:hoursAgo(70), who:'System', text:'No movement in 72h', type:'sys'}]}),
+  // proto shipped yesterday (with a historical external remake + a revision on record)
+  mkCase({wf:'proto', patient:'Marsh, E.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(-1), doneCase:true, created:daysFromNow(-10),
+    moveLog:[
+      {when:hoursAgo(96), by:'Richard C.', from:'QC', to:'Finishing', group:'Finishing', code:'Shade / stain mismatch', rtype:'External remake', person:'Kayla P.'},
+      {when:hoursAgo(150), by:'Lena V.', from:'Final Design Approval', to:'Final Design', group:'External', code:'Doctor-requested change', rtype:'Revision', person:'—'},
+    ]}),
+  // flangeless delivered in-house
+  mkCase({wf:'flange', patient:'Novak, I.', doctor:'Dr. Weiss', clinic:'In-house practice',
+    ship:daysFromNow(-2), doneCase:true, created:daysFromNow(-9)}),
+  // held case — special attention before anyone starts it
+  mkCase({wf:'tryin', patient:'Quinn, B.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(3), at:6, created:daysFromNow(-4),
+    notes:[{who:'Richard C.', when:hoursAgo(5), text:'HOLD — implant analog looks off on the model. Verify against the scan with me before finishing starts.'}]}),
+  // shipped try-ins that the seeded Final Denture cases link back to
+  mkCase({id:2588, wf:'tryin', patient:'Ito, N.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+    ship:daysFromNow(-12), doneCase:true, doneAgeH:290, created:daysFromNow(-20),
+    notes:[{who:'Dr. Okafor', when:daysFromNow(-13), text:'Try-in approved. Reduce buccal fullness UL before the final.'}]}),
+  mkCase({id:2601, wf:'tryin', patient:'Jones, P.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    ship:daysFromNow(-8), doneCase:true, doneAgeH:195, created:daysFromNow(-15)}),
+];
+
+// a flagged case: tech flagged for lead
+CASES[4].flag = {by:'Priya M.', when:hoursAgo(3), text:'Doctor approval pending 2+ days — do we call the office?'};
+// hold flag on Quinn
+(CASES.find(c=>c.patient.startsWith('Quinn'))||{}).hold = {by:'Richard C.', when:hoursAgo(5), reason:'Implant analog issue — verify with lead before starting'};
+// a nudge example: finishing pinged printing about the NG print
+CASES[0].nudges.push({toDept:'Printing', from:'Richard C.', when:hoursAgo(4), text:'NG design almost done — can you queue the print this afternoon so QC isn\'t gated tomorrow?'});
+/* ===================== state ===================== */
+const state = {
+  view:'dash',
+  role:'lead',            // lead (management) | tech | frontdesk
+  userId:'t1',
+  caseId:null,
+  modal:null,
+  boardMode:'assign',     // assign | kanban
+  boardSel:null,
+  kbSel:null,             // selected kanban card {cid, track, idx}
+  kbMsg:null,
+  capMode:'dept',         // dept | person | type
+  dashCfg:{pr:true, cap:true, inbox:true, rem:true, mascot:true, pipe:true},
+  chatFilter:'all',
+  caseFilter:'all',
+  typeFilter:'all',
+  customFilters:[],
+  appliedCustom:null,
+  search:'',
+  benchTechId:'t1',            // matches the default Management (Richard) identity on load
+  benchCaseId:null,
+  benchSel:null,          // {track, idx} step being worked at bench
+  benchMsg:null,
+  benchView:'list',       // list | board  (personal kanban)
+  benchGroup:'day',       // day | type | status
+  rkWeek:true,            // remakes card: this week vs all time
+  draft:null,             // auto-draft proposal awaiting confirm
+  calMonth:0,             // months from current
+  calSel:null,            // selected day offset from today
+  chatOpen:null,          // cid of open thread in the Chat tab
+  chatRead:{},            // cid -> timestamp of last read
+  pipeDept:'Finishing',   // pipeline lens department
+  deptFilter:'all',       // Cases: department filter
+};
+
+const ROLE_TABS = {
+  lead:      [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['bench','▣','Bench']],
+  owner:     [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases']],
+  frontdesk: [['dash','◧','Today'],['cases','▤','Cases'],['chat','💬','Chat']],
+  tech:      [['bench','▣','My Bench'],['cases','▤','Cases'],['chat','💬','Chat']],
+};
+const BENCHABLE = t => t.dept!=='Front Desk' && t.dept!=='Management';
+const WF_COLORS = {tryin:'#2a78d6', proto:'#eb6834', final:'#1baf7a', flange:'#eda100', sleeve:'#e87ba4'};
+
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const me = () => tech(state.userId);
+const isLead = () => state.role==='lead' || state.role==='owner';
+const canApprove = () => (state.role==='lead'||state.role==='owner') && (state.userId==='t5' || state.userId==='t0');   // Design Lead + Lab Owner, in a management role — a tech signed in as Lena's bench does NOT inherit this
+const getCase = id => CASES.find(c=>c.id===id);
+const wfOf = c => WORKFLOWS[c.wf];
+const stepDefs = (c,track) => track==='ng' ? wfOf(c).ng : wfOf(c).main;
+
+/* ===================== engine ===================== */
+function trackIdx(c, track){
+  const steps = c.tracks[track].steps;
+  for(let i=0;i<steps.length;i++) if(steps[i].status!=='done') return i;
+  return -1;
+}
+function ngDone(c){ return !c.tracks.ng ? false : trackIdx(c,'ng')===-1; }
+function isBlocked(c, track, idx){
+  const wf = wfOf(c);
+  return track==='main' && wf.ng!==undefined && wf.joinAt===idx && c.tracks.ng && !ngDone(c);
+}
+function caseDone(c){
+  if(c.voided) return true;
+  if(trackIdx(c,'main')!==-1) return false;
+  if(c.tracks.ng && trackIdx(c,'ng')!==-1) return false;
+  return true;
+}
+function voidCase(cid){
+  const c=getCase(cid);
+  if(!window.confirm(`Void ${c.id} (${c.patient})? It comes off every queue, meter, and report. This is for mis-created cases — remakes use Move back instead.`)) return;
+  c.voided=true;
+  logEvt(c, `Case voided by ${me().name}`, 'warn');
+  state.caseId=null;
+  render();
+}
+function currentSteps(c){
+  if(caseDone(c)) return [];
+  const out=[];
+  for(const track of Object.keys(c.tracks)){
+    const i = trackIdx(c, track);
+    if(i===-1) continue;
+    out.push({track, idx:i, def:stepDefs(c,track)[i], st:c.tracks[track].steps[i], blocked:isBlocked(c,track,i)});
+  }
+  return out;
+}
+function lastActivity(c){
+  let t = new Date(c.created).getTime();
+  c.events.forEach(e=>{ t=Math.max(t, new Date(e.when).getTime()); });
+  c.notes.forEach(n=>{ t=Math.max(t, new Date(n.when).getTime()); });
+  for(const tr of Object.values(c.tracks)) tr.steps.forEach(s=>{
+    if(s.start) t=Math.max(t,new Date(s.start).getTime());
+    if(s.end) t=Math.max(t,new Date(s.end).getTime());
+  });
+  return t;
+}
+function isStalled(c){ return !caseDone(c) && (Date.now()-lastActivity(c)) > 48*3600e3; }
+function logEvt(c, text, type, who){ c.events.push({when:now(), who:who||me().name, text, type:type||'sys'}); }
+function benchActor(){ return tech(state.benchTechId).name; }
+// notes/flags/nudges started from the bench (incl. the case sheet opened from it) belong to the bench identity
+function actorName(fromBench){ return (fromBench || state.view==='bench') ? benchActor() : me().name; }
+
+function completeStep(c, track, idx, byTechId){
+  const st = c.tracks[track].steps[idx];
+  const def = stepDefs(c,track)[idx];
+  st.status='done'; st.end=now(); if(!st.assignee) st.assignee=byTechId;
+  delete st.prev;
+  logEvt(c, `${def.n} completed by ${tech(byTechId).name}`, 'step', tech(byTechId).name);
+  const wf = wfOf(c);
+  if(track==='main' && wf.ng!==undefined && wf.forkAfter===idx && !c.tracks.ng){
+    c.tracks.ng = {steps: wf.ng.map(()=>({status:'todo', assignee:null, start:null, end:null}))};
+    logEvt(c, 'Night-guard track started (parallel) — case stays visible to Finishing', 'sys');
+  }
+  if(caseDone(c)){
+    if(c.flag) logEvt(c, `Case completed with an open flag from ${c.flag.by}: "${c.flag.text}" — review before closing out`, 'warn');
+    logEvt(c, wf.endState==='ship' ? 'Case shipped' : 'Delivered in-house (no shipping)', 'done');
+  }
+}
+function checkInStep(c, track, idx, byTechId){
+  const st = c.tracks[track].steps[idx];
+  const def = stepDefs(c,track)[idx];
+  st.prev = {assignee:st.assignee, status:st.status, start:st.start};   // full pre-scan state, so undo restores it
+  if(st.assignee && st.assignee!==byTechId){
+    logEvt(c, `${def.n}: ${tech(byTechId).name} checked in (was assigned to ${tech(st.assignee).name})`, 'warn', tech(byTechId).name);
+  } else if(!st.assignee){
+    logEvt(c, `${def.n}: ${tech(byTechId).name} self-assigned by scan`, 'step', tech(byTechId).name);
+  } else {
+    logEvt(c, `${def.n}: ${tech(byTechId).name} checked in`, 'step', tech(byTechId).name);
+  }
+  st.assignee=byTechId; st.status='in'; st.start=now();
+}
+function moveBack(c, targetIdx, group, code, rtype, person){
+  const steps = c.tracks.main.steps;
+  const defs = stepDefs(c,'main');
+  const fromIdx = trackIdx(c,'main');
+  const fromName = fromIdx===-1 ? 'Complete' : defs[fromIdx].n;
+  for(let i=targetIdx;i<steps.length;i++){
+    if(steps[i].status!=='todo' || steps[i].assignee){
+      steps[i].status='todo'; steps[i].start=null; steps[i].end=null; steps[i].assignee=null;
+    }
+  }
+  const wf = wfOf(c);
+  if(wf.ng!==undefined && c.tracks.ng && targetIdx<=wf.forkAfter){
+    delete c.tracks.ng;
+    logEvt(c, 'Night-guard track reset — will restart after '+defs[wf.forkAfter].n, 'sys');
+  }
+  const entry = {when:now(), by:me().name, from:fromName, to:defs[targetIdx].n, group, code, rtype:rtype||'Internal remake', person:person||'—'};
+  c.moveLog.push(entry);
+  logEvt(c, `Moved back (${entry.rtype}): ${fromName} → ${defs[targetIdx].n}. Reason: ${group} — ${code}${entry.person!=='—' ? ' · responsible: '+entry.person : ''}`, 'moveback');
+}
+function allMoves(weekOnly){
+  const cutoff = Date.now() - 7*86400e3;
+  return CASES.flatMap(c=>c.moveLog.map(m=>({c,...m})))
+    .filter(m=>!weekOnly || new Date(m.when).getTime()>=cutoff)
+    .sort((a,b)=>new Date(b.when)-new Date(a.when));
+}
+
+/* ===================== derived ===================== */
+function unassignedQueue(){
+  const q=[];
+  CASES.forEach(c=>{
+    currentSteps(c).forEach(s=>{
+      if(!s.st.assignee && !s.blocked && !s.def.approval) q.push({c, ...s});
+    });
+  });
+  q.sort((a,b)=> (new Date(a.c.ship)-new Date(b.c.ship)) || ((a.c.rush?0:1)-(b.c.rush?0:1)));
+  return q;
+}
+function linkedNotes(c){
+  if(!c.linkedTo) return null;
+  const lc=getCase(c.linkedTo);
+  if(!lc || !lc.notes.length) return null;
+  return {id:lc.id, notes:lc.notes.slice(-2).reverse()};
+}
+/* ---- case chat: one thread per case; a message can also ping a department ---- */
+function chatThread(c){ return c.notes.slice().sort((a,b)=>new Date(a.when)-new Date(b.when)); }
+function chatHtml(c, opts){
+  const meName = actorName(opts && opts.bench);
+  const th = chatThread(c);
+  const msgs = th.length? th.map(n=>`
+    <div class="chat-msg ${n.who===meName?'mine':''}">
+      <div class="cwho">${esc(n.who)} · ${fmtWhen(new Date(n.when))}</div>
+      ${n.ping? `<span class="cping">👉 ${esc(n.ping)}</span><br>`:''}
+      ${esc(n.text)}
+    </div>`).join('') : '<div class="empty">No messages yet — start the thread.</div>';
+  const ln = linkedNotes(c);
+  return `
+    <div class="chat" id="chat-scroll">${ln? `<div class="chat-msg" style="border-style:dashed; opacity:.85;"><div class="cwho">⧉ from linked ${ln.id} · ${esc(ln.notes[0].who)}</div>${esc(ln.notes[0].text)}</div>`:''}${msgs}</div>
+    ${caseDone(c)? '' : `
+    <div class="chat-in">
+      <input id="chat-text" placeholder="Message the case…" onkeydown="if(event.key==='Enter') sendChat('${c.id}',${!!(opts&&opts.bench)})">
+      <button class="btn primary" onclick="sendChat('${c.id}',${!!(opts&&opts.bench)})">Send</button>
+    </div>
+    <div class="chat-ping">also ping:
+      <select id="chat-ping"><option value="">no one</option>${DEPTS.map(d=>`<option>${d}</option>`).join('')}<option>Leads</option></select>
+      <span class="subtle">pinged departments see it on their bench until dismissed</span>
+    </div>`}`;
+}
+function sendChat(cid, bench){
+  const el=document.getElementById('chat-text');
+  const text=(el&&el.value.trim())||'';
+  if(!text) return;
+  const c=getCase(cid);
+  const who=actorName(bench);
+  const pingEl=document.getElementById('chat-ping');
+  const ping=(pingEl&&pingEl.value)||null;
+  c.notes.push({who, when:now(), text, ping});
+  if(ping && ping!=='Leads') c.nudges.push({toDept:ping, from:who, when:now(), text});
+  if(ping==='Leads'){ c.flag = c.flag? {by:c.flag.by, when:now(), text:`${c.flag.text} · also ${who}: ${text}`} : {by:who, when:now(), text}; }
+  state.chatRead[cid]=Date.now();
+  render();
+  const sc=document.getElementById('chat-scroll'); if(sc) sc.scrollTop=sc.scrollHeight;
+  const ne=document.getElementById('chat-text'); if(ne) ne.focus();
+}
+function techOpenSteps(tid){
+  const out=[];
+  CASES.forEach(c=>{
+    for(const track of Object.keys(c.tracks)){
+      const defs = stepDefs(c,track);
+      c.tracks[track].steps.forEach((st,i)=>{
+        if(st.assignee===tid && st.status!=='done' && !defs[i].approval){   // approvals are doctor waits, not bench work
+          out.push({c, track, idx:i, def:defs[i], st, blocked:isBlocked(c,track,i), current: trackIdx(c,track)===i});
+        }
+      });
+    }
+  });
+  out.sort((a,b)=> new Date(a.c.ship)-new Date(b.c.ship));
+  return out;
+}
+function techLoad(t){
+  const rows = techOpenSteps(t.id);
+  return {hrs: rows.reduce((a,r)=>a+r.def.h,0), n: rows.length};
+}
+/* ---- skills + availability ---- */
+function stepQual(t, def){          // 0 = can't, 1 = primary, 2 = backup/cross-trained
+  const o=SKILL_OVERRIDES[t.id];
+  if(o && o[def.n]!==undefined) return o[def.n];
+  return t.dept===def.d ? 1 : 0;
+}
+function isOutOn(tid, dayOffset){ return ABSENCES.some(a=>a.tid===tid && dayOffset>=a.from && dayOffset<=a.to); }
+function outToday(tid){ return isOutOn(tid,0); }
+function techAbsences(tid){ return ABSENCES.map((a,i)=>({...a,i})).filter(a=>a.tid===tid && a.to>=0); }
+function deptStepNames(dept){
+  const s=new Set();
+  Object.values(WORKFLOWS).forEach(w=>{
+    w.main.forEach(d=>{ if(d.d===dept && !d.approval) s.add(d.n); });
+    (w.ng||[]).forEach(d=>{ if(d.d===dept) s.add(d.n); });
+  });
+  return [...s];
+}
+/* ---- auto-draft assignment ----
+   Strict tiers: primary techs → backup techs → primary leads → backup leads.
+   Backups only get work when every primary is full; leads only when no tech has capacity. */
+function assignTier(t, def){ return (t.role==='lead'?2:0) + (stepQual(t,def)===2?1:0); }
+function computeDraft(){
+  const picks=[], overflow=[];
+  const loads={}; TECHS.forEach(t=>loads[t.id]=techLoad(t).hrs);
+  const q=unassignedQueue();
+  q.forEach(item=>{
+    if(item.c.hold) return;                                  // held cases are omitted by design
+    const cands=TECHS.filter(t=>BENCHABLE(t) && !outToday(t.id) && stepQual(t,item.def)>0);
+    if(!cands.length){
+      overflow.push({item, reason:'no one qualified is in today', options:[`first qualified back: ${firstBack(item)}`, slipOption(item)]});
+      return;
+    }
+    const fit=cands.filter(t=> loads[t.id]+item.def.h <= HOURS_PER_DAY + 1e-9);
+    if(!fit.length){
+      cands.sort((a,b)=>(loads[a.id]+item.def.h)-(loads[b.id]+item.def.h));
+      const least=cands[0], over=(loads[least.id]+item.def.h-HOURS_PER_DAY);
+      overflow.push({item, reason:'everyone qualified is full today (leads included)', options:[
+        `least loaded: ${least.name} would go ${over.toFixed(1)}h over`,
+        `first qualified free tomorrow: ${firstBack(item)}`,
+        slipOption(item),
+      ]});
+      return;
+    }
+    fit.sort((a,b)=> (assignTier(a,item.def)-assignTier(b,item.def)) || ((loads[a.id]+item.def.h)-(loads[b.id]+item.def.h)));
+    const t=fit[0];
+    picks.push({cid:item.c.id, track:item.track, idx:item.idx, stepName:item.def.n, h:item.def.h, tid:t.id, before:loads[t.id], backup:stepQual(t,item.def)===2, lead:t.role==='lead'});
+    loads[t.id]+=item.def.h;
+  });
+  return {picks, overflow};
+}
+function firstBack(item){
+  for(let d=1; d<=14; d++){
+    const t=TECHS.find(x=>BENCHABLE(x) && stepQual(x,item.def)>0 && !isOutOn(x.id,d));
+    if(t) return `${t.name} (${d===1?'tomorrow':'in '+d+' days'})`;
+  }
+  return 'none in 14 days';
+}
+function slipOption(item){
+  const dd=dayDiff(new Date(item.c.ship));
+  return dd>0? `or slip the ship date (currently ${shipLabel(item.c)})` : 'ship date is already due — needs a lead call';
+}
+function runDraft(){ state.draft=computeDraft(); render(); }
+function dropPick(i){ state.draft.picks.splice(i,1); render(); }
+function cancelDraft(){ state.draft=null; render(); }
+function confirmDraft(){
+  let applied=0;
+  state.draft.picks.forEach(p=>{
+    const c=getCase(p.cid);
+    const st=c.tracks[p.track].steps[p.idx];
+    if(trackIdx(c,p.track)===p.idx && !st.assignee){
+      st.assignee=p.tid;
+      logEvt(c, `${p.stepName} auto-assigned to ${tech(p.tid).name} (draft confirmed by ${me().name})`, 'step');
+      applied++;
+    }
+  });
+  const held=CASES.filter(c=>!caseDone(c) && c.hold).length;
+  const leadPicks=state.draft.picks.filter(p=>p.lead).length;
+  state.boardMsg=`✓ ${applied} assignment${applied===1?'':'s'} confirmed.${leadPicks? ' '+leadPicks+' went to leads (techs full).':''}${state.draft.overflow.length? ' '+state.draft.overflow.length+' left in queue (no capacity).':''}${held? ' '+held+' held case'+(held===1?'':'s')+' omitted.':''}`;
+  state.draft=null;
+  walkMascot(applied? 'Board is set. Go make teeth!' : 'Nothing to hand out. Suspicious…', applied?'cheer':'think');
+  render();
+}
+/* ---- absences ---- */
+function markOut(tid, from, days, note){
+  if(from<0) return;                                     // no ghost absences in the past
+  ABSENCES.push({tid, from, to:from+Math.max(0,days-1), note:note||''});
+  if(from===0){
+    // redistribute: queued steps go back to the pool; in-progress work is flagged for a lead decision
+    let returned=0;
+    CASES.forEach(c=>{
+      for(const track of Object.keys(c.tracks)){
+        c.tracks[track].steps.forEach((st,i)=>{
+          if(st.assignee===tid && st.status==='todo'){
+            st.assignee=null; returned++;
+            logEvt(c, `${stepDefs(c,track)[i].n} returned to queue — ${tech(tid).name} out`, 'step');
+          } else if(st.assignee===tid && st.status==='in'){
+            c.flag = c.flag || {by:'System', when:now(), text:`${tech(tid).name} is out with ${stepDefs(c,track)[i].n} checked in — needs a lead decision`};
+            logEvt(c, `${tech(tid).name} out with ${stepDefs(c,track)[i].n} in progress — flagged`, 'warn');
+          }
+        });
+      }
+    });
+    state.boardMsg = `${tech(tid).name} marked out — ${returned} queued step${returned===1?'':'s'} returned to the pool. Re-run auto-draft to redistribute.`;
+  } else {
+    state.boardMsg = `${tech(tid).name} marked out starting ${fmtDate(daysFromNow(from))} for ${days} day${days===1?'':'s'}.`;
+  }
+  render();
+}
+function removeAbsence(i){ ABSENCES.splice(i,1); render(); }
+function cycleSkill(tid, step){
+  const t=tech(tid);
+  SKILL_OVERRIDES[tid]=SKILL_OVERRIDES[tid]||{};
+  const cur = SKILL_OVERRIDES[tid][step]!==undefined ? SKILL_OVERRIDES[tid][step] : (deptStepNames(t.dept).includes(step)?1:0);
+  SKILL_OVERRIDES[tid][step] = cur===1? 2 : cur===2? 0 : 1;
+  render();
+}
+/* ---- hold flag ---- */
+function setHold(cid, reason){
+  const c=getCase(cid);
+  c.hold={by:me().name, when:now(), reason:reason||'Special attention required'};
+  logEvt(c, `Case put on HOLD by ${me().name}: ${c.hold.reason}`, 'warn');
+  closeModal(); render();
+}
+function releaseHold(cid){
+  const c=getCase(cid);
+  if(c.hold){ logEvt(c, `Hold released by ${me().name}`, 'sys'); c.hold=null; }
+  render();
+}
+function deptLoad(){
+  const load={}; DEPTS.forEach(d=>load[d]=0);
+  CASES.forEach(c=>{
+    currentSteps(c).forEach(s=>{ if(!s.blocked && !s.def.approval && load[s.def.d]!==undefined) load[s.def.d]+=s.def.h; });
+  });
+  return DEPTS.map(d=>{
+    const cap = TECHS.filter(t=>t.dept===d).length*HOURS_PER_DAY;
+    return {dept:d, load:load[d], cap};
+  });
+}
+function typeLoad(){
+  const out={};
+  CASES.filter(c=>!caseDone(c)).forEach(c=>{
+    let rem=0;
+    for(const track of Object.keys(c.tracks)){
+      const defs=stepDefs(c,track);
+      c.tracks[track].steps.forEach((st,i)=>{ if(st.status!=='done') rem+=defs[i].h; });
+    }
+    const k=wfOf(c).name;
+    out[k]=out[k]||{hrs:0,n:0}; out[k].hrs+=rem; out[k].n++;
+  });
+  return Object.entries(out).map(([name,v])=>({name,...v})).sort((a,b)=>b.hrs-a.hrs);
+}
+function priorityReport(){
+  const rows = CASES.filter(c=>!caseDone(c)).map(c=>{
+    const dd = dayDiff(new Date(c.ship));
+    let score=0; const why=[];
+    if(dd<0){ score+=100; why.push('overdue'); }
+    else if(dd===0){ score+=80; why.push(wfOf(c).endState==='ship'?'ships today':'seats today'); }
+    else if(dd===1){ score+=40; why.push('ships tomorrow'); }
+    if(c.rush){ score+=30; why.push('rush'); }
+    if(isStalled(c)){ score+=25; why.push('stalled'); }
+    if(currentSteps(c).some(s=>s.def.approval)){ score+=10; why.push('waiting on doctor'); }
+    else if(currentSteps(c).some(s=>!s.st.assignee && !s.blocked)){ score+=10; why.push('unassigned'); }
+    if(currentSteps(c).some(s=>s.blocked)){ why.push('QC gated on NG'); }
+    if(c.hold){ why.push('⏸ on hold'); }
+    return {c, score, why, dd};
+  }).filter(r=>r.score>0);
+  rows.sort((a,b)=>b.score-a.score || a.dd-b.dd);
+  return rows;
+}
+function inboxItems(){
+  const items=[];
+  CASES.filter(c=>!caseDone(c)).forEach(c=>{
+    if(c.flag) items.push({kind:'flag', c, ni:-1, when:c.flag.when, who:c.flag.by, text:c.flag.text});
+    c.nudges.forEach((n,ni)=>items.push({kind:'nudge', c, ni, when:n.when, who:n.from, text:`→ ${n.toDept}: ${n.text}`}));
+  });
+  items.sort((a,b)=>new Date(b.when)-new Date(a.when));
+  return items;
+}
+
+/* ===================== shared bits ===================== */
+function shipLabel(c){
+  const dd = dayDiff(new Date(c.ship));
+  const word = wfOf(c).endState==='ship' ? 'Ship' : 'Seat';
+  if(caseDone(c)) return fmtDate(new Date(c.ship));
+  if(dd===0) return word+' today';
+  if(dd===1) return word+' tmrw';
+  if(dd<0) return `${-dd}d late`;
+  return word+' '+fmtDate(new Date(c.ship));
+}
+function caseBadges(c){
+  const b=[];
+  const dd = dayDiff(new Date(c.ship));
+  if(c.voided) b.push('<span class="badge b-stall">VOIDED</span>');
+  else if(caseDone(c)) b.push(`<span class="badge b-done">✓ ${wfOf(c).endState==='ship'?'SHIPPED':'DELIVERED'}</span>`);
+  else if(dd<0) b.push('<span class="badge b-over">OVERDUE</span>');
+  if(c.rush && !caseDone(c)) b.push('<span class="badge b-rush">RUSH</span>');
+  if(wfOf(c).endState==='inhouse') b.push('<span class="badge b-house">IN-HOUSE</span>');
+  if(c.linkedTo) b.push(`<span class="badge b-link">⧉ ${c.linkedTo}</span>`);
+  if(c.tracks.ng && !ngDone(c)) b.push('<span class="badge b-ng">NG TRACK</span>');
+  if(c.hold && !caseDone(c)) b.push('<span class="badge b-flag">⏸ HOLD</span>');
+  if(c.flag) b.push('<span class="badge b-flag">⚑ FLAG</span>');
+  if(isStalled(c)) b.push('<span class="badge b-stall">STALLED</span>');
+  return b.join(' ');
+}
+function currentLabel(c){
+  const cs = currentSteps(c);
+  if(!cs.length) return 'Complete';
+  return cs.map(s=>`${s.def.n}${s.blocked?' (gated)':''}${s.def.approval?' · ⏳ waiting on doctor':''}${s.def.d!==s.def.n?' · '+s.def.d:''}${s.def.approval?'':(s.st.assignee?' · '+tech(s.st.assignee).name:' · unassigned')}`).join('  +  ');
+}
+function caseRow(c){
+  return `<div class="case-row" onclick="openCase('${c.id}')">
+    <div class="cid" style="border-left:4px solid ${WF_COLORS[c.wf]}; padding-left:6px;">${c.id}</div>
+    <div class="cmeta">
+      <div class="l1">${esc(c.patient)} <span class="dept-chip">${wfOf(c).name}</span> ${caseBadges(c)}</div>
+      <div class="l2">${esc(currentLabel(c))} · ${esc(c.doctor)}</div>
+    </div>
+    <div class="ship">${shipLabel(c)}</div>
+  </div>`;
+}
+function wfLegend(){
+  return `<div class="kb-legend">${Object.entries(WORKFLOWS).map(([k,w])=>`<span><i style="background:${WF_COLORS[k]}"></i>${w.name}</span>`).join('')}</div>`;
+}
+
+/* ===================== dashboard ===================== */
+function capacityBody(){
+  if(state.capMode==='person'){
+    return TECHS.filter(BENCHABLE).map(t=>{
+      const L=techLoad(t);
+      const out=outToday(t.id);
+      const pct=out? 1 : L.hrs/HOURS_PER_DAY;
+      const fill = out? 'var(--baseline)' : pct>1 ? 'var(--serious)' : pct>=0.8 ? 'var(--warn)' : 'var(--accent)';
+      const status = out? '🏖 out' : pct>1 ? '⚠ over' : pct>=0.8 ? '△ tight' : 'ok';
+      return `<div class="meter-row">
+        <div class="dep" style="width:86px; cursor:pointer;" onclick="openModal({type:'person', tid:'${t.id}'})">${t.name}</div>
+        <div class="meter"><span class="fill" style="width:${out?100:Math.min(pct,1)*100}%; background:${fill}"></span><span class="capline" style="right:0"></span></div>
+        <div class="val">${out? '0h avail' : L.hrs.toFixed(1)+' / '+HOURS_PER_DAY+'h'} · ${status}</div>
+      </div>`;
+    }).join('') + (()=>{
+      const uq = unassignedQueue();
+      const uh = uq.reduce((a,r)=>a+r.def.h,0);
+      return `<div class="meter-row" style="opacity:.85;">
+        <div class="dep" style="width:86px;">— Unassigned</div>
+        <div class="meter"><span class="fill" style="width:${Math.min(uh/HOURS_PER_DAY,1)*100}%; background:var(--baseline)"></span></div>
+        <div class="val">${uh.toFixed(1)}h · ${uq.length} step${uq.length===1?'':'s'}</div>
+      </div><div class="subtle" style="margin-top:6px;">Tap a name for their case list. Unassigned hours aren't on anyone yet — that's the Board queue.</div>`;
+    })();
+  }
+  if(state.capMode==='type'){
+    const rows = typeLoad();
+    const max = Math.max(1, ...rows.map(r=>r.hrs));
+    return rows.map(r=>`<div class="meter-row">
+      <div class="dep" style="width:120px;">${r.name}</div>
+      <div class="meter"><span class="fill" style="width:${r.hrs/max*100}%; background:var(--accent)"></span></div>
+      <div class="val">${r.hrs.toFixed(1)}h · ${r.n} case${r.n===1?'':'s'}</div>
+    </div>`).join('') + '<div class="subtle" style="margin-top:6px;">Remaining estimated bench-hours per case type, active cases.</div>';
+  }
+  return deptLoad().map(m=>{
+    const pct = m.cap ? m.load/m.cap : 0;
+    const fill = pct>1 ? 'var(--serious)' : pct>=0.8 ? 'var(--warn)' : 'var(--accent)';
+    const status = pct>1 ? '⚠ over' : pct>=0.8 ? '△ tight' : 'ok';
+    return `<div class="meter-row">
+      <div class="dep">${m.dept}</div>
+      <div class="meter"><span class="fill" style="width:${Math.min(pct,1)*100}%; background:${fill}"></span><span class="capline" style="right:0"></span></div>
+      <div class="val">${m.load.toFixed(1)} / ${m.cap.toFixed(0)}h · ${status}</div>
+    </div>`;
+  }).join('');
+}
+function vDash(){
+  const q = unassignedQueue();
+  const dueToday = CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===0);
+  const overdue = CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))<0);
+  const inbox = inboxItems();
+  const pr = priorityReport();
+  const cfg = isLead()? state.dashCfg : {pr:true, cap:false, inbox:true, rem:false, pipe:false};
+  return `
+    <h2 class="pagetitle">Today · ${now().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}
+      ${isLead()? `<button class="linklike" style="float:right; margin-top:3px;" onclick="openModal({type:'dashcfg'})">⚙ Customize</button>`:''}
+    </h2>
+    <div class="tiles">
+      <div class="tile" style="box-shadow:inset 0 3px 0 var(--accent), 0 1px 3px rgba(0,0,0,.05);" onclick="goCases('today')"><div class="num">${dueToday.length}</div><div class="lbl">Due today</div></div>
+      <div class="tile ${overdue.length?'alert':''}" style="box-shadow:inset 0 3px 0 var(--critical), 0 1px 3px rgba(0,0,0,.05);" onclick="goCases('overdue')"><div class="num">${overdue.length}</div><div class="lbl">Overdue</div></div>
+      <div class="tile" style="box-shadow:inset 0 3px 0 var(--warn), 0 1px 3px rgba(0,0,0,.05);" onclick="${isLead()?"goAssign()":"goCases('unassigned')"}"><div class="num">${q.length}</div><div class="lbl">Unassigned</div></div>
+      <div class="tile" style="box-shadow:inset 0 3px 0 #8b5cf6, 0 1px 3px rgba(0,0,0,.05);" onclick="goCases('flagged')"><div class="num">${new Set(inbox.map(i=>i.c.id)).size}</div><div class="lbl">Flagged</div></div>
+    </div>
+
+    ${cfg.pipe!==false && isLead()? pipelineCard():''}
+
+    ${cfg.pr? `<div class="card">
+      <h3>Priority report <span class="subtle" style="text-transform:none; font-weight:400;">— auto-generated</span></h3>
+      ${pr.length? pr.slice(0,6).map(r=>`
+        <div class="case-row" onclick="openCase('${r.c.id}')">
+          <div class="cid" style="border-left:4px solid ${WF_COLORS[r.c.wf]}; padding-left:6px;">${r.c.id}</div>
+          <div class="cmeta">
+            <div class="l1">${esc(r.c.patient)} <span class="dept-chip">${wfOf(r.c).name}</span></div>
+            <div class="l2">${r.why.join(' · ')}</div>
+          </div>
+          <div class="ship">${shipLabel(r.c)}</div>
+        </div>`).join('') : '<div class="empty">Nothing urgent. Rare, enjoy it.</div>'}
+      ${pr.length>6? `<div class="subtle" style="margin-top:6px;">+${pr.length-6} more — <button class="linklike" onclick="goCases('all')">see Cases</button></div>`:''}
+    </div>`:''}
+
+    ${cfg.cap? `<div class="card">
+      <h3>Capacity — est. hours vs available</h3>
+      <div class="seg">
+        <button class="${state.capMode==='dept'?'on':''}" onclick="state.capMode='dept'; render();">Departments</button>
+        <button class="${state.capMode==='person'?'on':''}" onclick="state.capMode='person'; render();">People</button>
+        <button class="${state.capMode==='type'?'on':''}" onclick="state.capMode='type'; render();">Case types</button>
+      </div>
+      ${capacityBody()}
+    </div>`:''}
+
+    ${cfg.inbox? `<div class="card">
+      <h3>Lead inbox — flags &amp; nudges</h3>
+      ${inbox.length? inbox.map(i=>`
+        <div class="inbox-item">
+          <div class="ic">${i.kind==='flag'?'⚑':'👉'}</div>
+          <div class="bx" onclick="openCase('${i.c.id}')" style="cursor:pointer;">
+            <b>${i.c.id}</b> · ${esc(i.who)} — ${esc(i.text)}
+            <div class="t">${fmtWhen(new Date(i.when))}</div>
+          </div>
+          ${isLead()? `<button class="assign-btn" onclick="resolveInbox('${i.c.id}','${i.kind}',${i.ni})">Clear</button>`:''}
+        </div>`).join('') : '<div class="empty">No open flags or nudges.</div>'}
+    </div>`:''}
+
+    ${cfg.rem? remakesCard() :''}`;
+}
+function pipelineCard(){
+  const dept=state.pipeDept;
+  const rows=[];
+  CASES.filter(c=>!caseDone(c) && !c.voided).forEach(c=>{
+    const wf=wfOf(c);
+    const ngRem = c.tracks.ng? stepDefs(c,'ng').reduce((a,d,i)=>a+(c.tracks.ng.steps[i].status!=='done'?d.h:0),0) : 0;
+    for(const track of Object.keys(c.tracks)){
+      const cur=trackIdx(c,track); if(cur===-1) continue;
+      const defs=stepDefs(c,track);
+      if(defs[cur].d===dept) continue;                   // already with us — not "incoming"
+      let hrs=0, hit=null, gated=false;
+      for(let i=cur;i<defs.length;i++){
+        if(track==='main' && wf.joinAt===i && c.tracks.ng && ngRem>0) gated=true;   // the NG gate sits on (or at) the way
+        if(defs[i].d===dept){ hit=defs[i]; break; }
+        hrs+=defs[i].h;
+      }
+      if(!hit) continue;
+      if(gated) hrs+=ngRem;                              // that work must also finish before we see the case
+      const s=currentSteps(c).find(x=>x.track===track);
+      rows.push({c, track, cur:defs[cur], st:s?s.st:null, blocked:s?s.blocked:false, hrs, hit, gated});
+    }
+  });
+  rows.sort((a,b)=>new Date(a.c.ship)-new Date(b.c.ship));
+  const hereN=CASES.filter(c=>!caseDone(c) && currentSteps(c).some(x=>x.def.d===dept)).length;
+  return `<div class="card">
+    <h3 style="display:flex; align-items:center; gap:8px;">Pipeline →
+      <select class="field" style="padding:3px 8px; font-size:12px; font-weight:700; text-transform:none;" onchange="state.pipeDept=this.value; render();">
+        ${DEPTS.map(d=>`<option ${state.pipeDept===d?'selected':''}>${d}</option>`).join('')}
+      </select>
+    </h3>
+    <div class="subtle" style="margin-bottom:6px;"><b>${hereN}</b> at ${dept} now · <b>${rows.length}</b> on the way. Why isn't it here yet? Read the middle column.</div>
+    ${rows.length? rows.map(r=>{
+      let where = `${r.cur.n} · ${r.cur.d}`;
+      if(r.c.hold) where += ' · ⏸ HOLD';
+      else if(r.cur.approval) where += ' · ⏳ doctor';
+      else if(r.st && r.st.status==='in') where += ` · ${tech(r.st.assignee).name} working`;
+      else if(r.st && r.st.assignee) where += ` · ${tech(r.st.assignee).name} queued`;
+      else where += ' · unassigned';
+      if(isStalled(r.c)) where += ' · 🐌 stalled';
+      const eta = r.c.hold? 'held — no ETA' : `~${r.hrs.toFixed(1)}h${r.gated?' incl. NG':''} → ${r.hit.n}`;
+      return `<div class="pipe-row" onclick="openCase('${r.c.id}')">
+        <div class="cid" style="border-left:4px solid ${WF_COLORS[r.c.wf]}; padding-left:6px;">${r.c.id}</div>
+        <div class="cmeta" style="flex:1; min-width:0;">
+          <div class="l1" style="font-size:12.5px;">${esc(r.c.patient)} ${r.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${r.c.rush?'<span class="badge b-rush">RUSH</span>':''}</div>
+          <div class="l2">${esc(where)}</div>
+          <div class="l2" style="color:var(--accent);">${esc(eta)}</div>
+        </div>
+        <div class="ship">${shipLabel(r.c)}</div>
+      </div>`;
+    }).join('') : `<div class="empty">Nothing upstream is headed to ${dept}. Either great news or very bad news.</div>`}
+  </div>`;
+}
+function remakesCard(){
+  const moves = allMoves(state.rkWeek);
+  const count = t => moves.filter(m=>m.rtype===t).length;
+  const tally = key => {
+    const t={};
+    moves.forEach(m=>{ const k=key(m); t[k]=(t[k]||0)+1; });
+    return Object.entries(t).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  };
+  const bars = rows => {
+    const max=Math.max(1,...rows.map(r=>r[1]));
+    return rows.map(([k,n])=>`<div class="rk-row"><div class="lbl">${esc(k)}</div><div class="bar"><i style="width:${n/max*100}%"></i></div><div class="n">${n}</div></div>`).join('') || '<div class="empty">Nothing logged.</div>';
+  };
+  return `<div class="card">
+    <h3>Remakes &amp; revisions <span class="subtle" style="text-transform:none; font-weight:400;">— replaces the Google Form tracker</span></h3>
+    <div class="seg">
+      <button class="${state.rkWeek?'on':''}" onclick="state.rkWeek=true; render();">This week</button>
+      <button class="${!state.rkWeek?'on':''}" onclick="state.rkWeek=false; render();">All time</button>
+    </div>
+    <div class="rk-stats">
+      <div class="rk-stat"><div class="v">${count('Internal remake')}</div><div class="k">Internal</div></div>
+      <div class="rk-stat"><div class="v">${count('External remake')}</div><div class="k">External</div></div>
+      <div class="rk-stat"><div class="v">${count('Revision')}</div><div class="k">Revisions</div></div>
+    </div>
+    <div class="track-title">By reason</div>
+    ${bars(tally(m=>m.code))}
+    <div class="track-title" style="margin-top:10px;">By responsible person</div>
+    ${bars(tally(m=>m.person||'—'))}
+    ${moves.length? `<div class="track-title" style="margin-top:10px;">Latest</div>${moves.slice(0,3).map(m=>`<div class="evt warn">↩ <b>${m.c.id}</b> ${esc(m.from)} → ${esc(m.to)} · ${esc(m.group)} — ${esc(m.code)} · ${esc(m.rtype)} <span class="t">· ${esc(m.by)} ${fmtWhen(new Date(m.when))}</span></div>`).join('')}`:''}
+    <div class="subtle" style="margin-top:6px;">Same 21 reason codes and slices (reason, person, week) as the Sheets dashboard, captured automatically on every move-back.</div>
+  </div>`;
+}
+
+/* ===================== board: assign + kanban ===================== */
+function vBoard(){
+  const seg = `<div class="seg">
+    <button class="${state.boardMode==='assign'?'on':''}" onclick="state.boardMode='assign'; state.kbSel=null; render();">⇄ Assign</button>
+    <button class="${state.boardMode==='kanban'?'on':''}" onclick="state.boardMode='kanban'; state.boardSel=null; render();">▦ Kanban</button>
+    <button class="${state.boardMode==='cal'?'on':''}" onclick="state.boardMode='cal'; state.boardSel=null; render();">📅 Calendar</button>
+  </div>`;
+  return `<h2 class="pagetitle">Board</h2>${seg}${state.boardMode==='kanban'? vKanban(): state.boardMode==='cal'? vCal(): vAssign()}`;
+}
+/* ===================== calendar: day drill-down + time off ===================== */
+function vCal(){
+  const base = new Date(); base.setDate(1); base.setMonth(base.getMonth()+state.calMonth);
+  const y=base.getFullYear(), mo=base.getMonth();
+  const firstDow=(new Date(y,mo,1).getDay()+6)%7;            // Monday-first
+  const daysIn=new Date(y,mo+1,0).getDate();
+  const monthName=base.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+  const cells=[];
+  for(let i=0;i<firstDow;i++) cells.push('<div class="cal-cell off" style="border:none; background:none;"></div>');
+  for(let d=1;d<=daysIn;d++){
+    const date=new Date(y,mo,d);
+    const off=dayDiff(date);
+    const due=CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===off);
+    const doneHere=CASES.filter(c=>caseDone(c) && !c.voided && dayDiff(new Date(c.ship))===off);
+    const out=TECHS.filter(t=>BENCHABLE(t) && isOutOn(t.id,off));
+    const dots=due.slice(0,4).map(c=>`<i style="background:${WF_COLORS[c.wf]}"></i>`).join('') + (due.length>4?`<span class="cal-more">+${due.length-4}</span>`:'');
+    cells.push(`<div class="cal-cell ${off===0?'today':''} ${state.calSel===off?'sel':''}" onclick="state.calSel=${off}; render();">
+      <div class="dnum">${d}</div>
+      <div class="cal-dots">${dots}${doneHere.length?'<span class="cal-more" style="color:var(--good-text)">✓'+doneHere.length+'</span>':''}</div>
+      ${out.length?`<span class="cal-out">🏖${out.length}</span>`:''}
+    </div>`);
+  }
+  return `
+    ${state.boardMsg? `<div class="assign-hint" style="border:1px solid var(--baseline);">${esc(state.boardMsg)}</div>`:''}
+    <div class="card">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="state.calMonth--; state.calSel=null; render();">‹</button>
+        <b>${monthName}</b>
+        <button class="cal-nav" onclick="state.calMonth++; state.calSel=null; render();">›</button>
+      </div>
+      <div class="cal">
+        ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('')}
+        ${cells.join('')}
+      </div>
+      <div class="subtle" style="margin-top:8px;">Dots = cases due (colored by type) · ✓ = delivered · 🏖 = people out. Tap a day to drill in.</div>
+    </div>
+    ${state.calSel!==null? vCalDay(state.calSel):''}`;
+}
+function vCalDay(off){
+  const date=daysFromNow(off);
+  const label=date.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+  const due=CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===off);
+  const delivered=CASES.filter(c=>caseDone(c) && !c.voided && dayDiff(new Date(c.ship))===off);
+  const out=TECHS.filter(t=>BENCHABLE(t) && isOutOn(t.id,off));
+  const dueHrs=due.reduce((a,c)=>{
+    for(const track of Object.keys(c.tracks)){ const defs=stepDefs(c,track); c.tracks[track].steps.forEach((st,i)=>{ if(st.status!=='done') a+=defs[i].h; }); }
+    return a;
+  },0);
+  return `<div class="card">
+    <h3>${label} ${off===0?'· today':off===1?'· tomorrow':''}</h3>
+    ${out.length? `<div class="assign-hint">🏖 Out: ${out.map(t=>t.name).join(', ')}</div>`:''}
+    ${due.length? `<div class="track-title">${due.length} due · ~${dueHrs.toFixed(1)}h of work remaining on them</div>${due.map(caseRow).join('')}`
+      : delivered.length? '' : '<div class="empty">Nothing due. A quiet day, allegedly.</div>'}
+    ${delivered.length? `<div class="track-title" style="margin-top:8px;">✓ Delivered</div>${delivered.map(caseRow).join('')}`:''}
+    ${isLead() && off>=0? `
+    <div class="track-title" style="margin-top:10px;">Add time off starting this day</div>
+    <div style="display:flex; gap:6px; align-items:center; font-size:12.5px; flex-wrap:wrap;">
+      <select id="cal-tid" class="field" style="flex:1; min-width:130px;">${TECHS.filter(BENCHABLE).map(t=>`<option value="${t.id}">${t.name} — ${t.dept}</option>`).join('')}</select>
+      for <input id="cal-days" type="number" value="1" min="1" style="width:56px; padding:6px;"> day(s)
+      <button class="btn" onclick="markOut(document.getElementById('cal-tid').value, ${off}, +document.getElementById('cal-days').value, 'from calendar')">Add</button>
+    </div>`:''}
+  </div>`;
+}
+function vAssign(){
+  const q = unassignedQueue();
+  const sel = state.boardSel;
+  return `
+    ${state.boardMsg? `<div class="assign-hint" style="border:1px solid var(--baseline);">${esc(state.boardMsg)}${state.boardMsgAction? ` <button class="linklike" onclick="openAtMyBench('${state.boardMsgAction.cid}','${state.boardMsgAction.track}',${state.boardMsgAction.idx})">▶ Open at my bench</button>`:''}</div>`:''}
+    ${isLead()? `<div class="btnrow" style="margin:0 0 10px;">
+      ${!state.draft? `<button class="btn primary" onclick="runDraft()">⚡ Auto-draft assignments</button>`:''}
+      <button class="btn" onclick="openModal({type:'team'})">👥 Team setup</button>
+    </div>`:''}
+    ${state.draft? draftPanel() :''}
+    ${sel ? `<div class="assign-hint sticky">Assigning <b>${sel.cid}</b> · ${esc(sel.stepName)} (${esc(sel.dept)}) — tap a team member below. <a href="#" onclick="clearSel(event)">cancel</a></div>` :
+      '<div class="assign-hint">Tap a queue case then a team member to assign. Tap a team member on their own to see their list.</div>'}
+    <div class="board">
+      <div class="card">
+        <h3>Unassigned queue (${q.length})</h3>
+        ${!q.length? '<div class="empty">Queue is clear. Pearl approves. 🦷</div>':''}
+        ${q.map(item=>`
+          <div class="qcase ${sel && sel.cid===item.c.id && sel.track===item.track ? 'sel':''}"
+               draggable="${isLead()}"
+               ondragstart="qDragStart(event,'${item.c.id}','${item.track}',${item.idx})"
+               ondragend="this.classList.remove('dragging')"
+               onclick="selQueue('${item.c.id}','${item.track}',${item.idx})">
+            <div class="cid" style="border-left:4px solid ${WF_COLORS[item.c.wf]}; padding-left:6px;">${item.c.id}</div>
+            <div class="cmeta" style="flex:1; min-width:0;">
+              <div class="l1" style="font-size:12.5px;">${esc(item.def.n)} ${item.def.d!==item.def.n?`<span class="dept-chip">${item.def.d}</span>`:''} ${item.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${item.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${item.c.hold?'<span class="badge b-flag">⏸ HOLD</span>':''}</div>
+              <div class="l2">${esc(item.c.patient)} · ${item.def.h}h est</div>
+            </div>
+            <div class="ship">${shipLabel(item.c)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <h3>Team</h3>
+        ${TECHS.filter(BENCHABLE).map(t=>{
+          const L = techLoad(t);
+          const pct = Math.min(L.hrs/HOURS_PER_DAY,1);
+          const over = L.hrs>HOURS_PER_DAY;
+          const fill = over? 'var(--serious)' : pct>=0.8? 'var(--warn)':'var(--accent)';
+          return `<div class="tech-row" onclick="teamTap('${t.id}')" style="cursor:pointer;"
+               ondragover="event.preventDefault(); this.classList.add('dragover');"
+               ondragleave="this.classList.remove('dragover');"
+               ondrop="this.classList.remove('dragover'); qDrop('${t.id}');">
+            <div class="tech-head">
+              <span class="tname">${t.name}</span>
+              <span class="dept-chip">${t.dept}</span>
+              ${t.role==='lead'?'<span class="badge b-link">LEAD</span>':''}
+              ${outToday(t.id)?'<span class="badge b-over">OUT</span>':''}
+              <span class="thrs">${L.hrs.toFixed(1)}h / ${outToday(t.id)?'0':HOURS_PER_DAY}h ${over?'⚠':''}</span>
+            </div>
+            <div class="tech-load"><i style="width:${pct*100}%; background:${fill}"></i></div>
+            <div class="tech-cases">${L.n} open step${L.n===1?'':'s'} · ${sel?'tap to assign':'tap for list'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+function draftPanel(){
+  const d=state.draft;
+  return `<div class="card" style="border-color:var(--accent);">
+    <h3>⚡ Auto-draft — review, then confirm</h3>
+    ${d.picks.length? d.picks.map((p,i)=>`
+      <div class="my-row" style="cursor:default;">
+        <div class="cid">${p.cid}</div>
+        <div class="cmeta" style="flex:1; min-width:0;">
+          <div class="l1" style="font-size:12.5px;">${esc(p.stepName)} → <b>${tech(p.tid).name}</b> ${p.backup?'<span class="badge b-link">BACKUP</span>':''} ${p.lead?'<span class="badge b-flag">LEAD — techs full</span>':''}</div>
+          <div class="l2">${p.before.toFixed(1)}h → ${(p.before+p.h).toFixed(1)}h of ${HOURS_PER_DAY}h</div>
+        </div>
+        <button class="linklike" onclick="dropPick(${i})">✕ drop</button>
+      </div>`).join('') : '<div class="empty">Nothing to assign — queue is clear.</div>'}
+    ${d.overflow.length? `<div class="track-title" style="margin-top:10px;">⚠ No capacity — stays in queue for your call</div>
+      ${d.overflow.map(o=>`<div class="note" style="border-color:var(--serious);">
+        <div class="who"><b>${o.item.c.id}</b> · ${esc(o.item.def.n)} (${o.item.def.h}h) · ${shipLabel(o.item.c)} — ${esc(o.reason)}</div>
+        ${o.options.map(x=>`· ${esc(x)}`).join('<br>')}
+      </div>`).join('')}`:''}
+    ${CASES.some(c=>!caseDone(c)&&c.hold)? `<div class="subtle" style="margin-top:6px;">⏸ Held cases were omitted by design.</div>`:''}
+    <div class="btnrow" style="margin-top:10px;">
+      ${d.picks.length? `<button class="btn primary" onclick="confirmDraft()">✓ Confirm ${d.picks.length} assignment${d.picks.length===1?'':'s'}</button>`:''}
+      <button class="btn" onclick="cancelDraft()">Cancel</button>
+    </div>
+  </div>`;
+}
+function vKanban(){
+  const cols = DEPTS.map(d=>({dept:d, cards:[]}));
+  CASES.forEach(c=>{
+    currentSteps(c).forEach(s=>{
+      const col = cols.find(x=>x.dept===s.def.d);
+      if(col) col.cards.push({c, ...s});
+    });
+  });
+  cols.forEach(col=>col.cards.sort((a,b)=>new Date(a.c.ship)-new Date(b.c.ship)));
+  const doneCases = CASES.filter(caseDone).slice(-5).reverse();
+  return `
+    ${wfLegend()}
+    ${state.kbMsg? `<div class="assign-hint sticky">${esc(state.kbMsg)}</div>`:''}
+    <div class="assign-hint">Tap a card for actions${isLead()?' (advance, move back, assign)':''}. On desktop, drag a card onto the next department — or its own column when the next step stays put — to advance it.</div>
+    <div class="kb">
+      ${cols.map(col=>`
+        <div class="kb-col" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="this.classList.remove('dragover'); kbDrop('${col.dept}');">
+          <h4>${col.dept} <span>${col.cards.length}</span></h4>
+          ${col.cards.map(k=>`
+            <div class="kb-card ${state.kbSel && state.kbSel.cid===k.c.id && state.kbSel.track===k.track?'sel':''}"
+                 style="border-left-color:${WF_COLORS[k.c.wf]}"
+                 draggable="${isLead()}"
+                 ondragstart="kbDragStart('${k.c.id}','${k.track}',${k.idx})"
+                 onclick="openModal({type:'kbcard', cid:'${k.c.id}', track:'${k.track}', idx:${k.idx}})">
+              <div class="kc-top">${k.c.id} ${k.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${k.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${k.def.approval?'<span class="badge b-flag">⏳ DR</span>':''} ${k.blocked?'<span title="gated">🔒</span>':''}</div>
+              <div class="kc-step">${esc(k.def.n)}${k.def.approval?' · waiting on doctor':''} · ${esc(k.c.patient)}</div>
+              <div class="kc-bot"><span>${k.def.approval? esc(k.c.doctor) : (k.st.assignee? tech(k.st.assignee).name : 'unassigned')}</span><span>${shipLabel(k.c)}</span></div>
+            </div>`).join('') || '<div class="empty" style="padding:6px 0;">—</div>'}
+        </div>`).join('')}
+      <div class="kb-col" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="this.classList.remove('dragover'); kbDrop('__DONE__');">
+        <h4>Done ✓ <span>${doneCases.length}</span></h4>
+        ${doneCases.map(dc=>`
+          <div class="kb-card" style="border-left-color:${WF_COLORS[dc.wf]}; opacity:.75;" onclick="openCase('${dc.id}')">
+            <div class="kc-top">${dc.id} <span class="badge b-done">✓</span></div>
+            <div class="kc-step">${esc(dc.patient)}</div>
+            <div class="kc-bot"><span>${wfOf(dc).endState==='ship'?'shipped':'in-house'}</span><span>${fmtDate(new Date(dc.ship))}</span></div>
+          </div>`).join('') || '<div class="empty" style="padding:6px 0;">—</div>'}
+      </div>
+    </div>`;
+}
+
+/* ===================== chat hub ===================== */
+function fmtChatWhen(d){
+  const dd = dayDiff(new Date(d));
+  if(dd===0) return new Date(d).toLocaleTimeString(undefined,{hour:'numeric', minute:'2-digit'});
+  if(dd===-1) return 'yesterday';
+  return fmtDate(new Date(d));
+}
+function lastMsg(c){ return c.notes.length? c.notes[c.notes.length-1] : null; }
+function threadTime(c){ const m=lastMsg(c); return m? new Date(m.when).getTime() : new Date(c.created).getTime(); }
+function apprNeeded(c){ return caseDone(c)? null : (currentSteps(c).find(s=>s.track==='main' && s.def.approval)||null); }
+function openThread(cid){ state.chatOpen=cid; state.chatRead[cid]=Date.now(); render(); }
+function approveChat(cid){
+  const c=getCase(cid);
+  const s=apprNeeded(c);
+  if(!s || !canApprove()) return;
+  logEvt(c, `${s.def.n} — approved by ${me().name}`, 'step');
+  completeStep(c, 'main', s.idx, state.userId);
+  c.notes.push({who:me().name, when:now(), text:`✅ Approved: ${s.def.n}`});
+  state.chatRead[cid]=Date.now();
+  render();
+}
+function apprCard(c){
+  const s=apprNeeded(c);
+  if(!s) return '';
+  return `<div class="appr-card">
+    ⏳ <b>${esc(s.def.n)}</b> needs sign-off · ${esc(c.doctor)}
+    ${canApprove()? `<div class="btnrow"><button class="btn primary" onclick="approveChat('${c.id}')">✓ Approve</button></div>`
+      : `<div class="subtle" style="margin-top:4px;">Waiting on the Design Lead or Dr. Weiss. ${state.role==='frontdesk'?'(You can record a phoned-in doctor approval from the case page.)':''}</div>`}
+  </div>`;
+}
+function vChat(){
+  if(state.chatOpen){
+    const c=getCase(state.chatOpen);
+    if(!c){ state.chatOpen=null; return vChat(); }
+    return `
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+        <button class="cal-nav" onclick="state.chatOpen=null; render();">‹</button>
+        <div style="flex:1; min-width:0;">
+          <b style="font-size:15px;">${c.id} · ${esc(c.patient)}</b>
+          <div class="subtle">${wfOf(c).name} · ${esc(currentLabel(c))} · ${shipLabel(c)}</div>
+        </div>
+        <button class="linklike" onclick="openCase('${c.id}')">case →</button>
+      </div>
+      ${apprCard(c)}
+      <div class="card chat-full">${chatHtml(c)}</div>`;
+  }
+  let threads=CASES.filter(c=>!c.voided && (!caseDone(c) || c.notes.length)).sort((a,b)=>threadTime(b)-threadTime(a));
+  if(state.chatFilter==='appr') threads=threads.filter(c=>apprNeeded(c));
+  return `
+    <h2 class="pagetitle">Chat</h2>
+    <div class="filters">
+      <button class="fchip ${state.chatFilter!=='appr'?'on':''}" onclick="state.chatFilter='all'; render();">All threads</button>
+      <button class="fchip ${state.chatFilter==='appr'?'on':''}" onclick="state.chatFilter='appr'; render();">⏳ Needs approval (${CASES.filter(c=>!c.voided&&apprNeeded(c)).length})</button>
+    </div>
+    <div class="card">
+      ${threads.length? threads.map(c=>{
+        const m=lastMsg(c);
+        const meName=actorName(false);
+        const unread = m && new Date(m.when).getTime() > (state.chatRead[c.id]||0) && m.who!==meName;
+        const ap=apprNeeded(c);
+        return `<div class="thread-row" onclick="openThread('${c.id}')">
+          <div class="tr-avatar" style="background:${WF_COLORS[c.wf]}">${esc(c.patient.slice(0,2).toUpperCase())}</div>
+          <div class="tr-main">
+            <div class="tr-top"><b>${c.id}</b> <span class="subtle">${esc(c.patient)}</span>
+              ${ap?'<span class="badge b-flag">⏳ APPROVAL</span>':''} ${c.rush&&!caseDone(c)?'<span class="badge b-rush">RUSH</span>':''} ${c.hold&&!caseDone(c)?'<span class="badge b-flag">⏸</span>':''} ${caseDone(c)?'<span class="badge b-done">✓</span>':''}
+            </div>
+            <div class="tr-prev">${m? `<b>${esc(m.who.split(' ')[0])}:</b> ${m.ping?'👉 ':''}${esc(m.text)}` : '<i>No messages yet</i>'}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <span class="tr-when">${m? fmtChatWhen(m.when) : ''}</span>
+            ${unread? '<span class="unread-dot"></span>':''}
+          </div>
+        </div>`;
+      }).join('') : '<div class="empty">No threads yet.</div>'}
+    </div>`;
+}
+
+/* ===================== cases ===================== */
+function applyFilters(){
+  const f = state.caseFilter, tf = state.typeFilter, s = state.search.toLowerCase();
+  let list = CASES.slice();
+  if(s) list = list.filter(c=>(c.id+' '+c.patient+' '+c.doctor+' '+c.clinic+' '+wfOf(c).name).toLowerCase().includes(s));
+  // a typed search on the default chip spans ALL statuses ("did it ship?" lookups);
+  // an explicitly chosen chip still applies, combined with the search
+  if(!(s && f==='all')){
+    if(f==='today') list = list.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===0);
+    else if(f==='overdue') list = list.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))<0);
+    else if(f==='unassigned') list = list.filter(c=>currentSteps(c).some(x=>!x.st.assignee && !x.blocked && !x.def.approval));
+    else if(f==='flagged') list = list.filter(c=>!caseDone(c) && (c.flag || c.nudges.length));
+    else if(f==='inhouse') list = list.filter(c=>wfOf(c).endState==='inhouse');
+    else if(f==='done') list = list.filter(c=>caseDone(c));
+    else list = list.filter(c=>!caseDone(c));
+  }
+  if(tf!=='all') list = list.filter(c=>c.wf===tf);
+  if(state.deptFilter!=='all') list = list.filter(c=>currentSteps(c).some(s=>s.def.d===state.deptFilter));
+  list.sort((a,b)=>new Date(a.ship)-new Date(b.ship));
+  return list;
+}
+function vCases(){
+  const f = state.caseFilter, tf = state.typeFilter;
+  const list = applyFilters();
+  const chips = [['all','Active'],['today','Due today'],['overdue','Overdue'],['unassigned','Unassigned'],['flagged','Flagged'],['inhouse','In-house'],['done','Done']];
+  return `
+    <h2 class="pagetitle">Cases</h2>
+    <div class="searchrow">
+      <input placeholder="Search case #, patient, doctor…" value="${esc(state.search)}" oninput="state.search=this.value; state.appliedCustom=null; renderSoon();">
+      ${(isLead()||state.role==='frontdesk')?'<button class="btn primary" onclick="openModal({type:\'newcase\'})">+ New</button>':''}
+      ${isLead()?'<button class="btn" onclick="exportCsv()">⤓ CSV</button>':''}
+    </div>
+    <div class="filters">${chips.map(([k,l])=>`<button class="fchip ${f===k?'on':''}" onclick="state.caseFilter='${k}'; state.appliedCustom=null; render();">${l}</button>`).join('')}</div>
+    <div class="filters">
+      <button class="fchip ${tf==='all'?'on':''}" onclick="state.typeFilter='all'; state.appliedCustom=null; render();">All types</button>
+      ${Object.entries(WORKFLOWS).map(([k,w])=>`<button class="fchip ${tf===k?'on':''}" onclick="state.typeFilter='${k}'; state.appliedCustom=null; render();"><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${WF_COLORS[k]};margin-right:4px;"></i>${w.name}</button>`).join('')}
+    </div>
+    <div class="filters">
+      <select class="field" style="padding:5px 10px; font-size:12px; border-radius:12px;" onchange="state.deptFilter=this.value; state.appliedCustom=null; render();">
+        <option value="all" ${state.deptFilter==='all'?'selected':''}>All departments</option>
+        ${DEPTS.map(d=>`<option ${state.deptFilter===d?'selected':''}>${d}</option>`).join('')}
+      </select>
+      ${state.customFilters.map((cf,i)=>`<button class="fchip ${state.appliedCustom===i?'on':''}" onclick="applyCustom(${i})">★ ${esc(cf.name)} <span onclick="event.stopPropagation(); delCustom(${i})" style="margin-left:4px; opacity:.7;">✕</span></button>`).join('')}
+      <button class="fchip" onclick="openModal({type:'savefilter'})">☆ Save current filter…</button>
+    </div>
+    ${state.search? '<div class="subtle" style="margin-bottom:6px;">Searching all cases, including shipped/delivered.</div>':''}
+    <div class="card">${list.length? list.map(caseRow).join('') : '<div class="empty">No cases match.</div>'}</div>`;
+}
+
+/* ===================== case sheet ===================== */
+function trackHtml(c, track){
+  const defs = stepDefs(c,track);
+  const cur = trackIdx(c,track);
+  return defs.map((d,i)=>{
+    const st = c.tracks[track].steps[i];
+    const cls = st.status==='done'?'done': (i===cur ? (st.status==='in'?'in':'') : '');
+    const active = i===cur;
+    const blocked = active && isBlocked(c,track,i);
+    let info = `${d.d} · ${d.h}h est`;
+    if(st.assignee) info += ` · ${tech(st.assignee).name}`;
+    if(st.status==='in') info += ` · checked in ${fmtWhen(new Date(st.start))}`;
+    if(st.status==='done' && st.end) info += ` · done ${fmtWhen(new Date(st.end))}`;
+    if(d.approval) info += active? ' · ⏳ waiting on doctor' : ' · doctor approval';
+    const fork = track==='main' && wfOf(c).forkAfter===i && wfOf(c).ng;
+    return `<div class="step ${cls}">
+      <div class="rail"><div class="dot"></div><div class="line"></div></div>
+      <div class="sbody">
+        <div class="sname">${d.n} ${blocked?'<span class="badge b-stall">GATED — waiting on NG track</span>':''} ${active && !blocked && !st.assignee && !d.approval ? '<span class="badge b-link">unassigned</span>':''}</div>
+        <div class="sinfo">${info}</div>
+        ${active && !d.approval && isLead() && !caseDone(c) ? `
+          <select class="field" style="padding:3px 8px; font-size:11.5px; margin-top:4px; max-width:230px;" onchange="sheetAssign('${c.id}','${track}',${i},this.value)">
+            <option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>
+            ${assignOptions(d, st.assignee)}
+            ${st.assignee? `<option value="__clear__">↥ return to queue</option>`:''}
+          </select>`:''}
+        ${fork ? (c.tracks.ng ? `
+          <div class="ng-track">
+            <div class="track-title" style="margin-top:8px;"><span class="badge b-ng">NG</span> Night guard — parallel track</div>
+            ${trackHtml(c,'ng')}
+          </div>` : `<div class="subtle" style="margin-top:4px;">⑂ Night-guard track starts after this step</div>`) : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function vCaseSheet(c){
+  const wf = wfOf(c);
+  const done = caseDone(c);
+  return `
+  <div class="sheet-bg" onclick="if(event.target===this) closeCase()">
+    <div class="sheet">
+      <button class="close" onclick="closeCase()">✕</button>
+      <h2>${c.id} · ${esc(c.patient)}</h2>
+      <div class="kv">
+        <span><b>${wf.name}</b></span>
+        <span>${esc(c.doctor)} · ${esc(c.clinic)}</span>
+        <span>${wf.endState==='ship'?'Ships':'Seats (in-house)'}: <b>${fmtDate(new Date(c.ship))}</b></span>
+        <span>Created ${fmtDate(new Date(c.created))}</span>
+        ${c.linkedTo?`<span>Linked to ${getCase(c.linkedTo)?`<button class="linklike" onclick="openCase('${c.linkedTo}')">${c.linkedTo}</button>`:`<b>${esc(c.linkedTo)}</b> <span class="subtle">(not in system)</span>`}</span>`:''}
+      </div>
+      <div style="margin:6px 0;">${caseBadges(c)}</div>
+      ${c.hold && !done? `<div class="assign-hint" style="border:1px solid var(--serious);">⏸ <b>ON HOLD — ${esc(c.hold.by)}:</b> ${esc(c.hold.reason)} · skipped by auto-assign, bench can't start it. ${isLead()?`<button class="linklike" onclick="releaseHold('${c.id}')">Release hold</button>`:''}</div>`:''}
+      ${c.flag? `<div class="assign-hint">⚑ <b>${esc(c.flag.by)}:</b> ${esc(c.flag.text)} ${isLead()?`<a href="#" onclick="clearFlag(event,'${c.id}')">clear</a>`:''}</div>`:''}
+      ${(()=>{
+        const appr = currentSteps(c).find(s=>s.track==='main' && s.def.approval);
+        if(appr && (isLead()||state.role==='frontdesk')) return `<div class="assign-hint">⏳ <b>${esc(appr.def.n)}</b> is waiting on ${esc(c.doctor)}. <button class="btn primary" style="margin-left:6px;" onclick="recordApproval('${c.id}',${appr.idx})">✓ Record doctor approval</button></div>`;
+        return '';
+      })()}
+      <div class="btnrow">
+        ${!done? `<button class="btn" onclick="openModal({type:'flag', cid:'${c.id}'})">⚑ Flag for lead</button>`:''}
+        ${isLead() && !done ? `<button class="btn danger" onclick="openModal({type:'moveback', cid:'${c.id}'})">↩ Move back</button>`:''}
+        ${isLead() && !done && !c.hold ? `<button class="btn" onclick="openModal({type:'hold', cid:'${c.id}'})">⏸ Hold</button>`:''}
+        <button class="btn" onclick="openModal({type:'ticket', cid:'${c.id}'})">⎙ Work ticket</button>
+        ${isLead() && !done ? `<button class="btn danger" onclick="voidCase('${c.id}')">🗑 Void</button>`:''}
+      </div>
+      <div class="card"><h3>Production flow</h3><div class="track">${trackHtml(c,'main')}</div></div>
+      <div class="card"><h3>💬 Case chat — follows the case</h3>
+        ${chatHtml(c)}
+      </div>
+      <div class="card"><h3>Activity</h3>
+        ${c.events.slice().reverse().map(e=>`<div class="evt ${e.type==='moveback'||e.type==='warn'?'warn':''}">${e.type==='moveback'?'↩ ':''}${esc(e.text)} <span class="t">· ${esc(e.who)} · ${fmtWhen(new Date(e.when))}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ===================== bench ===================== */
+function vBench(){
+  const t = tech(state.benchTechId);
+  const my = techOpenSteps(t.id);
+  const c = state.benchCaseId ? getCase(state.benchCaseId) : null;
+  const myNudges = CASES.filter(cc=>!caseDone(cc)).flatMap(cc=>cc.nudges.map((n,ni)=>({c:cc,n,ni})).filter(x=>x.n.toDept===t.dept));
+  let stepCard='';
+  if(c && c.hold && !caseDone(c)){
+    stepCard = `<div class="bench-step" style="border-color:var(--serious);">
+      <div class="big-case">${c.id} · ${esc(c.patient)} · ${wfOf(c).name}</div>
+      <div class="big-name" style="font-size:18px;">⏸ On hold — don't start</div>
+      <div class="assign-hint" style="margin-top:8px; text-align:left; border:1px solid var(--serious);"><b>${esc(c.hold.by)}:</b> ${esc(c.hold.reason)}<br>See a lead before any work happens on this case.</div>
+      <div class="btnrow" style="margin-top:12px;">
+        <button class="btn" onclick="openModal({type:'chat', cid:'${c.id}', bench:true})">💬 Chat</button>
+        <button class="btn" onclick="openCase('${c.id}')">Details</button>
+        ${isLead()? `<button class="btn primary" onclick="releaseHold('${c.id}')">Release hold</button>`:''}
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:10px;"><button class="btn" onclick="state.benchCaseId=null; state.benchSel=null; render();">← Back to my list</button></div>`;
+  }
+  else if(c && !state.benchSel){
+    const cs=currentSteps(c);
+    const myGated = cs.find(s=>s.def.d===t.dept && s.blocked);
+    const myAppr = cs.find(s=>s.def.d===t.dept && s.def.approval);
+    const headline = !cs.length ? 'Case complete ✓'
+      : myGated ? '⛔ Gated — waiting on night guard'
+      : myAppr ? '⏳ Waiting on doctor approval'
+      : 'Nothing here for '+t.dept;
+    const explain = !cs.length ? ''
+      : myGated ? `<b>${esc(myGated.def.n)}</b> is yours, but it can't start until the night-guard track finishes. It'll appear in your list the moment it unlocks.`
+      : myAppr ? `<b>${esc(myAppr.def.n)}</b> is waiting on ${esc(c.doctor)} — nothing to do at the bench until the approval is recorded.`
+      : `This case isn't at a ${t.dept} step, so there's nothing to check in here.`;
+    stepCard = `<div class="bench-step">
+      <div class="big-case">${c.id} · ${esc(c.patient)} · ${wfOf(c).name}</div>
+      <div class="big-name" style="font-size:17px;">${headline}</div>
+      ${cs.length? `<div class="assign-hint" style="margin-top:8px; text-align:left;">Current step${cs.length>1?'s':''}: ${cs.map(s=>`<b>${esc(s.def.n)}</b> (${s.def.d}${s.st.assignee?' · '+tech(s.st.assignee).name:''})${s.def.approval?' · ⏳ waiting on doctor':''}${s.blocked?' · gated':''}`).join(' + ')}.<br>${explain}</div>`:''}
+      <div class="btnrow" style="margin-top:12px;">
+        <button class="btn" onclick="openCase('${c.id}')">Details</button>
+        <button class="btn" onclick="openModal({type:'chat', cid:'${c.id}', bench:true})">💬 Chat</button>
+        <button class="btn" onclick="openModal({type:'flag', cid:'${c.id}', bench:true})">⚑ Flag for lead</button>
+      </div>
+    </div>
+    <div class="btnrow" style="margin-top:10px;"><button class="btn" onclick="state.benchCaseId=null; state.benchSel=null; render();">← Back to my list</button></div>`;
+  }
+  else if(c && state.benchSel){
+    const {track, idx} = state.benchSel;
+    const def = stepDefs(c,track)[idx];
+    const st = c.tracks[track].steps[idx];
+    const cur = trackIdx(c,track)===idx;
+    const blocked = cur && isBlocked(c,track,idx);
+    const waiting = !cur;
+    stepCard = `<div class="bench-step">
+      <div class="big-case">${c.id} · ${esc(c.patient)} · ${wfOf(c).name} ${track==='ng'?'<span class="badge b-ng">NG TRACK</span>':''}</div>
+      <div class="big-name">${def.n}</div>
+      <div class="subtle">${def.d} · ${def.h}h est ${st.assignee? '· assigned to '+tech(st.assignee).name : '· unassigned'}</div>
+      ${waiting? `<div class="assign-hint" style="margin-top:8px;">⏳ Earlier steps aren’t done yet — this step isn’t up next.</div>`:''}
+      ${blocked? `<div class="assign-hint" style="margin-top:8px;">⛔ Gated — night-guard track must finish first.</div>`:''}
+      ${(()=>{
+        const mine = st.assignee===state.benchTechId;
+        const otherWorking = st.status==='in' && st.assignee && !mine;
+        const otherQueued = st.status==='todo' && st.assignee && !mine;
+        if(otherWorking) return `<div class="assign-hint" style="margin-top:8px;">✋ <b>${tech(st.assignee).name}</b> is checked in on this step right now. Don't touch it unless you're actually taking it over.</div>
+          <div class="btnrow" style="margin-top:10px;"><button class="btn danger" onclick="benchCheckIn('${c.id}','${track}',${idx})">⇄ Take over from ${tech(st.assignee).name}</button></div>`;
+        return `
+          ${otherQueued? `<div class="assign-hint" style="margin-top:8px;">Assigned to <b>${tech(st.assignee).name}</b> — checking in reassigns it to you (logged).</div>`:''}
+          <div class="btnrow" style="margin-top:14px;">
+            ${st.status==='todo' && cur? `<button class="btn primary big" ${blocked?'disabled':''} onclick="benchCheckIn('${c.id}','${track}',${idx})">▣ Check in (scan)</button>` : ''}
+            ${st.status==='in' && cur? `<button class="btn primary big" ${blocked?'disabled':''} onclick="benchComplete('${c.id}','${track}',${idx})">✓ Complete step</button>` : ''}
+          </div>`;
+      })()}
+      <div class="btnrow">
+        ${st.status==='todo' && st.assignee===state.benchTechId? `<button class="btn" onclick="returnToQueue('${c.id}','${track}',${idx})">↥ Return to queue</button>`:''}
+        ${st.status==='in' && cur && st.assignee===state.benchTechId? `<button class="btn" onclick="benchUndoCheckIn('${c.id}','${track}',${idx})">⎌ Undo check-in</button>`:''}
+        <button class="btn" onclick="openModal({type:'chat', cid:'${c.id}', bench:true})">💬 Chat</button>
+        <button class="btn" onclick="openModal({type:'flag', cid:'${c.id}', bench:true})">⚑ Flag for lead</button>
+        <button class="btn" onclick="openCase('${c.id}')">Details</button>
+      </div>
+      ${c.notes.length? `<div style="text-align:left; margin-top:8px;"><div class="track-title">💬 Latest chat</div>${c.notes.slice(-2).reverse().map(n=>`<div class="note"><div class="who">${esc(n.who)} · ${fmtWhen(new Date(n.when))}${n.ping?' · 👉 '+esc(n.ping):''}</div>${esc(n.text)}</div>`).join('')}</div>`:''}
+      ${(()=>{ const ln=linkedNotes(c); return ln? `<div style="text-align:left; margin-top:8px;"><div class="track-title">⧉ From linked ${ln.id}</div>${ln.notes.map(n=>`<div class="note"><div class="who">${esc(n.who)} · ${fmtWhen(new Date(n.when))}</div>${esc(n.text)}</div>`).join('')}</div>`:''; })()}
+    </div>
+    <div class="btnrow" style="margin-top:10px;"><button class="btn" onclick="state.benchCaseId=null; state.benchSel=null; render();">← Back to my list</button></div>`;
+  }
+  return `
+    <h2 class="pagetitle">My bench <span class="subtle">— scan-first</span></h2>
+    <div class="searchrow">
+      <select class="field" onchange="state.benchTechId=this.value; if(state.role==='tech') state.userId=this.value; state.benchCaseId=null; state.benchSel=null; state.benchMsg=null; render();">
+        ${TECHS.filter(BENCHABLE).map(x=>`<option value="${x.id}" ${x.id===state.benchTechId?'selected':''}>Signed in as: ${x.name} — ${x.dept}</option>`).join('')}
+      </select>
+    </div>
+    ${myNudges.length? myNudges.map(x=>`<div class="assign-hint" style="display:flex; gap:8px; align-items:center;"><span style="flex:1;">👉 <b>${x.c.id}</b> ${esc(x.n.from)}: ${esc(x.n.text)}</span><button class="linklike" onclick="dismissNudge('${x.c.id}',${x.ni})">✕</button></div>`).join(''):''}
+    ${state.benchMsg? `<div class="assign-hint" style="border:1px solid var(--good); background:none; color:var(--good-text);">${state.benchMsg}</div>`:''}
+    ${c? stepCard : `
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="seg">
+          <button class="${state.benchView==='list'?'on':''}" onclick="state.benchView='list'; render();">▤ List</button>
+          <button class="${state.benchView==='board'?'on':''}" onclick="state.benchView='board'; render();">▦ Board</button>
+        </div>
+        ${state.benchView==='board'? `<div class="seg">
+          <button class="${state.benchGroup==='day'?'on':''}" onclick="state.benchGroup='day'; render();">By day</button>
+          <button class="${state.benchGroup==='type'?'on':''}" onclick="state.benchGroup='type'; render();">By case type</button>
+          <button class="${state.benchGroup==='status'?'on':''}" onclick="state.benchGroup='status'; render();">By status</button>
+        </div>`:''}
+      </div>
+      ${state.benchView==='board' ? benchBoard(my) : `
+      <div class="card">
+        <h3>My work (${my.length} step${my.length===1?'':'s'} · ${my.reduce((a,r)=>a+r.def.h,0).toFixed(1)}h est)</h3>
+        ${my.length? my.map(r=>`
+          <div class="my-row" onclick="benchWork('${r.c.id}','${r.track}',${r.idx})">
+            <div class="cid" style="border-left:4px solid ${WF_COLORS[r.c.wf]}; padding-left:6px;">${r.c.id}</div>
+            <div class="cmeta" style="flex:1; min-width:0;">
+              <div class="l1" style="font-size:12.5px;">${esc(r.def.n)} ${r.def.d!==r.def.n?`<span class="dept-chip">${r.def.d}</span>`:''} ${r.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${r.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${r.blocked?'🔒':''}</div>
+              <div class="l2">${esc(r.c.patient)} · ${r.def.h}h est ${r.current?'':'· not up yet'}</div>
+            </div>
+            <span class="st ${r.st.status==='in'?'in':''}">${r.st.status==='in'?'WORKING':'QUEUED'}</span>
+            <div class="ship">${shipLabel(r.c)}</div>
+          </div>`).join('') : '<div class="empty">Nothing assigned to you. Scan a ticket below or ask your lead.</div>'}
+      </div>`}
+      <div class="scanbox" onclick="openModal({type:'scan'})">
+        <span class="ic">▮▍▮▍▮</span>
+        Scan a work ticket<br><span class="subtle">(tap to simulate scanning a barcode)</span>
+        <div style="margin-top:8px;">${pearlSvg('happy',34)}</div>
+      </div>`}
+  `;
+}
+function benchBoard(my){
+  let cols=[];
+  if(state.benchGroup==='day'){
+    const buckets=[['Overdue',r=>dayDiff(new Date(r.c.ship))<0],['Today',r=>dayDiff(new Date(r.c.ship))===0],['Tomorrow',r=>dayDiff(new Date(r.c.ship))===1],['This week',r=>{const d=dayDiff(new Date(r.c.ship)); return d>=2&&d<=6;}],['Later',r=>dayDiff(new Date(r.c.ship))>6]];
+    cols = buckets.map(([t,f])=>({title:t, cards:my.filter(f)})).filter(x=>x.cards.length||['Today','Tomorrow'].includes(x.title));
+  } else if(state.benchGroup==='type'){
+    cols = Object.entries(WORKFLOWS).map(([k,w])=>({title:w.name, cards:my.filter(r=>r.c.wf===k)})).filter(x=>x.cards.length);
+  } else {
+    cols = [
+      {title:'Working', cards:my.filter(r=>r.st.status==='in')},
+      {title:'Queued', cards:my.filter(r=>r.st.status==='todo' && r.current && !r.blocked)},
+      {title:'Waiting / gated', cards:my.filter(r=>r.st.status==='todo' && (!r.current || r.blocked))},
+    ];
+  }
+  if(!my.length) return '<div class="card"><div class="empty">Nothing assigned to you. Scan a ticket below or ask your lead.</div></div>';
+  return `<div class="kb" style="margin-top:10px;">
+    ${cols.map(col=>`
+      <div class="kb-col">
+        <h4>${col.title} <span>${col.cards.length}</span></h4>
+        ${col.cards.map(r=>`
+          <div class="kb-card" style="border-left-color:${WF_COLORS[r.c.wf]}" onclick="benchWork('${r.c.id}','${r.track}',${r.idx})">
+            <div class="kc-top">${r.c.id} ${r.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${r.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${r.blocked?'🔒':''}</div>
+            <div class="kc-step">${esc(r.def.n)} · ${esc(r.c.patient)}</div>
+            <div class="kc-bot"><span>${r.st.status==='in'?'WORKING':(r.current?'queued':'not up yet')}</span><span>${shipLabel(r.c)}</span></div>
+          </div>`).join('') || '<div class="empty" style="padding:6px 0;">—</div>'}
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ===================== modals ===================== */
+function vModal(){
+  const m = state.modal; if(!m) return '';
+  const c = m.cid? getCase(m.cid): null;
+  let body='';
+  if(m.type==='scan'){
+    body = `<h3>Scan ticket — pick a case</h3>
+      ${CASES.filter(x=>!caseDone(x)).map(x=>`<button class="opt-row" onclick="benchPick('${x.id}')"><b>${x.id}</b> · ${esc(x.patient)} <span class="subtle">${wfOf(x).name} · ${esc(currentLabel(x))}</span></button>`).join('')}`;
+  }
+  if(m.type==='person'){
+    const t = tech(m.tid);
+    const rows = techOpenSteps(m.tid);
+    body = `<h3>${t.name} — ${t.dept} · ${rows.reduce((a,r)=>a+r.def.h,0).toFixed(1)}h open</h3>
+      ${rows.length? rows.map(r=>`
+        <div class="my-row" style="cursor:default;">
+          <div class="cid">${r.c.id}</div>
+          <div class="cmeta" style="flex:1; min-width:0;">
+            <div class="l1" style="font-size:12.5px;">${esc(r.def.n)} <span class="dept-chip">${r.def.d}</span> ${r.track==='ng'?'<span class="badge b-ng">NG</span>':''}</div>
+            <div class="l2">${esc(r.c.patient)} · ${r.def.h}h · ${shipLabel(r.c)} · ${r.st.status==='in'?'working now':'queued'}</div>
+          </div>
+          <button class="linklike" onclick="closeModal(); openCase('${r.c.id}')">open</button>
+          ${isLead() ? `<button class="linklike" onclick="unassignStep('${r.c.id}','${r.track}',${r.idx},'${m.tid}')">unassign</button>`:''}
+        </div>`).join('') : '<div class="empty">No open steps.</div>'}
+      <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='kbcard'){
+    const defs = stepDefs(c, m.track);
+    const def = defs[m.idx];
+    const st = c.tracks[m.track].steps[m.idx];
+    const blocked = isBlocked(c, m.track, m.idx);
+    const next = m.idx+1 < defs.length ? defs[m.idx+1] : null;
+    body = `<h3>${c.id} · ${esc(def.n)} ${m.track==='ng'?'(NG track)':''}</h3>
+      <div class="subtle" style="margin-bottom:8px;">${esc(c.patient)} · ${wfOf(c).name} · ${st.assignee? 'assigned to '+tech(st.assignee).name : 'unassigned'} · ${shipLabel(c)}</div>
+      ${blocked? '<div class="assign-hint">⛔ Gated — night-guard track must finish before this advances.</div>':''}
+      <button class="opt-row" onclick="closeModal(); openCase('${c.id}')">📄 Open case</button>
+      ${isLead()? `<button class="opt-row" ${blocked?'disabled':''} onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${def.approval?'✓ Record doctor approval':'✓ Complete step'}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`:''}
+      ${isLead() && !def.approval? `<div style="display:flex; gap:6px; margin:6px 0;"><select id="kb-assign" class="field" style="flex:1;"><option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>${assignOptions(def, st.assignee)}</select><button class="btn" onclick="kbAssign('${c.id}','${m.track}',${m.idx})">Assign</button></div>`:''}
+      ${isLead() && m.track==='main'? `<button class="opt-row" onclick="openModal({type:'moveback', cid:'${c.id}'})">↩ Move back (reason required)</button>`:''}
+      <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='team'){
+    body = `<h3>👥 Team setup — skills &amp; time off</h3>
+      <div class="subtle">Tap a skill chip to cycle: <b>✓ primary</b> → <b>B backup</b> → <b>✕ off</b>. Backups only get a step when every primary is full. Leads are always the last resort: work goes to techs first, leads only when no tech has capacity.</div>
+      ${TECHS.filter(BENCHABLE).map(t=>{
+        const steps=[...new Set([...deptStepNames(t.dept), ...Object.keys(SKILL_OVERRIDES[t.id]||{})])];
+        const abs=techAbsences(t.id);
+        return `<div style="border-bottom:1px solid var(--grid); padding:9px 0;">
+          <div class="tech-head"><span class="tname">${t.name}</span> <span class="dept-chip">${t.dept}</span>
+            ${outToday(t.id)? '<span class="badge b-over">OUT TODAY</span>':''}
+            ${!outToday(t.id)? `<button class="linklike" style="margin-left:auto;" onclick="markOut('${t.id}',0,1,'out today')">mark out today</button>`:''}
+          </div>
+          <div class="filters" style="padding:6px 0 2px;">
+            ${steps.map(s=>{
+              const lv=stepQual(t,{n:s, d:t.dept});
+              return `<button class="fchip ${lv===1?'on':''}" style="${lv===2?'border-color:var(--accent); color:var(--accent);':''} ${lv===0?'opacity:.45;':''}" onclick="cycleSkill('${t.id}','${esc(s)}')">${lv===1?'✓':lv===2?'B':'✕'} ${esc(s)}</button>`;
+            }).join('')}
+          </div>
+          ${abs.length? abs.map(a=>`<div class="subtle">🏖 out ${a.from===0?'now':'in '+a.from+'d'} for ${a.to-a.from+1} day${a.to-a.from?'s':''}${a.note?' · '+esc(a.note):''} <button class="linklike" onclick="removeAbsence(${a.i})">remove</button></div>`).join(''):''}
+          <div style="display:flex; gap:6px; align-items:center; margin-top:5px; font-size:12px;">
+            <span class="subtle">Time off:</span> starts in <input id="abs-from-${t.id}" type="number" value="1" min="0" style="width:52px; padding:4px;"> d, for
+            <input id="abs-days-${t.id}" type="number" value="1" min="1" style="width:52px; padding:4px;"> d
+            <button class="linklike" onclick="markOut('${t.id}', +document.getElementById('abs-from-${t.id}').value, +document.getElementById('abs-days-${t.id}').value, 'planned')">add</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="btnrow" style="margin-top:10px;"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='hold'){
+    body = `<h3>⏸ Hold ${c.id} for special attention</h3>
+      <div class="subtle">Held cases stay visible everywhere but are skipped by auto-assign, and the bench can't start them until a lead releases the hold.</div>
+      <textarea id="m-text" class="field" rows="2" placeholder="Why does this need eyes first?"></textarea>
+      <div class="btnrow"><button class="btn primary" onclick="setHold('${c.id}', document.getElementById('m-text').value.trim())">Hold it</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  if(m.type==='chat'){
+    body = `<h3>💬 ${c.id} · ${esc(c.patient)}</h3>
+      ${chatHtml(c,{bench:m.bench})}
+      <div class="btnrow" style="margin-top:10px;"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='flag'){
+    body = `<h3>⚑ Flag for lead — ${c.id}</h3>
+      <div class="subtle">Case stays where it is; it jumps into the lead inbox with your reason.</div>
+      <textarea id="m-text" class="field" rows="3" placeholder="What should the lead look at?"></textarea>
+      <div class="btnrow"><button class="btn primary" onclick="saveFlag('${c.id}',${!!m.bench})">Flag it</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  if(m.type==='nudge'){
+    body = `<h3>👉 Nudge a department — ${c.id}</h3>
+      <label class="f">Department</label>
+      <select id="m-dept" class="field">${DEPTS.map(d=>`<option>${d}</option>`).join('')}</select>
+      <label class="f">Message</label>
+      <textarea id="m-text" class="field" rows="2" placeholder="e.g. can you queue this today?"></textarea>
+      <div class="btnrow"><button class="btn primary" onclick="saveNudge('${c.id}')">Send nudge</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  if(m.type==='moveback'){
+    const defs = stepDefs(c,'main');
+    const cur = trackIdx(c,'main');
+    const opts = defs.map((d,i)=>({d,i})).filter(x=>x.i < (cur===-1?defs.length:cur));
+    const preIdx = m.preIdx!==undefined && opts.some(o=>o.i===m.preIdx) ? m.preIdx : (opts.length?opts[opts.length-1].i:0);
+    body = opts.length? `<h3>↩ Move back — ${c.id} <span class="subtle">(management only)</span></h3>
+      <label class="f">Refabricate from step</label>
+      <select id="m-step" class="field">${opts.map(x=>`<option value="${x.i}" ${x.i===preIdx?'selected':''}>${x.d.n} (${x.d.d})</option>`).join('')}</select>
+      <label class="f">Reason group</label>
+      <select id="m-group" class="field" onchange="fillCodes(this.value)">${Object.keys(REASONS).map(g=>`<option>${g}</option>`).join('')}</select>
+      <label class="f">Reason code</label>
+      <select id="m-code" class="field">${REASONS['Design'].map(r=>`<option>${r}</option>`).join('')}</select>
+      <label class="f">Remake type</label>
+      <select id="m-rtype" class="field"><option>Internal remake</option><option>External remake</option><option>Revision</option></select>
+      <label class="f">Responsible team member <span class="subtle">(for training, not blame)</span></label>
+      <select id="m-person" class="field"><option>—</option>${TECHS.filter(BENCHABLE).map(x=>`<option>${x.name}</option>`).join('')}</select>
+      <div class="btnrow"><button class="btn danger" onclick="doMoveBack('${c.id}')">Move back &amp; log</button><button class="btn" onclick="closeModal()">Cancel</button></div>`
+    : `<h3>↩ Move back — ${c.id}</h3>
+      <div class="empty">This case is at its first step — there's nothing earlier to move back to.</div>
+      <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='ticket'){
+    body = `${ticketHtml(c)}
+      <div class="btnrow" style="justify-content:center;"><button class="btn primary" onclick="window.print()">⎙ Print</button><button class="btn" onclick="closeModal()">Close</button></div>`;
+  }
+  if(m.type==='savefilter'){
+    body = `<h3>☆ Save current filter</h3>
+      <div class="subtle">Saves: ${state.caseFilter} + ${state.typeFilter==='all'?'all types':WORKFLOWS[state.typeFilter].name} + ${state.deptFilter==='all'?'all departments':state.deptFilter}${state.search?' + "'+esc(state.search)+'"':''}</div>
+      <label class="f">Name</label>
+      <input id="m-text" class="field" placeholder="e.g. Rush finals this week">
+      <div class="btnrow"><button class="btn primary" onclick="saveCustom()">Save</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  if(m.type==='dashcfg'){
+    const cfg=state.dashCfg;
+    body = `<h3>⚙ Customize dashboard</h3>
+      <div class="subtle">Pick the cards for your view. In the real build each role saves its own layout.</div>
+      <label class="chek"><input type="checkbox" id="cfg-pr" ${cfg.pr?'checked':''}> Priority report</label>
+      <label class="chek"><input type="checkbox" id="cfg-cap" ${cfg.cap?'checked':''}> Capacity meters</label>
+      <label class="chek"><input type="checkbox" id="cfg-inbox" ${cfg.inbox?'checked':''}> Lead inbox</label>
+      <label class="chek"><input type="checkbox" id="cfg-rem" ${cfg.rem?'checked':''}> Remake log</label>
+      <label class="chek"><input type="checkbox" id="cfg-pipe" ${cfg.pipe?'checked':''}> Pipeline to my department</label>
+      <label class="chek"><input type="checkbox" id="cfg-mascot" ${cfg.mascot?'checked':''}> 🦷 Pearl the mascot</label>
+      <div class="btnrow"><button class="btn primary" onclick="saveDashCfg()">Apply</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  if(m.type==='newcase'){
+    body = `<h3>＋ New case <span class="subtle">(manual intake — v1)</span></h3>
+      <label class="f">Workflow</label>
+      <select id="n-wf" class="field">${Object.entries(WORKFLOWS).map(([k,w])=>`<option value="${k}">${w.name}${w.endState==='inhouse'?' · in-house':''}</option>`).join('')}</select>
+      <label class="f">Patient (Last, F.)</label>
+      <input id="n-patient" class="field" placeholder="e.g. Rivera, J.">
+      <label class="f">Doctor</label>
+      <select id="n-doc" class="field">${DOCTORS.map((d,i)=>`<option value="${i}">${d.doc} — ${d.clinic}</option>`).join('')}</select>
+      <label class="f">Ship / seat in (days) <span class="subtle">0 = same day · blank = 7</span></label>
+      <input id="n-days" class="field" type="number" value="7" min="0">
+      <label class="f">Linked case # <span class="subtle">(required for Final Denture)</span></label>
+      <input id="n-link" class="field" placeholder="R-xxxx">
+      <label class="f"><input type="checkbox" id="n-rush" style="width:auto;"> Rush</label>
+      <label class="f"><input type="checkbox" id="n-hold" style="width:auto;"> ⏸ Hold for special attention <span class="subtle">(skipped by auto-assign; bench can't start it until a lead releases it)</span></label>
+      <div id="n-err" style="color:var(--critical); font-size:12.5px; font-weight:600; margin-top:6px;"></div>
+      <div class="btnrow"><button class="btn primary" onclick="createCase()">Create case</button><button class="btn" onclick="closeModal()">Cancel</button></div>`;
+  }
+  return `<div class="sheet-bg" onclick="if(event.target===this) closeModal()"><div class="modal">${body}</div></div>`;
+}
+
+function barcodeHtml(id){
+  let bars='';
+  for(const ch of id.replace(/[^A-Z0-9]/gi,'')){
+    const n = ch.charCodeAt(0);
+    for(let b=0;b<4;b++){
+      const w = ((n >> b) & 1) ? 3 : 1.5;
+      bars += `<i style="width:${w}px; margin-right:${b%2?2:1.5}px;"></i>`;
+    }
+  }
+  return `<div class="barcode">${bars}</div><div class="barcode-num">${id}</div>`;
+}
+function ticketHtml(c){
+  const defs = stepDefs(c,'main');
+  const wf = wfOf(c);
+  return `<div class="ticket">
+    ${barcodeHtml(c.id)}
+    <table>
+      <tr><td><b>Patient</b></td><td>${esc(c.patient)}</td><td><b>${wf.endState==='ship'?'Ship':'Seat'}</b></td><td>${fmtDate(new Date(c.ship))} ${c.rush?'· RUSH':''}</td></tr>
+      <tr><td><b>Doctor</b></td><td>${esc(c.doctor)}</td><td><b>Flow</b></td><td>${wf.name}</td></tr>
+      ${c.linkedTo?`<tr><td><b>Linked</b></td><td colspan="3">${c.linkedTo}</td></tr>`:''}
+    </table>
+    <table class="steps" style="margin-top:8px;">
+      ${defs.map((d,i)=>{const st=c.tracks.main.steps[i]; return `<tr><td style="width:18px;"><span class="chk" style="${st.status==='done'?'background:#555;':''}"></span></td><td>${d.n}</td><td>${d.d}</td><td style="text-align:right;">${st.status==='done'&&st.assignee?tech(st.assignee).name:''}</td></tr>`;}).join('')}
+      ${wf.ng? `<tr><td colspan="4" style="padding-top:6px;"><b>∥ Night guard track</b></td></tr>` + wf.ng.map((d,i)=>{const st=c.tracks.ng?c.tracks.ng.steps[i]:null; return `<tr><td><span class="chk" style="${st&&st.status==='done'?'background:#555;':''}"></span></td><td>${d.n}</td><td>${d.d}</td><td></td></tr>`;}).join(''):''}
+    </table>
+    ${(()=>{ const ln=linkedNotes(c); return ln? `<div style="font-size:11px; margin-top:8px; border-top:1px solid #eee; padding-top:6px;"><b>⧉ ${ln.id}:</b> ${esc(ln.notes[0].text)} <i>(${esc(ln.notes[0].who)})</i></div>`:''; })()}
+    <div style="font-size:10.5px; color:#777; margin-top:8px;">Scan at each bench to check in / out. Notes live in the LMS — scan to read.</div>
+  </div>`;
+}
+
+/* ===================== actions ===================== */
+function setView(v){ state.view=v; state.boardSel=null; state.kbSel=null; state.kbMsg=null; state.boardMsg=null; state.boardMsgAction=null; render(); }
+function openCase(id){ state.caseId=id; state.modal=null; render(); }
+function closeCase(){ state.caseId=null; render(); }
+function openModal(m){ clearTimeout(renderTimer); state.modal=m; render(); }
+function closeModal(){ clearTimeout(renderTimer); state.modal=null; render(); }
+function goCases(f){ state.caseFilter=f; state.search=''; state.appliedCustom=null; state.view='cases'; render(); }
+function goAssign(){ state.boardMode='assign'; setView('board'); }
+function allowedTabs(){ return ROLE_TABS[state.role].map(x=>x[0]); }
+function setRole(r){
+  state.role=r;
+  if(r==='tech'){ state.userId=state.benchTechId; }        // keep whoever was at the bench — a lead stays himself
+  else if(r==='frontdesk'){ state.userId='t14'; }
+  else if(r==='owner'){ state.userId='t0'; }
+  else if(r==='design'){ state.role='lead'; state.userId='t5'; state.benchTechId='t5'; state.pipeDept='Design'; }
+  else { state.userId='t1'; state.benchTechId='t1'; state.pipeDept='Finishing'; }
+  if(!allowedTabs().includes(state.view)) state.view=allowedTabs()[0];
+  state.boardSel=null; state.kbSel=null; state.modal=null;
+  state.benchCaseId=null; state.benchSel=null; state.benchMsg=null;   // don't inherit another identity's open work
+  render();
+}
+let qDrag=null;
+function qDragStart(e, cid, track, idx){
+  if(!isLead()) return;
+  qDrag={cid, track, idx};
+  e.target.classList.add('dragging');
+}
+function qDrop(tid){
+  if(!qDrag || !isLead()){ qDrag=null; return; }
+  const c=getCase(qDrag.cid);
+  const def=stepDefs(c,qDrag.track)[qDrag.idx];
+  const st=c.tracks[qDrag.track].steps[qDrag.idx];
+  if(trackIdx(c,qDrag.track)!==qDrag.idx || st.assignee){ qDrag=null; state.boardMsg='That queue card was stale — board refreshed.'; render(); return; }
+  st.assignee=tid;
+  const cross = tech(tid).dept!==def.d;
+  const ql = stepQual(tech(tid), def);
+  logEvt(c, `${def.n} assigned to ${tech(tid).name} (drag)${cross? ` (⚠ cross-department)`:''}${ql===0?' (⚠ not in their skill set)':''}`, (cross||ql===0)?'warn':'step');
+  state.boardMsg=`${cross||ql===0?'⚠':'✓'} ${c.id} · ${def.n} → ${tech(tid).name}${ql===0?' — heads up: not in their skill set':''}${cross&&ql!==0?' — cross-department':''}`;
+  state.boardMsgAction = tid===state.userId ? {cid:c.id, track:qDrag.track, idx:qDrag.idx} : null;
+  qDrag=null;
+  render();
+}
+function teamTap(tid){
+  if(state.boardSel && isLead()){ assignSel(tid); return; }
+  openModal({type:'person', tid});
+}
+function selQueue(cid, track, idx){
+  if(!isLead()) return;
+  const c=getCase(cid);
+  state.boardSel={cid, track, idx, stepName:stepDefs(c,track)[idx].n, dept:stepDefs(c,track)[idx].d};
+  render();
+}
+function clearSel(e){ e.preventDefault(); state.boardSel=null; render(); }
+function assignSel(tid){
+  const s=state.boardSel; if(!s) return;
+  const c=getCase(s.cid);
+  const def=stepDefs(c,s.track)[s.idx];
+  c.tracks[s.track].steps[s.idx].assignee=tid;
+  const cross = tech(tid).dept!==def.d;
+  logEvt(c, `${def.n} assigned to ${tech(tid).name}${cross? ` (⚠ cross-department: step is ${def.d}, ${tech(tid).name} is ${tech(tid).dept})`:''}`, cross?'warn':'step');
+  state.boardSel=null;
+  state.boardMsg = `${cross?'⚠ ':'✓ '}${s.cid} · ${def.n} → ${tech(tid).name}${cross? ` — heads up: step is ${def.d}, ${tech(tid).name.split(' ')[0]} is ${tech(tid).dept}`:''}`;
+  state.boardMsgAction = tid===state.userId ? {cid:s.cid, track:s.track, idx:s.idx} : null;   // assigned to yourself → one tap to your bench
+  render();
+}
+function openAtMyBench(cid, track, idx){
+  state.benchTechId=state.userId;
+  benchWork(cid, track, idx);
+  state.view='bench'; state.boardMsg=null; state.boardMsgAction=null;
+  render();
+}
+function assignOptions(def, currentTid){
+  const rank = t => (stepQual(t,def)===1?0:stepQual(t,def)===2?1:2) + (outToday(t.id)?0.5:0);
+  return TECHS.filter(BENCHABLE).slice().sort((a,b)=>rank(a)-rank(b) || a.name.localeCompare(b.name))
+    .map(t=>`<option value="${t.id}" ${currentTid===t.id?'disabled':''}>${t.name} — ${t.dept}${outToday(t.id)?' · out today':''}${stepQual(t,def)===0?' · ⚠ not skilled':stepQual(t,def)===2?' · backup':''}</option>`).join('');
+}
+function sheetAssign(cid, track, idx, val){
+  if(!val){ return; }
+  const c=getCase(cid);
+  const st=c.tracks[track].steps[idx];
+  const def=stepDefs(c,track)[idx];
+  if(val==='__clear__'){
+    if(st.assignee) unassignStep(cid, track, idx, st.assignee);
+    else render();
+    return;
+  }
+  if(st.status==='in' && st.assignee && st.assignee!==val){
+    if(!window.confirm(`${tech(st.assignee).name} is checked in on ${def.n} right now. Hand it to ${tech(val).name} anyway?`)){ render(); return; }
+    st.status='todo'; st.start=null;
+  }
+  const prev=st.assignee;
+  st.assignee=val;
+  const t=tech(val);
+  const warns=[];
+  if(t.dept!==def.d) warns.push('cross-department');
+  if(stepQual(t,def)===0) warns.push('not in their skill set');
+  if(outToday(t.id)) warns.push('marked out today');
+  if(c.hold) warns.push('case is on HOLD — they can\'t start it until it\'s released');
+  logEvt(c, `${def.n} ${prev? 'reassigned from '+tech(prev).name+' to':'assigned to'} ${t.name} (from case page)${warns.length? ' (⚠ '+warns.join(', ')+')':''}`, warns.length?'warn':'step');
+  render();
+}
+function unassignStep(cid, track, idx, tid){
+  const c=getCase(cid);
+  const st=c.tracks[track].steps[idx];
+  if(st.status==='in'){
+    if(!window.confirm(`${tech(tid).name} is checked in on this step right now. Pull them off and send it back to the queue?`)){ render(); return; }
+    st.status='todo'; st.start=null;
+  }
+  st.assignee=null;
+  logEvt(c, `${stepDefs(c,track)[idx].n} unassigned from ${tech(tid).name} — back to queue`, 'step');
+  render();
+}
+/* kanban */
+let kbDrag=null;
+function kbDragStart(cid, track, idx){ kbDrag={cid, track, idx}; }
+function kbDrop(dept){
+  if(!kbDrag || !isLead()){ kbDrag=null; return; }
+  const {cid, track, idx} = kbDrag; kbDrag=null;
+  const c=getCase(cid);
+  const defs=stepDefs(c,track);
+  const cur=trackIdx(c,track);
+  state.kbMsg=null;
+  if(cur!==idx){ state.kbMsg='That card is stale — board refreshed.'; render(); return; }
+  const curDept = defs[idx].d;
+  const next = idx+1<defs.length? defs[idx+1] : null;
+  const advance = ()=>{
+    if(defs[idx].approval){ state.kbMsg=`${defs[idx].n} is a doctor approval — record it from the card menu or the case sheet, not by drag.`; render(); return; }
+    if(isBlocked(c,track,idx)){ state.kbMsg=`${c.id} is gated — the night-guard track must finish before ${defs[idx].n} completes.`; render(); return; }
+    completeStep(c, track, idx, state.userId);
+    if(next) state.kbMsg = `${c.id}: ${defs[idx].n} completed → ${next.n} (${next.d}).`;
+    else if(track==='ng') state.kbMsg = `${c.id}: night-guard track complete — main track continues${caseDone(c)?'':' (QC now unlocked)'}.`;
+    else state.kbMsg = caseDone(c)? `${c.id}: ${defs[idx].n} completed — ${wfOf(c).endState==='ship'?'shipped':'delivered in-house'}.` : `${c.id}: ${defs[idx].n} completed — waiting on the NG track before the case can close.`;
+    if(caseDone(c)) confettiBurst();
+    render();
+  };
+  if(dept==='__DONE__'){
+    if(!next){ advance(); } else { state.kbMsg=`${c.id} still has steps left — next is ${next.n} (${next.d}).`; render(); }
+    return;
+  }
+  if(dept===curDept){
+    if(next && next.d===curDept){ advance(); }             // same-dept advance: drop on own column
+    else { state.kbMsg = next? `Next step for ${c.id} is ${next.n} in ${next.d}.` : `${c.id} is at its last step — drag to Done.`; render(); }
+    return;
+  }
+  if(next && next.d===dept){ advance(); return; }
+  if(track==='main'){
+    const earlier = defs.map((d,i)=>({d,i})).filter(x=>x.i<idx && x.d.d===dept);
+    if(earlier.length){
+      openModal({type:'moveback', cid, preIdx:earlier[0].i});
+      return;
+    }
+  }
+  state.kbMsg = next? `Next step for ${c.id} is ${next.n} in ${next.d} — drop it there, on its own column, or use the card menu.` : `${c.id} is at its last step — drag to Done.`;
+  render();
+}
+function kbAdvance(cid, track, idx){
+  const c=getCase(cid);
+  if(trackIdx(c,track)!==idx || isBlocked(c,track,idx)){ closeModal(); return; }
+  if(stepDefs(c,track)[idx].approval) logEvt(c, `Doctor approval recorded (${c.doctor}) by ${me().name}`, 'step');
+  completeStep(c, track, idx, state.userId);
+  closeModal();
+}
+function kbAssign(cid, track, idx){
+  const tid=document.getElementById('kb-assign').value;
+  if(!tid){ return; }
+  closeModal();
+  sheetAssign(cid, track, idx, tid);   // one assignment rulebook everywhere: confirm on mid-work handoff, warnings, honest logs
+}
+/* inbox / notes / flags */
+function resolveInbox(cid, kind, ni){
+  const c=getCase(cid);
+  if(kind==='flag'){ c.flag=null; logEvt(c,'Flag cleared','sys'); }
+  else if(ni>=0 && c.nudges[ni]){
+    logEvt(c, `Nudge to ${c.nudges[ni].toDept} cleared`, 'sys');
+    c.nudges.splice(ni,1);
+  }
+  render();
+}
+function recordApproval(cid, idx){
+  const c=getCase(cid);
+  if(trackIdx(c,'main')!==idx || !stepDefs(c,'main')[idx].approval) return;
+  logEvt(c, `Doctor approval recorded (${c.doctor}) by ${me().name}`, 'step');
+  completeStep(c, 'main', idx, state.userId);
+  render();
+}
+function dismissNudge(cid, ni){
+  const c=getCase(cid);
+  if(c.nudges[ni]){
+    logEvt(c, `Nudge to ${c.nudges[ni].toDept} dismissed by ${benchActor()}`, 'sys', benchActor());
+    c.nudges.splice(ni,1);
+  }
+  render();
+}
+function clearFlag(e,cid){ e.preventDefault(); const c=getCase(cid); c.flag=null; logEvt(c,'Flag cleared','sys'); render(); }
+function saveNote(cid, bench){
+  const t=document.getElementById('m-text').value.trim(); if(!t){ closeModal(); return; }
+  const c=getCase(cid);
+  const who = actorName(bench);
+  c.notes.push({who, when:now(), text:t});
+  closeModal();
+}
+function saveFlag(cid, bench){
+  const t=document.getElementById('m-text').value.trim();
+  const c=getCase(cid);
+  const who = actorName(bench);
+  const txt = t||'(no detail)';
+  if(c.flag){
+    c.flag={by:c.flag.by, when:now(), text:`${c.flag.text} · also ${who}: ${txt}`};
+  } else {
+    c.flag={by:who, when:now(), text:txt};
+  }
+  logEvt(c, `Flagged for lead by ${who}`, 'warn', who);
+  closeModal();
+}
+function saveNudge(cid){
+  const d=document.getElementById('m-dept').value;
+  const t=document.getElementById('m-text').value.trim();
+  const c=getCase(cid);
+  const who=actorName(false);
+  c.nudges.push({toDept:d, from:who, when:now(), text:t||'(nudge)'});
+  logEvt(c, `Nudge sent to ${d}`, 'sys', who);
+  closeModal();
+}
+function fillCodes(group){
+  document.getElementById('m-code').innerHTML = REASONS[group].map(r=>`<option>${r}</option>`).join('');
+}
+function doMoveBack(cid){
+  const c=getCase(cid);
+  const sel=document.getElementById('m-step');
+  if(!sel || sel.value===''){ closeModal(); return; }
+  const idx=+sel.value;
+  const g=document.getElementById('m-group').value;
+  const code=document.getElementById('m-code').value;
+  const rtype=document.getElementById('m-rtype').value;
+  const person=document.getElementById('m-person').value;
+  moveBack(c, idx, g, code, rtype, person);
+  closeModal();
+}
+/* filters & dash cfg */
+function saveCustom(){
+  const name=document.getElementById('m-text').value.trim()||'Filter '+(state.customFilters.length+1);
+  state.customFilters.push({name, f:state.caseFilter, tf:state.typeFilter, s:state.search, df:state.deptFilter});
+  closeModal();
+}
+function applyCustom(i){
+  const cf=state.customFilters[i];
+  state.caseFilter=cf.f; state.typeFilter=cf.tf; state.search=cf.s; state.deptFilter=cf.df||'all';
+  state.appliedCustom=i;
+  render();
+}
+function delCustom(i){
+  state.customFilters.splice(i,1);
+  if(state.appliedCustom===i) state.appliedCustom=null;
+  else if(state.appliedCustom>i) state.appliedCustom--;
+  render();
+}
+function saveDashCfg(){
+  state.dashCfg={
+    pr:document.getElementById('cfg-pr').checked,
+    cap:document.getElementById('cfg-cap').checked,
+    inbox:document.getElementById('cfg-inbox').checked,
+    rem:document.getElementById('cfg-rem').checked,
+    pipe:document.getElementById('cfg-pipe').checked,
+    mascot:document.getElementById('cfg-mascot').checked,
+  };
+  if(!state.dashCfg.mascot){ const e=document.getElementById('pearl'); if(e) e.remove(); }
+  closeModal();
+}
+/* bench */
+function benchWork(cid, track, idx){
+  state.benchCaseId=cid; state.benchSel={track, idx}; state.benchMsg=null; render();
+}
+function benchPick(cid){
+  const c=getCase(cid);
+  const t=tech(state.benchTechId);
+  const cs=currentSteps(c);
+  const mine = cs.find(s=>s.def.d===t.dept && !s.blocked && !s.def.approval);
+  state.benchCaseId=cid;
+  state.benchSel = mine? {track:mine.track, idx:mine.idx} : null;   // null → info card, no work buttons
+  state.benchMsg=null;
+  closeModal();
+}
+function benchUndoCheckIn(cid, track, idx){
+  const c=getCase(cid);
+  const st=c.tracks[track].steps[idx];
+  if(st.status==='in'){
+    const prev = st.prev || {assignee:null, status:'todo', start:null};
+    st.assignee=prev.assignee; st.status=prev.status; st.start=prev.start;   // take-over undone → original tech is WORKING again
+    delete st.prev;
+    const outcome = !prev.assignee ? ' — returned to unassigned queue'
+      : prev.status==='in' ? ` — ${tech(prev.assignee).name} is checked in again, session intact`
+      : ` — back with ${tech(prev.assignee).name}`;
+    logEvt(c, `${stepDefs(c,track)[idx].n}: check-in undone by ${benchActor()}${outcome}`, 'step', benchActor());
+    if(!prev.assignee){ state.benchCaseId=null; state.benchSel=null; state.benchMsg='Check-in undone — case returned to the queue.'; }
+  }
+  render();
+}
+function returnToQueue(cid, track, idx){
+  const c=getCase(cid);
+  const st=c.tracks[track].steps[idx];
+  if(st.assignee){
+    logEvt(c, `${stepDefs(c,track)[idx].n} returned to queue by ${benchActor()}`, 'step', benchActor());
+    st.assignee=null;
+  }
+  state.benchCaseId=null; state.benchSel=null;
+  render();
+}
+function benchCheckIn(cid, track, idx){
+  const c=getCase(cid);
+  checkInStep(c, track, idx, state.benchTechId);
+  state.benchMsg=null;
+  render();
+}
+function benchComplete(cid, track, idx){
+  const c=getCase(cid);
+  const t=tech(state.benchTechId);
+  const name = stepDefs(c,track)[idx].n;
+  completeStep(c, track, idx, state.benchTechId);
+  const cs = currentSteps(c);
+  const cont = cs.find(s=>s.def.d===t.dept && !s.blocked && !s.def.approval);
+  if(caseDone(c)){
+    state.benchMsg = `✓ ${name} done — case complete: ${wfOf(c).endState==='ship'?'ready to ship':'deliver in-house'}.`;
+    state.benchCaseId=null; state.benchSel=null;
+    confettiBurst();
+    walkMascot(`${c.id} out the door. Nice work, ${tech(state.benchTechId).name.split(' ')[0]}!`, 'cheer');
+  } else if(cont){
+    // next step is also this tech's department: stay on the case, ready to check in
+    state.benchMsg = `✓ ${name} done — next step is yours too: ${cont.def.n}.`;
+    state.benchCaseId=cid; state.benchSel={track:cont.track, idx:cont.idx};
+  } else {
+    state.benchMsg = `✓ ${name} done — next: ${cs.map(s=>`${s.def.n} (${s.def.d})${s.blocked?' · gated':''}${s.def.approval?' · dr approval':''}`).join(' + ')}`;
+    state.benchCaseId=null; state.benchSel=null;
+  }
+  render();
+}
+function exportCsv(){
+  // exports exactly what the current filters show — set filter to Active for a migration snapshot
+  const list = applyFilters();
+  const q = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const rows = [['Case','Patient','Doctor','Clinic','Workflow','Created','ShipDate','EndState','Rush','Status','CurrentSteps','Assignees','LinkedTo'].join(',')];
+  list.forEach(c=>{
+    const cs=currentSteps(c);
+    rows.push([
+      q(c.id), q(c.patient), q(c.doctor), q(c.clinic), q(wfOf(c).name),
+      q(fmtDate(new Date(c.created))), q(fmtDate(new Date(c.ship))), q(wfOf(c).endState),
+      q(c.rush?'yes':''), q(c.voided?'voided': caseDone(c)?'done':'active'),
+      q(cs.map(s=>s.def.n+(s.track==='ng'?' (NG)':'')).join(' + ')),
+      q(cs.map(s=>s.st.assignee?tech(s.st.assignee).name:'unassigned').join(' + ')),
+      q(c.linkedTo||''),
+    ].join(','));
+  });
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'renew-cases-export.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function createCase(){
+  const err = msg => { const e=document.getElementById('n-err'); if(e) e.textContent=msg; };
+  const wfKey=document.getElementById('n-wf').value;
+  const patient=document.getElementById('n-patient').value.trim();
+  const di=+document.getElementById('n-doc').value;
+  const raw=parseInt(document.getElementById('n-days').value,10);
+  if(raw<0){ err('Days can\'t be negative — use 0 for same-day.'); return; }
+  const days=isNaN(raw)? 7 : raw;                          // 0 = same-day; blank = 7
+  let link=document.getElementById('n-link').value.trim()||null;
+  if(link){ link=link.toUpperCase(); if(/^\d+$/.test(link)) link='R-'+link; }   // "2588" and "r-2588" both work
+  if(!patient){ err('Patient name is required — it\'s how everyone finds the case.'); return; }
+  if(WORKFLOWS[wfKey].linked && !link){ err(WORKFLOWS[wfKey].name+' must be linked to its try-in case.'); return; }
+  if(link && !getCase(link)){ err('Case '+link+' isn\'t in the system — check the number.'); return; }
+  if(WORKFLOWS[wfKey].linked && link && getCase(link).wf!=='tryin'){ err(link+' is a '+wfOf(getCase(link)).name+' — a '+WORKFLOWS[wfKey].name+' links to a Denture Try-in.'); return; }
+  const rush=document.getElementById('n-rush').checked;
+  const c = mkCase({wf:wfKey, patient, doctor:DOCTORS[di].doc, clinic:DOCTORS[di].clinic, ship:daysFromNow(days), rush, linkedTo:link, created:now(), at:0, creator:me().name});
+  const holdEl=document.getElementById('n-hold');
+  if(holdEl && holdEl.checked){
+    c.hold={by:me().name, when:now(), reason:'Held at check-in — needs review before work starts'};
+    c.events.push({when:now(), who:me().name, text:'Case put on HOLD at check-in', type:'warn'});
+  }
+  const absHit = ABSENCES.filter(a=>a.to>=0 && a.from<=days).map(a=>`${tech(a.tid).name} out ${a.from===0?'now':'in '+a.from+'d'} for ${a.to-a.from+1}d`);
+  if(absHit.length) c.events.push({when:now(), who:'System', text:'Capacity heads-up in this case\'s window: '+absHit.join('; '), type:'warn'});
+  CASES.unshift(c);
+  state.modal=null; state.caseId=c.id;
+  render();
+}
+
+/* ===================== Pearl the mascot v2 — status + jokes ===================== */
+function pearlSvg(mood, size){
+  mood = mood||'happy';
+  const INK='#1c1b1a', BLUSH='#e87ba4', GLOSS='#dcebfb';
+  // eyes
+  let eyes = `<g class="p-eyes">
+      <circle cx="24" cy="26" r="3.4" fill="${INK}"/><circle cx="40" cy="26" r="3.4" fill="${INK}"/>
+      <circle cx="25.3" cy="24.6" r="1.2" fill="#fff"/><circle cx="41.3" cy="24.6" r="1.2" fill="#fff"/>
+    </g>`;
+  if(mood==='cheer') eyes = `<g><path d="M20.5 26 Q24 21.5 27.5 26" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <path d="M36.5 26 Q40 21.5 43.5 26" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/></g>`;
+  // brows
+  const brows = mood==='worry' ? `<path d="M20 19.5 L27 21.5 M44 19.5 L37 21.5" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>`
+    : mood==='think' ? `<path d="M20.5 20 Q24 18.5 27.5 20" stroke="${INK}" stroke-width="2" fill="none" stroke-linecap="round"/>` : '';
+  // mouth
+  let mouth = `<path d="M26 33 Q32 38.5 38 33" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  if(mood==='cheer') mouth = `<path d="M25.5 32.5 Q32 42 38.5 32.5 Z" fill="#8c3a52"/><path d="M28.5 36.8 Q32 39.6 35.5 36.8 L35 38.6 Q32 40.6 29 38.6 Z" fill="${BLUSH}"/>`;
+  if(mood==='worry') mouth = `<path d="M27 36.5 Q32 32.5 37 36.5" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  if(mood==='think') mouth = `<path d="M28 35.5 L36 35.5" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>`;
+  // arms
+  const arms = mood==='cheer'
+    ? `<path d="M10 28 Q4 22 6.5 15" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>
+       <path d="M54 28 Q60 22 57.5 15" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`
+    : `<path d="M10.5 30 Q7 33 8 37" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>
+       <path d="M53.5 30 Q57 33 56 37" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  return `<svg width="${size||66}" height="${size||66}" viewBox="0 0 64 66" aria-hidden="true">
+    <g class="body">
+      ${arms}
+      <path d="M32 5 C25 5 23.5 8.5 19 8.5 C11.5 8.5 7 14.5 7 22.5 C7 31.5 12 35.5 14 42.5 C16 49.5 15.8 59 21.5 59 C27.2 59 25.5 47 32 47 C38.5 47 36.8 59 42.5 59 C48.2 59 48 49.5 50 42.5 C52 35.5 57 31.5 57 22.5 C57 14.5 52.5 8.5 45 8.5 C40.5 8.5 39 5 32 5 Z"
+        fill="#ffffff" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="21" cy="15.5" rx="6.5" ry="4" fill="${GLOSS}" transform="rotate(-16 21 15.5)"/>
+      <circle cx="30" cy="11.5" r="1.8" fill="${GLOSS}"/>
+      <ellipse cx="21.5" cy="59.2" rx="4.6" ry="2.6" fill="${INK}"/>
+      <ellipse cx="42.5" cy="59.2" rx="4.6" ry="2.6" fill="${INK}"/>
+      ${brows}${eyes}${mouth}
+      <circle cx="18.5" cy="31" r="2.8" fill="${BLUSH}" opacity=".55"/>
+      <circle cx="45.5" cy="31" r="2.8" fill="${BLUSH}" opacity=".55"/>
+    </g>
+  </svg>`;
+}
+const PEARL_QUIPS = [
+  'Scan it or it didn\'t happen.',
+  'Passive fit or it\'s a paperweight.',
+  'Shade tabs lie under fluorescents. Go to the window.',
+  'A clean bench is a fast bench.',
+  'Rush cases love company. Don\'t let them.',
+  'Check the occlusion twice, adjust once.',
+  'That margin isn\'t going to close itself.',
+  'Hydrate! Your wax-up will thank you.',
+  'Sinter now, polish later.',
+  'Night guards deserve love too.',
+  'The QC gate is a friend, not a wall.',
+  'I\'m rooting for you. Literally.',
+];
+function pearlStatus(){
+  const s=[];
+  const today = d => new Date(d).toDateString()===new Date().toDateString();
+  const shipped = CASES.filter(c=>caseDone(c) && !c.voided && c.events.some(e=>e.type==='done' && today(e.when))).length;
+  const over = CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))<0).length;
+  const due = CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===0).length;
+  const un = unassignedQueue().length;
+  const held = CASES.filter(c=>!caseDone(c) && c.hold).length;
+  const gated = CASES.filter(c=>currentSteps(c).some(x=>x.blocked)).length;
+  const stalled = CASES.filter(isStalled).length;
+  const rkWeek = allMoves(true).length;
+  if(shipped>0) s.push({t:`${shipped} case${shipped===1?'':'s'} out the door today. That's the stuff.`, mood:'cheer'});
+  if(over>0) s.push({t:`${over} overdue. Rescue mission, anyone?`, mood:'worry'});
+  if(stalled>0) s.push({t:`${stalled} case${stalled===1?' hasn\'t':'s haven\'t'} moved in 2 days. Poke it.`, mood:'worry'});
+  if(un>0) s.push({t:`${un} step${un===1?'':'s'} in the queue with no owner.`, mood:'think'});
+  if(held>0) s.push({t:`${held} on hold, waiting for lead eyes.`, mood:'think'});
+  if(gated>0) s.push({t:`${gated} case${gated===1?'':'s'} waiting on a night guard.`, mood:'think'});
+  if(due>0 && over===0) s.push({t:`${due} due today and nothing late. We got this.`, mood:'happy'});
+  if(un===0 && over===0 && stalled===0) s.push({t:'Queue clear, nothing late. Frame this moment.', mood:'cheer'});
+  if(rkWeek===0) s.push({t:'Zero remakes this week. Witchcraft? No — craft.', mood:'cheer'});
+  return s;
+}
+function pearlLine(){
+  const status = pearlStatus();
+  if(status.length && Math.random()<0.6) return status[Math.floor(Math.random()*status.length)];
+  return {t:PEARL_QUIPS[Math.floor(Math.random()*PEARL_QUIPS.length)], mood:'happy'};
+}
+function walkMascot(msg, mood){
+  try{
+    if(!state.dashCfg.mascot) return;
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const line = msg? {t:msg, mood:mood||'happy'} : pearlLine();
+    let el=document.getElementById('pearl');
+    if(el && el.classList.contains('walking')) return;
+    if(el) el.remove();
+    el=document.createElement('div');
+    el.id='pearl';
+    el.innerHTML=`<div class="bub" id="pearl-bub"></div>${pearlSvg(line.mood)}`;
+    el.onclick=()=>{ const n=pearlLine(); const b=document.getElementById('pearl-bub'); if(b) b.textContent=n.t; };
+    document.body.appendChild(el);
+    document.getElementById('pearl-bub').textContent = line.t;
+    void el.offsetWidth;
+    el.classList.add('walking');
+    setTimeout(()=>{ const e=document.getElementById('pearl'); if(e) e.classList.remove('walking'); }, 13500);
+  }catch(e){}
+}
+function confettiBurst(){
+  try{
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colors=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4'];
+    const layer=document.createElement('div'); layer.className='confetti';
+    for(let i=0;i<28;i++){
+      const s=document.createElement('i');
+      s.style.left=(4+Math.random()*92)+'%';
+      s.style.background=colors[i%colors.length];
+      s.style.animationDelay=(Math.random()*0.35)+'s';
+      s.style.transform='rotate('+(Math.random()*360)+'deg)';
+      layer.appendChild(s);
+    }
+    document.body.appendChild(layer);
+    setTimeout(()=>layer.remove(), 2400);
+  }catch(e){}
+}
+setTimeout(()=>walkMascot('Hi, I\'m Pearl. I keep an eye on the floor — status, gossip, the works.', 'cheer'), 4500);
+setInterval(()=>{ if(Math.random()<0.6) walkMascot(); }, 85000);
+
+/* ===================== root ===================== */
+let renderTimer=null;
+function renderSoon(){ clearTimeout(renderTimer); renderTimer=setTimeout(render, 350); }
+function render(){
+  const views={dash:vDash, board:vBoard, cases:vCases, bench:vBench, chat:vChat};
+  const openC = state.caseId? getCase(state.caseId): null;
+  const searchEl = document.activeElement && document.activeElement.tagName==='INPUT' ? document.activeElement : null;
+  const searchPos = searchEl? searchEl.selectionStart : null;
+  const tabs = ROLE_TABS[state.role];
+  document.getElementById('app').innerHTML = `
+    <header class="app">
+      <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
+      <div><h1>Renew LMS <span class="sub">v1.9 prototype · sample data</span></h1></div>
+      <div class="role-pick">
+        <select onchange="setRole(this.value)">
+          <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
+          <option value="design" ${state.role==='lead'&&state.userId==='t5'?'selected':''}>Lena (Design Lead)</option>
+          <option value="owner" ${state.role==='owner'?'selected':''}>Dr. Weiss (Owner)</option>
+          <option value="tech" ${state.role==='tech'?'selected':''}>Technician</option>
+          <option value="frontdesk" ${state.role==='frontdesk'?'selected':''}>Front desk</option>
+        </select>
+      </div>
+    </header>
+    <div class="wrap">${views[state.view]()}</div>
+    <nav class="tabs">
+      ${tabs.map(([v,ic,lbl])=>`<button class="${state.view===v?'on':''}" onclick="setView('${v}')"><span class="ic">${ic}</span>${lbl}</button>`).join('')}
+    </nav>
+    ${openC? vCaseSheet(openC): ''}
+    ${vModal()}
+  `;
+  if(searchEl && state.view==='cases'){
+    const ne=document.querySelector('.searchrow input');
+    if(ne){ ne.focus(); try{ ne.setSelectionRange(searchPos,searchPos); }catch(e){} }
+  }
+}
+render();
+</script></body></html>
