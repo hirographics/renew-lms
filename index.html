@@ -426,7 +426,19 @@ const TECHS = [
   {id:'t0',  name:'Dr. Weiss',  dept:'Management',role:'owner'},   // lab owner — approvals, oversight
 ];
 const tech = id => TECHS.find(t=>t.id===id);
-const HOURS_PER_DAY = 6.5; // productive bench hours per tech
+const HOURS_PER_DAY = 9;        // 10h shift (Mon–Thu) minus ~1h breaks/cleanup — tune with real scan data
+const TURNAROUND_DAYS = 14;     // default two-week turnaround
+
+/* ---- work week: Monday–Thursday, 10h days; shipping only on work days ---- */
+const isWorkday = d => { const w=new Date(d).getDay(); return w>=1 && w<=4; };
+function snapWorkday(d){ const x=new Date(d); while(!isWorkday(x)) x.setDate(x.getDate()+1); return x; }
+function addWorkdays(d, n){ const x=new Date(d); let k=0; while(k<n){ x.setDate(x.getDate()+1); if(isWorkday(x)) k++; } return x; }
+function workdaysBetween(a, b){   // workdays after a, up to and including b
+  let n=0; const x=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+  const end=new Date(b.getFullYear(),b.getMonth(),b.getDate());
+  while(x<end){ x.setDate(x.getDate()+1); if(isWorkday(x)) n++; }
+  return n;
+}
 
 /* ---- skills matrix: default = every step of your own department at primary level.
    Overrides: 0 = can't do it (yet), 1 = primary, 2 = backup / cross-trained. ---- */
@@ -552,7 +564,7 @@ function mkCase(o){
     id:'R-'+(o.id||caseSeq++),
     patient:o.patient, doctor:o.doctor, clinic:o.clinic,
     wf:o.wf, rush:!!o.rush, linkedTo:o.linkedTo||null,
-    created:o.created||daysFromNow(-5), ship:o.ship,
+    created:o.created||daysFromNow(-5), ship:snapWorkday(o.ship),   // shipping happens Mon–Thu
     tracks:{ main:{steps:mkSteps(wf.main)} },
     notes:o.notes||[], events:[], flag:null, nudges:[],
     moveLog:o.moveLog||[],
@@ -753,6 +765,51 @@ function lastActivity(c){
   return t;
 }
 function isStalled(c){ return !caseDone(c) && (Date.now()-lastActivity(c)) > 48*3600e3; }
+/* ---- per-step due dates, back-computed from the ship date across Mon–Thu workdays ----
+   Steps are spread over the case's workday window proportionally to their est hours;
+   the last main step lands exactly on the ship date. NG steps fit between fork and join. */
+function stepDueMap(c){
+  const wf=wfOf(c);
+  const created=new Date(c.created), ship=new Date(c.ship);
+  const W=Math.max(1, workdaysBetween(created, ship));
+  const total=wf.main.reduce((a,d)=>a+d.h,0)||1;
+  let cum=0;
+  const mainDue=wf.main.map(d=>{
+    cum+=d.h;
+    let due=addWorkdays(created, Math.min(W, Math.max(1, Math.ceil(cum/total*W))));
+    if(due>ship) due=new Date(ship);
+    return due;
+  });
+  mainDue[wf.main.length-1]=new Date(ship);
+  const out={main:mainDue};
+  if(wf.ng){
+    const start=mainDue[wf.forkAfter], end=mainDue[wf.joinAt];
+    const nW=Math.max(1, workdaysBetween(start, end));
+    const nTotal=wf.ng.reduce((a,d)=>a+d.h,0)||1;
+    let nc=0;
+    out.ng=wf.ng.map(d=>{
+      nc+=d.h;
+      let due=addWorkdays(start, Math.min(nW, Math.max(1, Math.ceil(nc/nTotal*nW))));
+      if(due>end) due=new Date(end);
+      return due;
+    });
+  }
+  return out;
+}
+function stepDue(c, track, idx){ const m=stepDueMap(c); return (m[track]||[])[idx]||null; }
+function stepLate(c, track, idx){
+  const st=c.tracks[track].steps[idx];
+  if(st.status==='done') return false;
+  const d=stepDue(c, track, idx);
+  return !!d && dayDiff(d)<0;
+}
+function dueLabel(c, track, idx, st){
+  if(st.status==='done') return '';
+  const d=stepDue(c, track, idx);
+  if(!d) return '';
+  const dd=dayDiff(d);
+  return ` · due ${dd===0?'today':fmtDate(d)}${dd<0?' ⚠ late':''}`;
+}
 function logEvt(c, text, type, who){ c.events.push({when:now(), who:who||me().name, text, type:type||'sys'}); }
 function benchActor(){ return tech(state.benchTechId).name; }
 // notes/flags/nudges started from the bench (incl. the case sheet opened from it) belong to the bench identity
@@ -1049,6 +1106,7 @@ function priorityReport(){
     else if(dd===1){ score+=40; why.push('ships tomorrow'); }
     if(c.rush){ score+=30; why.push('rush'); }
     if(isStalled(c)){ score+=25; why.push('stalled'); }
+    if(currentSteps(c).some(s=>stepLate(c, s.track, s.idx))){ score+=20; why.push('step behind schedule'); }
     if(currentSteps(c).some(s=>s.def.approval)){ score+=10; why.push('waiting on doctor'); }
     else if(currentSteps(c).some(s=>!s.st.assignee && !s.blocked)){ score+=10; why.push('unassigned'); }
     if(currentSteps(c).some(s=>s.blocked)){ why.push('QC gated on NG'); }
@@ -1320,11 +1378,12 @@ function vCal(){
   for(let d=1;d<=daysIn;d++){
     const date=new Date(y,mo,d);
     const off=dayDiff(date);
+    const closed=!isWorkday(date);
     const due=CASES.filter(c=>!caseDone(c) && dayDiff(new Date(c.ship))===off);
     const doneHere=CASES.filter(c=>caseDone(c) && !c.voided && dayDiff(new Date(c.ship))===off);
     const out=TECHS.filter(t=>BENCHABLE(t) && isOutOn(t.id,off));
     const dots=due.slice(0,4).map(c=>`<i style="background:${WF_COLORS[c.wf]}"></i>`).join('') + (due.length>4?`<span class="cal-more">+${due.length-4}</span>`:'');
-    cells.push(`<div class="cal-cell ${off===0?'today':''} ${state.calSel===off?'sel':''}" onclick="state.calSel=${off}; render();">
+    cells.push(`<div class="cal-cell ${off===0?'today':''} ${state.calSel===off?'sel':''}" style="${closed?'opacity:.45; background:var(--page);':''}" onclick="state.calSel=${off}; render();">
       <div class="dnum">${d}</div>
       <div class="cal-dots">${dots}${doneHere.length?'<span class="cal-more" style="color:var(--good-text)">✓'+doneHere.length+'</span>':''}</div>
       ${out.length?`<span class="cal-out">🏖${out.length}</span>`:''}
@@ -1342,7 +1401,7 @@ function vCal(){
         ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="dow">${d}</div>`).join('')}
         ${cells.join('')}
       </div>
-      <div class="subtle" style="margin-top:8px;">Dots = cases due (colored by type) · ✓ = delivered · 🏖 = people out. Tap a day to drill in.</div>
+      <div class="subtle" style="margin-top:8px;">Dots = cases due (colored by type) · ✓ = delivered · 🏖 = people out. Dimmed days = lab closed (we run Mon–Thu). Tap a day to drill in.</div>
     </div>
     ${state.calSel!==null? vCalDay(state.calSel):''}`;
 }
@@ -1476,7 +1535,7 @@ function vKanban(){
                  ondragstart="kbDragStart('${k.c.id}','${k.track}',${k.idx})"
                  onclick="openModal({type:'kbcard', cid:'${k.c.id}', track:'${k.track}', idx:${k.idx}})">
               <div class="kc-top">${k.c.id} ${k.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${k.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${k.def.approval?'<span class="badge b-flag">⏳ DR</span>':''} ${k.blocked?'<span title="gated">🔒</span>':''}</div>
-              <div class="kc-step">${esc(k.def.n)}${k.def.approval?' · waiting on doctor':''} · ${esc(k.c.patient)}</div>
+              <div class="kc-step">${esc(k.def.n)}${k.def.approval?' · waiting on doctor':''}${dueLabel(k.c, k.track, k.idx, k.st)} · ${esc(k.c.patient)}</div>
               <div class="kc-bot"><span>${k.def.approval? esc(k.c.doctor) : (k.st.assignee? tech(k.st.assignee).name : 'unassigned')}</span><span>${shipLabel(k.c)}</span></div>
             </div>`).join('') || '<div class="empty" style="padding:6px 0;">—</div>'}
         </div>`).join('')}
@@ -1627,7 +1686,7 @@ function trackHtml(c, track){
     const cls = st.status==='done'?'done': (i===cur ? (st.status==='in'?'in':'') : '');
     const active = i===cur;
     const blocked = active && isBlocked(c,track,i);
-    let info = `${d.d} · ${d.h}h est`;
+    let info = `${d.d} · ${d.h}h est${dueLabel(c, track, i, st)}`;
     if(st.assignee) info += ` · ${tech(st.assignee).name}`;
     if(st.status==='in') info += ` · checked in ${fmtWhen(new Date(st.start))}`;
     if(st.status==='done' && st.end) info += ` · done ${fmtWhen(new Date(st.end))}`;
@@ -1748,7 +1807,8 @@ function vBench(){
     stepCard = `<div class="bench-step">
       <div class="big-case">${c.id} · ${esc(c.patient)} · ${wfOf(c).name} ${track==='ng'?'<span class="badge b-ng">NG TRACK</span>':''}</div>
       <div class="big-name">${def.n}</div>
-      <div class="subtle">${def.d} · ${def.h}h est ${st.assignee? '· assigned to '+tech(st.assignee).name : '· unassigned'}</div>
+      <div class="subtle">${def.d} · ${def.h}h est${dueLabel(c, track, idx, st)} ${st.assignee? '· assigned to '+tech(st.assignee).name : '· unassigned'}</div>
+      ${stepLate(c, track, idx)? '<div class="assign-hint" style="margin-top:8px; border:1px solid var(--critical); color:var(--critical); background:none;"><b>Behind schedule</b> — this step\'s target date has passed.</div>':''}
       ${waiting? `<div class="assign-hint" style="margin-top:8px;">⏳ Earlier steps aren’t done yet — this step isn’t up next.</div>`:''}
       ${blocked? `<div class="assign-hint" style="margin-top:8px;">⛔ Gated — night-guard track must finish first.</div>`:''}
       ${(()=>{
@@ -1805,7 +1865,7 @@ function vBench(){
             <div class="cid" style="border-left:4px solid ${WF_COLORS[r.c.wf]}; padding-left:6px;">${r.c.id}</div>
             <div class="cmeta" style="flex:1; min-width:0;">
               <div class="l1" style="font-size:12.5px;">${esc(r.def.n)} ${r.def.d!==r.def.n?`<span class="dept-chip">${r.def.d}</span>`:''} ${r.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${r.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${r.blocked?'🔒':''}</div>
-              <div class="l2">${esc(r.c.patient)} · ${r.def.h}h est ${r.current?'':'· not up yet'}</div>
+              <div class="l2">${esc(r.c.patient)} · ${r.def.h}h est${r.current? dueLabel(r.c, r.track, r.idx, r.st):''} ${r.current?'':'· not up yet'}</div>
             </div>
             <span class="st ${r.st.status==='in'?'in':''}">${r.st.status==='in'?'WORKING':'QUEUED'}</span>
             <div class="ship">${shipLabel(r.c)}</div>
@@ -1991,8 +2051,9 @@ function vModal(){
       <input id="n-patient" class="field" placeholder="e.g. Rivera, J.">
       <label class="f">Doctor</label>
       <select id="n-doc" class="field">${DOCTORS.map((d,i)=>`<option value="${i}">${d.doc} — ${d.clinic}</option>`).join('')}</select>
-      <label class="f">Ship / seat in (days) <span class="subtle">0 = same day · blank = 7</span></label>
-      <input id="n-days" class="field" type="number" value="7" min="0">
+      <label class="f">Ship / seat in (days) <span class="subtle">default 14 = two-week turnaround · lands Mon–Thu</span></label>
+      <input id="n-days" class="field" type="number" value="${TURNAROUND_DAYS}" min="0" oninput="const el=document.getElementById('n-lands'); const v=parseInt(this.value,10); if(el) el.textContent = isNaN(v)||v<0 ? '' : 'lands '+fmtDate(snapWorkday(daysFromNow(v)));">
+      <div id="n-lands" class="subtle" style="margin-top:3px;">lands ${fmtDate(snapWorkday(daysFromNow(TURNAROUND_DAYS)))}</div>
       <label class="f">Linked case # <span class="subtle">(required for Final Denture)</span></label>
       <input id="n-link" class="field" placeholder="R-xxxx">
       <label class="f"><input type="checkbox" id="n-rush" style="width:auto;"> Rush</label>
@@ -2025,7 +2086,7 @@ function ticketHtml(c){
       ${c.linkedTo?`<tr><td><b>Linked</b></td><td colspan="3">${c.linkedTo}</td></tr>`:''}
     </table>
     <table class="steps" style="margin-top:8px;">
-      ${defs.map((d,i)=>{const st=c.tracks.main.steps[i]; return `<tr><td style="width:18px;"><span class="chk" style="${st.status==='done'?'background:#555;':''}"></span></td><td>${d.n}</td><td>${d.d}</td><td style="text-align:right;">${st.status==='done'&&st.assignee?tech(st.assignee).name:''}</td></tr>`;}).join('')}
+      ${defs.map((d,i)=>{const st=c.tracks.main.steps[i]; const due=stepDue(c,'main',i); return `<tr><td style="width:18px;"><span class="chk" style="${st.status==='done'?'background:#555;':''}"></span></td><td>${d.n}</td><td>${d.d}</td><td style="font-size:10px; color:#777;">${due?fmtDate(due):''}</td><td style="text-align:right;">${st.status==='done'&&st.assignee?tech(st.assignee).name:''}</td></tr>`;}).join('')}
       ${wf.ng? `<tr><td colspan="4" style="padding-top:6px;"><b>∥ Night guard track</b></td></tr>` + wf.ng.map((d,i)=>{const st=c.tracks.ng?c.tracks.ng.steps[i]:null; return `<tr><td><span class="chk" style="${st&&st.status==='done'?'background:#555;':''}"></span></td><td>${d.n}</td><td>${d.d}</td><td></td></tr>`;}).join(''):''}
     </table>
     ${(()=>{ const ln=linkedNotes(c); return ln? `<div style="font-size:11px; margin-top:8px; border-top:1px solid #eee; padding-top:6px;"><b>⧉ ${ln.id}:</b> ${esc(ln.notes[0].text)} <i>(${esc(ln.notes[0].who)})</i></div>`:''; })()}
@@ -2398,7 +2459,7 @@ function createCase(){
   const di=+document.getElementById('n-doc').value;
   const raw=parseInt(document.getElementById('n-days').value,10);
   if(raw<0){ err('Days can\'t be negative — use 0 for same-day.'); return; }
-  const days=isNaN(raw)? 7 : raw;                          // 0 = same-day; blank = 7
+  const days=isNaN(raw)? TURNAROUND_DAYS : raw;            // blank = standard two-week turnaround; ship date snaps to Mon–Thu in mkCase
   let link=document.getElementById('n-link').value.trim()||null;
   if(link){ link=link.toUpperCase(); if(/^\d+$/.test(link)) link='R-'+link; }   // "2588" and "r-2588" both work
   if(!patient){ err('Patient name is required — it\'s how everyone finds the case.'); return; }
@@ -2486,6 +2547,8 @@ function pearlStatus(){
   const rkWeek = allMoves(true).length;
   if(shipped>0) s.push({t:`${shipped} case${shipped===1?'':'s'} out the door today. That's the stuff.`, mood:'cheer'});
   if(over>0) s.push({t:`${over} overdue. Rescue mission, anyone?`, mood:'worry'});
+  const behind = CASES.filter(c=>!caseDone(c) && currentSteps(c).some(x=>stepLate(c, x.track, x.idx))).length;
+  if(behind>0) s.push({t:`${behind} case${behind===1?' is':'s are'} behind their step schedule. Small slips, big rushes.`, mood:'worry'});
   if(stalled>0) s.push({t:`${stalled} case${stalled===1?' hasn\'t':'s haven\'t'} moved in 2 days. Poke it.`, mood:'worry'});
   if(un>0) s.push({t:`${un} step${un===1?'':'s'} in the queue with no owner.`, mood:'think'});
   if(held>0) s.push({t:`${held} on hold, waiting for lead eyes.`, mood:'think'});
@@ -2551,7 +2614,7 @@ function render(){
   document.getElementById('app').innerHTML = `
     <header class="app">
       <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
-      <div><h1>Renew LMS <span class="sub">v1.9 prototype · sample data</span></h1></div>
+      <div><h1>Renew LMS <span class="sub">v2.0 prototype · sample data</span></h1></div>
       <div class="role-pick">
         <select onchange="setRole(this.value)">
           <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
