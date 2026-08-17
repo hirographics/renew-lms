@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Renew LMS — v1 Prototype</title>
+<title>Renew LMS — v2.1 Prototype</title>
 <style>
 :root{
   color-scheme: light;
@@ -391,6 +391,55 @@ h2.pagetitle{font-size:17px; margin:2px 0 10px;}
 .rk-stat{flex:1; text-align:center; background:var(--page); border:1px solid var(--grid); border-radius:10px; padding:7px 4px;}
 .rk-stat .v{font-size:19px; font-weight:700;}
 .rk-stat .k{font-size:10.5px; color:var(--ink2);}
+
+/* ---- team map (responsibility web) ---- */
+.tm-legend{display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:0 2px 10px; font-size:11.5px; color:var(--ink2);}
+.tm-legend span{display:flex; align-items:center; gap:6px;}
+.tm-legend i.sw{width:20px; height:12px; border-radius:4px; display:inline-block;}
+.tm-legend i.sw.step{background:var(--accent-soft); border:1px solid var(--accent);}
+.tm-legend i.sw.person{background:var(--surface); border:1px solid var(--baseline);}
+
+.tm-band{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:8px 4px 6px; margin-bottom:10px;}
+.tm-band h4{margin:2px 0 2px 11px; font-size:11.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.6px; color:var(--accent);}
+.tm-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; padding:0 8px 4px;}
+.tm-inner{display:table; margin:0 auto;}
+.tm-scroll svg{display:block; max-width:none;}
+
+line.tm-edge{fill:none;}
+line.tm-edge.p{stroke:var(--accent); stroke-width:2.2; stroke-linecap:round;}
+line.tm-edge.b{stroke:var(--baseline); stroke-width:1.3; stroke-dasharray:4 3.5; stroke-linecap:round;}
+line.tm-edge.dim{opacity:.12;}
+
+.tm-node{cursor:pointer;}
+.tm-node rect{transition:fill .12s ease, stroke .12s ease, opacity .12s ease;}
+.tm-node text{font-size:11px; text-anchor:middle; fill:var(--ink); pointer-events:none;}
+.tm-node text.sub{font-size:8.5px; fill:var(--muted);}
+.tm-node.step rect{fill:var(--accent-soft); stroke:var(--accent); stroke-width:1;}
+.tm-node.step text{font-weight:700; font-size:10.5px;}
+.tm-node.person rect{fill:var(--surface); stroke:var(--baseline); stroke-width:1;}
+.tm-node.out rect{stroke:var(--serious); stroke-width:1.6; stroke-dasharray:5 3;}
+.tm-node.on rect{stroke:var(--ink); stroke-width:2;}
+.tm-node.dim{opacity:.22;}
+.tm-node:hover rect{stroke:var(--ink);}
+
+.tm-hint{font-size:12.5px; color:var(--ink2);}
+.tm-panel-hd{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:7px;}
+.tm-panel-hd .btn{margin-left:auto;}
+.tm-lists{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media (max-width:520px){ .tm-lists{grid-template-columns:1fr;} }
+.tm-lists h5{margin:0 0 5px; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); font-weight:700;}
+.chip{display:inline-block; font-size:11.5px; border-radius:99px; padding:3px 9px; margin:0 4px 4px 0;
+  background:var(--page); border:1px solid var(--grid); color:var(--ink);}
+.chip.p{background:var(--accent-soft); border-color:var(--accent);}
+.chip.b{border-style:dashed; border-color:var(--baseline);}
+.chip.out{border-color:var(--serious); color:var(--warn-ink);}
+.pill{display:inline-block; font-size:11.5px; border-radius:8px; padding:5px 9px; margin:6px 6px 0 0;
+  background:var(--page); border:1px solid var(--grid); color:var(--ink2);}
+.pill.good{background:rgba(12,163,12,.10); border-color:var(--good); color:var(--good-text);}
+.pill.warn{background:rgba(250,178,25,.14); border-color:var(--warn); color:var(--warn-ink);}
+.pill.bad{background:rgba(208,59,59,.10); border-color:var(--critical); color:var(--critical);}
+.btn.sm{padding:4px 10px; font-size:11.5px;}
 </style>
 </head>
 <body>
@@ -676,6 +725,7 @@ const state = {
   modal:null,
   boardMode:'assign',     // assign | kanban
   boardSel:null,
+  tmSel:null,            // team map selection {kind:'step'|'person', id}
   kbSel:null,             // selected kanban card {cid, track, idx}
   kbMsg:null,
   capMode:'dept',         // dept | person | type
@@ -703,10 +753,10 @@ const state = {
 };
 
 const ROLE_TABS = {
-  lead:      [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['bench','▣','Bench']],
-  owner:     [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases']],
-  frontdesk: [['dash','◧','Today'],['cases','▤','Cases'],['chat','💬','Chat']],
-  tech:      [['bench','▣','My Bench'],['cases','▤','Cases'],['chat','💬','Chat']],
+  lead:      [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['bench','▣','Bench'],['team','◈','Team']],
+  owner:     [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['team','◈','Team']],
+  frontdesk: [['dash','◧','Today'],['cases','▤','Cases'],['chat','💬','Chat'],['team','◈','Team']],
+  tech:      [['bench','▣','My Bench'],['cases','▤','Cases'],['chat','💬','Chat'],['team','◈','Team']],
 };
 const BENCHABLE = t => t.dept!=='Front Desk' && t.dept!=='Management';
 const WF_COLORS = {tryin:'#2a78d6', proto:'#eb6834', final:'#1baf7a', flange:'#eda100', sleeve:'#e87ba4'};
@@ -2095,7 +2145,7 @@ function ticketHtml(c){
 }
 
 /* ===================== actions ===================== */
-function setView(v){ state.view=v; state.boardSel=null; state.kbSel=null; state.kbMsg=null; state.boardMsg=null; state.boardMsgAction=null; render(); }
+function setView(v){ state.view=v; state.tmSel=null; state.boardSel=null; state.kbSel=null; state.kbMsg=null; state.boardMsg=null; state.boardMsgAction=null; render(); }
 function openCase(id){ state.caseId=id; state.modal=null; render(); }
 function closeCase(){ state.caseId=null; render(); }
 function openModal(m){ clearTimeout(renderTimer); state.modal=m; render(); }
@@ -2606,7 +2656,7 @@ setInterval(()=>{ if(Math.random()<0.6) walkMascot(); }, 85000);
 let renderTimer=null;
 function renderSoon(){ clearTimeout(renderTimer); renderTimer=setTimeout(render, 350); }
 function render(){
-  const views={dash:vDash, board:vBoard, cases:vCases, bench:vBench, chat:vChat};
+  const views={dash:vDash, board:vBoard, cases:vCases, bench:vBench, chat:vChat, team:vTeamMap};
   const openC = state.caseId? getCase(state.caseId): null;
   const searchEl = document.activeElement && document.activeElement.tagName==='INPUT' ? document.activeElement : null;
   const searchPos = searchEl? searchEl.selectionStart : null;
@@ -2614,7 +2664,7 @@ function render(){
   document.getElementById('app').innerHTML = `
     <header class="app">
       <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
-      <div><h1>Renew LMS <span class="sub">v2.0 prototype · sample data</span></h1></div>
+      <div><h1>Renew LMS <span class="sub">v2.1 prototype · sample data</span></h1></div>
       <div class="role-pick">
         <select onchange="setRole(this.value)">
           <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
@@ -2638,4 +2688,226 @@ function render(){
   }
 }
 render();
+/* ===================== Team Map =====================
+   Interactive responsibility web: every step in every workflow, who owns it,
+   who can cover it. Reads the same skills matrix the auto-assign engine reads,
+   so the picture can never drift from how work is actually routed.
+   Solid line = primary. Dashed line = backup / cross-trained. Position = department.
+------------------------------------------------------------------------------ */
+
+const TM_DEPT_ORDER = ['Design','Finishing','Milling','Printing','Scanning','QC','Shipping','Front Desk'];
+
+function tmSteps(){                       // every distinct bench step, with its department
+  const seen = new Map();
+  Object.values(WORKFLOWS).forEach(w=>{
+    [...w.main, ...(w.ng||[])].forEach(d=>{
+      if(d.approval) return;              // approvals are waits, handled in their own band
+      if(!seen.has(d.n)) seen.set(d.n, {n:d.n, d:d.d, h:d.h, wfs:new Set()});
+      seen.get(d.n).wfs.add(w.name);
+    });
+  });
+  return [...seen.values()];
+}
+function tmApprovals(){
+  const seen = new Map();
+  Object.values(WORKFLOWS).forEach(w=>{
+    w.main.forEach(d=>{ if(d.approval && !seen.has(d.n)) seen.set(d.n, {n:d.n, d:'Approvals', h:d.h}); });
+  });
+  return [...seen.values()];
+}
+const tmApprovers = () => TECHS.filter(t=>t.id==='t5'||t.id==='t0');   // mirrors canApprove()
+
+function tmPeopleFor(step){               // {P:[tech], B:[tech]} for one step
+  const P=[], B=[];
+  TECHS.forEach(t=>{
+    if(!BENCHABLE(t) && step.d!=='Front Desk' && step.d!=='Shipping') return;
+    const q = stepQual(t, step);
+    if(q===1) P.push(t); else if(q===2) B.push(t);
+  });
+  return {P, B};
+}
+function tmOwnedBy(t){                     // what one person owns / covers
+  const own=[], cov=[];
+  tmSteps().forEach(s=>{ const q=stepQual(t,s); if(q===1) own.push(s.n); else if(q===2) cov.push(s.n); });
+  return {own, cov};
+}
+
+function tmSel(kind, id){
+  state.tmSel = (state.tmSel && state.tmSel.kind===kind && state.tmSel.id===id) ? null : {kind, id};
+  render();
+}
+function tmClear(){ state.tmSel=null; render(); }
+
+/* ---- one department band, drawn as SVG ---- */
+function tmBand(dept, steps){
+  const NW=118, NH=34, PW=104, PH=32, GAPX=16, TOP=8, MID=76;
+  const people = [...new Set(steps.flatMap(s=>{ const {P,B}=tmPeopleFor(s); return [...P,...B]; }))];
+  if(!steps.length || !people.length) return '';
+
+  // barycentre pass: pull people toward the steps they own so solid lines run near-parallel
+  const W = q => q===1 ? 4 : q===2 ? 1 : 0;
+  people.sort((a,b)=>{
+    const bc = t => { let n=0,d=0; steps.forEach((s,i)=>{ const w=W(stepQual(t,s)); if(w){n+=w*i; d+=w;} });
+                      return d? n/d : 0; };
+    return bc(a)-bc(b) || a.name.localeCompare(b.name);
+  });
+
+  const wS = steps.length*(NW+GAPX), wP = people.length*(PW+GAPX);
+  const W_ = Math.max(wS, wP, 300), H_ = MID+PH+TOP+6;
+  const sx = i => (W_ - wS)/2 + i*(NW+GAPX) + NW/2;
+  const px = i => (W_ - wP)/2 + i*(PW+GAPX) + PW/2;
+
+  const sel = state.tmSel;
+  const dim = (stepName, tid) => {
+    if(!sel) return false;
+    return sel.kind==='step' ? sel.id!==stepName : sel.id!==tid;
+  };
+
+  let edges='';
+  steps.forEach((s,i)=>{
+    const {P,B} = tmPeopleFor(s);
+    [...P.map(t=>[t,1]), ...B.map(t=>[t,2])].forEach(([t,q])=>{
+      const j = people.indexOf(t); if(j<0) return;
+      const d = dim(s.n, t.id);
+      edges += `<line x1="${sx(i)}" y1="${TOP+NH}" x2="${px(j)}" y2="${MID}"
+        class="tm-edge ${q===1?'p':'b'} ${d?'dim':''}"/>`;
+    });
+  });
+
+  const stepNodes = steps.map((s,i)=>{
+    const {P,B} = tmPeopleFor(s);
+    const d = dim(s.n, null) && !(sel && sel.kind==='person' && (P.concat(B)).some(t=>t.id===sel.id));
+    const on = sel && ((sel.kind==='step' && sel.id===s.n) || (sel.kind==='person' && P.concat(B).some(t=>t.id===sel.id)));
+    return `<g class="tm-node step ${d?'dim':''} ${on?'on':''}" onclick="tmSel('step',${JSON.stringify(s.n).replace(/"/g,'&quot;')})">
+      <rect x="${sx(i)-NW/2}" y="${TOP}" width="${NW}" height="${NH}" rx="7"/>
+      <text x="${sx(i)}" y="${TOP+NH/2}" dominant-baseline="middle">${esc(s.n)}</text>
+    </g>`;
+  }).join('');
+
+  const personNodes = people.map((t,j)=>{
+    const rel = steps.some(s=>stepQual(t,s)>0 && sel && sel.kind==='step' && sel.id===s.n);
+    const d = sel && !( (sel.kind==='person' && sel.id===t.id) || rel );
+    const on = sel && ((sel.kind==='person' && sel.id===t.id) || rel);
+    const out = outToday(t.id);
+    return `<g class="tm-node person ${d?'dim':''} ${on?'on':''} ${out?'out':''}"
+        onclick="tmSel('person','${t.id}')">
+      <rect x="${px(j)-PW/2}" y="${MID}" width="${PW}" height="${PH}" rx="7"/>
+      <text x="${px(j)}" y="${MID+(t.role==='lead'||t.role==='owner'||out?13:PH/2+1)}" dominant-baseline="middle">${esc(t.name)}</text>
+      ${(t.role==='lead'||t.role==='owner'||out)? `<text class="sub" x="${px(j)}" y="${MID+24}" dominant-baseline="middle">${
+        out? 'out today' : (t.role==='owner'?'owner':'lead')}</text>`:''}
+    </g>`;
+  }).join('');
+
+  return `<div class="tm-band">
+    <h4>${esc(dept)}</h4>
+    <div class="tm-scroll"><div class="tm-inner"><svg viewBox="0 0 ${W_} ${H_}" width="${W_}" height="${H_}" role="img"
+      aria-label="${esc(dept)}: which people own and cover each step">${edges}${stepNodes}${personNodes}</svg></div></div>
+  </div>`;
+}
+
+/* ---- the detail panel for whatever is selected ---- */
+function tmPanel(){
+  const sel = state.tmSel;
+  if(!sel) return `<div class="card tm-hint"><b>Tap any box.</b> Tap a step to see everyone who can work it.
+    Tap a person to see everything they own and everything they can cover. Tap it again to clear.</div>`;
+
+  if(sel.kind==='person'){
+    const t = tech(sel.id); if(!t) return '';
+    const {own, cov} = tmOwnedBy(t);
+    const appr = tmApprovers().some(a=>a.id===t.id);
+    const load = BENCHABLE(t) ? techLoad(t) : null;
+    return `<div class="card tm-panel">
+      <div class="tm-panel-hd"><b>${esc(t.name)}</b>
+        <span class="subtle">${esc(t.dept)}${t.role==='lead'?' · lead':t.role==='owner'?' · owner':''}</span>
+        <button class="btn ghost sm" onclick="tmClear()">Clear</button></div>
+      ${outToday(t.id)? `<div class="pill warn">Out today — go to a dashed-line name instead</div>`:''}
+      <div class="tm-lists">
+        <div><h5>Owns (${own.length})</h5>${own.length? own.map(n=>`<span class="chip p">${esc(n)}</span>`).join(''):'<span class="subtle">nothing yet</span>'}</div>
+        <div><h5>Can cover (${cov.length})</h5>${cov.length? cov.map(n=>`<span class="chip b">${esc(n)}</span>`).join(''):'<span class="subtle">nothing yet</span>'}</div>
+      </div>
+      ${appr? `<div class="pill">Also approves designs in Chat</div>`:''}
+      ${load? `<div class="subtle" style="margin-top:6px;">Open work right now: ${load.n} step${load.n===1?'':'s'}, ${load.hrs.toFixed(1)} h</div>`:''}
+    </div>`;
+  }
+
+  const step = tmSteps().concat(tmApprovals()).find(s=>s.n===sel.id); if(!step) return '';
+  const isAppr = step.d==='Approvals';
+  const {P,B} = isAppr ? {P:tmApprovers(), B:[]} : tmPeopleFor(step);
+  const line = (arr, empty) => arr.length
+    ? arr.map(t=>`<span class="chip ${outToday(t.id)?'out':''}">${esc(t.name)}${outToday(t.id)?' (out today)':''}</span>`).join('')
+    : `<span class="subtle">${empty}</span>`;
+  return `<div class="card tm-panel">
+    <div class="tm-panel-hd"><b>${esc(step.n)}</b>
+      <span class="subtle">${esc(step.d)}${step.h?` · ${step.h} h a case`:''}</span>
+      <button class="btn ghost sm" onclick="tmClear()">Clear</button></div>
+    <div class="tm-lists">
+      <div><h5>Goes to first</h5>${line(P, 'nobody owns this step')}</div>
+      <div><h5>Can cover it</h5>${line(B, P.length>1? 'not needed: more than one owner' : 'nobody named yet')}</div>
+    </div>
+    ${(!P.length)? `<div class="pill bad">No owner for this step. Work here has nowhere to go automatically.</div>`
+      : (P.length===1? `<div class="pill warn">Only one owner. If ${esc(P[0].name)} is out, this step waits on a cover.</div>`:'')}
+  </div>`;
+}
+
+function vTeamMap(){
+  const byDept = {};
+  tmSteps().forEach(s=>{ (byDept[s.d]=byDept[s.d]||[]).push(s); });
+  const depts = TM_DEPT_ORDER.filter(d=>byDept[d]).concat(Object.keys(byDept).filter(d=>!TM_DEPT_ORDER.includes(d)));
+
+  const appr = tmApprovals();
+  const gaps = tmSteps().filter(s=>!tmPeopleFor(s).P.length);
+  const solo = tmSteps().filter(s=>tmPeopleFor(s).P.length===1);
+
+  return `
+  <h2 class="pgttl">Team map <span class="subtle">who do I go to?</span></h2>
+  <div class="tm-legend">
+    <span><svg width="26" height="8"><line x1="1" y1="4" x2="25" y2="4" class="tm-edge p"/></svg> owns it</span>
+    <span><svg width="26" height="8"><line x1="1" y1="4" x2="25" y2="4" class="tm-edge b"/></svg> can cover it</span>
+    <span><i class="sw step"></i> a step</span>
+    <span><i class="sw person"></i> a person</span>
+  </div>
+  ${tmPanel()}
+  ${depts.map(d=>tmBand(d, byDept[d])).join('')}
+  ${appr.length? `<div class="tm-band"><h4>Approvals</h4>
+    <div class="tm-scroll">${tmBandApprovals(appr)}</div></div>`:''}
+  ${(state.role==='lead'||state.role==='owner') ? `<div class="card">
+     <h3>Coverage check</h3>
+     ${gaps.length? `<div class="pill bad">${gaps.length} step${gaps.length===1?'':'s'} with no owner: ${gaps.map(s=>esc(s.n)).join(', ')}</div>`
+        : `<div class="pill good">Every step has an owner.</div>`}
+     ${solo.length? `<div class="pill warn">${solo.length} step${solo.length===1?'':'s'} with a single owner: ${solo.map(s=>esc(s.n)).join(', ')}</div>`:''}
+     <div class="subtle" style="margin-top:6px;">This map reads the same skills matrix the auto-assign engine uses, so it
+       cannot drift from how work is actually routed. Edit it in Board → Team setup.</div>
+   </div>`:''}
+  <div class="subtle" style="margin:10px 2px 4px;">A dashed line means qualified to cover, not that the work normally goes
+    there. Leads are covers across their own specialties on purpose, so they stay free to lead. If a step you work is missing,
+    tell your lead: an error here becomes an error in case assignment.</div>`;
+}
+
+function tmBandApprovals(appr){
+  const NW=138, NH=34, PW=118, PH=32, GAPX=18, TOP=8, MID=76;
+  const people = tmApprovers();
+  const wS=appr.length*(NW+GAPX), wP=people.length*(PW+GAPX);
+  const W_=Math.max(wS,wP,300), H_=MID+PH+TOP+6;
+  const sx=i=>(W_-wS)/2+i*(NW+GAPX)+NW/2, px=i=>(W_-wP)/2+i*(PW+GAPX)+PW/2;
+  const sel = state.tmSel;
+  const isAppr = sel && sel.kind==='person' && people.some(t=>t.id===sel.id);
+  const stepSel = sel && sel.kind==='step' && appr.some(s=>s.n===sel.id);
+  const dimStep = s => sel && !(stepSel && sel.id===s.n) && !isAppr;
+  const dimPer  = t => sel && !(sel.kind==='person' && sel.id===t.id) && !stepSel;
+  let e='';
+  appr.forEach((s,i)=>people.forEach((t,j)=>{
+    const d = dimStep(s) || dimPer(t);
+    e+=`<line x1="${sx(i)}" y1="${TOP+NH}" x2="${px(j)}" y2="${MID}" class="tm-edge p ${d?'dim':''}"/>`;
+  }));
+  return `<div class="tm-inner"><svg viewBox="0 0 ${W_} ${H_}" width="${W_}" height="${H_}" role="img" aria-label="who approves what">${e}
+    ${appr.map((s,i)=>`<g class="tm-node step ${dimStep(s)?'dim':''} ${(stepSel&&sel.id===s.n)||isAppr?'on':''}"
+        onclick="tmSel('step',${JSON.stringify(s.n).replace(/"/g,'&quot;')})">
+      <rect x="${sx(i)-NW/2}" y="${TOP}" width="${NW}" height="${NH}" rx="7"/>
+      <text x="${sx(i)}" y="${TOP+NH/2}" dominant-baseline="middle">${esc(s.n)}</text></g>`).join('')}
+    ${people.map((t,j)=>`<g class="tm-node person ${dimPer(t)?'dim':''} ${(sel&&sel.kind==='person'&&sel.id===t.id)||stepSel?'on':''}"
+        onclick="tmSel('person','${t.id}')">
+      <rect x="${px(j)-PW/2}" y="${MID}" width="${PW}" height="${PH}" rx="7"/>
+      <text x="${px(j)}" y="${MID+13}" dominant-baseline="middle">${esc(t.name)}</text>
+      <text class="sub" x="${px(j)}" y="${MID+24}" dominant-baseline="middle">approves in Chat</text></g>`).join('')}</svg></div>`;
+}
 </script></body></html>
