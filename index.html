@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Renew LMS — v2.9 Prototype</title>
+<title>Renew LMS — v3.0 Prototype</title>
 <style>
 :root{
   color-scheme: light;
@@ -1950,6 +1950,24 @@ function vCaseSheet(c){
       <div style="margin:6px 0;">${caseBadges(c)}</div>
       ${c.hold && !done? `<div class="assign-hint" style="border:1px solid var(--serious);">⏸ <b>ON HOLD — ${esc(c.hold.by)}:</b> ${esc(c.hold.reason)} · skipped by auto-assign, bench can't start it. ${isLead()?`<button class="linklike" onclick="releaseHold('${c.id}')">Release hold</button>`:''}</div>`:''}
       ${c.flag? `<div class="assign-hint">⚑ <b>${esc(c.flag.by)}:</b> ${esc(c.flag.text)} ${isLead()?`<a href="#" onclick="clearFlag(event,'${c.id}')">clear</a>`:''}</div>`:''}
+      ${isLead() && !done ? (()=>{
+        const cs = currentSteps(c);
+        if(!cs.length) return '';
+        return `<div class="assign-hint" style="margin-top:8px;">
+          <b>Move it on.</b> ${cs.length>1?'Both current steps are listed; ':''}a lead can advance a case from here even when something is in the way.
+          <div class="btnrow" style="margin:8px 0 0;">
+          ${cs.map(sx=>{
+            const bl = advanceBlockers(c, sx.track, sx.idx).filter(x=>x.k!=='unassigned');
+            const nx = stepDefs(c,sx.track)[sx.idx+1];
+            return `<button class="btn ${bl.length?'danger':'primary'}" onclick="leadAdvance('${c.id}','${sx.track}',${sx.idx},false)"
+              title="${bl.length? esc(bl.map(x=>x.t).join('; ')) : 'Nothing is in the way'}">
+              ${bl.length?'⚠ ':'✓ '}${esc(sx.def.n)}${sx.track!=='main'?' (NG)':''} →${nx? ' '+esc(nx.n) : ' done'}</button>`;
+          }).join('')}
+          </div>
+          ${cs.some(sx=>advanceBlockers(c,sx.track,sx.idx).filter(x=>x.k!=='unassigned').length)
+            ? '<div class="subtle" style="margin-top:6px;">A red button means something is in the way. It will tell you what and ask before it overrides, and the override is logged with your name.</div>' : ''}
+        </div>`;
+      })() : ''}
       ${(()=>{
         const appr = currentSteps(c).find(s=>s.track==='main' && s.def.approval);
         if(appr && (isLead()||state.role==='frontdesk')){
@@ -2187,7 +2205,8 @@ function vModal(){
       <div class="subtle" style="margin-bottom:8px;">${esc(c.patient)} · ${wfOf(c).name} · ${st.assignee? 'assigned to '+tech(st.assignee).name : 'unassigned'} · ${shipLabel(c)}</div>
       ${blocked? '<div class="assign-hint">⛔ Gated — night-guard track must finish before this advances.</div>':''}
       <button class="opt-row" onclick="closeModal(); openCase('${c.id}')">📄 Open case</button>
-      ${isLead()? `<button class="opt-row" ${blocked?'disabled':''} onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${def.approval?apprVerb(def):'✓ Complete step'}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`:''}
+      ${isLead()? (()=>{const bl=advanceBlockers(c,m.track,m.idx).filter(b=>b.k!=='unassigned');
+          return `<button class="opt-row${bl.length?' warn':''}" onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${bl.length?'⚠ Push forward anyway':(def.approval?apprVerb(def):'✓ Complete step')}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`;})() :''}
       ${isLead() && !def.approval? `<div style="display:flex; gap:6px; margin:6px 0;"><select id="kb-assign" class="field" style="flex:1;"><option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>${assignOptions(def, st.assignee, followsPrev(def)? prevAssignee(c,m.track,m.idx): null)}</select><button class="btn" onclick="kbAssign('${c.id}','${m.track}',${m.idx})">Assign</button></div>`:''}
       ${isLead() && m.track==='main'? `<button class="opt-row" onclick="openModal({type:'moveback', cid:'${c.id}'})">↩ Move back (reason required)</button>`:''}
       <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
@@ -2499,13 +2518,50 @@ function kbDrop(dept){
   state.kbMsg = next? `Next step for ${c.id} is ${next.n} in ${next.d} — drop it there, on its own column, or use the card menu.` : `${c.id} is at its last step — drag to Done.`;
   render();
 }
-function kbAdvance(cid, track, idx){
-  const c=getCase(cid);
-  if(trackIdx(c,track)!==idx || isBlocked(c,track,idx)){ closeModal(); return; }
-  if(stepDefs(c,track)[idx].approval) logEvt(c, `Doctor approval recorded (${c.doctor}) by ${me().name}`, 'step');
-  completeStep(c, track, idx, state.userId);
-  closeModal();
+/* ---- lead override: push a case forward from anywhere ----
+   A lead can always move a case on. The rules exist to catch mistakes, not to
+   trap a case on a Friday afternoon. So nothing here refuses; it explains what
+   is being bypassed, asks once, and writes an honest line in the log. */
+function advanceBlockers(c, track, idx){
+  const def = stepDefs(c,track)[idx];
+  const st  = c.tracks[track].steps[idx];
+  const out = [];
+  if(isBlocked(c,track,idx)){
+    const left = (c.tracks.ng?c.tracks.ng.steps:[]).filter(x=>x.status!=='done').length;
+    out.push({k:'gated', t:`the night-guard track still has ${left} step${left===1?'':'s'} to go, and this step normally waits for it`});
+  }
+  if(c.hold) out.push({k:'hold', t:`the case is on HOLD${c.hold.reason?' ('+c.hold.reason+')':''}${c.hold.by?', put there by '+c.hold.by:''}`});
+  if(def.approval && !canApproveStep(def)) out.push({k:'appr', t:`${apprWaitingOn(c,def)} has not signed it off`});
+  if(st.status==='in' && st.assignee && st.assignee!==state.userId)
+    out.push({k:'working', t:`${tech(st.assignee).name} is checked in on it right now`});
+  if(!st.assignee && !def.approval) out.push({k:'unassigned', t:'nobody was assigned to it, so it will be recorded against you'});
+  return out;
 }
+function leadAdvance(cid, track, idx, fromModal){
+  if(!isLead()) return;
+  const c = getCase(cid);
+  if(!c || trackIdx(c,track)!==idx){
+    state.boardMsg='That step already moved — screen refreshed.'; if(fromModal) closeModal(); render(); return;
+  }
+  const def = stepDefs(c,track)[idx];
+  const blockers = advanceBlockers(c, track, idx);
+  const serious = blockers.filter(b=>b.k!=='unassigned');
+  if(serious.length){
+    const msg = `Push "${def.n}" forward anyway?\n\n`
+      + serious.map(b=>'• '+b.t).join('\n')
+      + `\n\nThis is recorded as a lead override with your name on it.`;
+    if(!window.confirm(msg)){ if(fromModal) closeModal(); render(); return; }
+    logEvt(c, `Lead override by ${me().name}: advanced ${def.n} past ${serious.map(b=>b.k==='gated'?'the night-guard gate':b.k==='hold'?'the hold':b.k==='appr'?'an unsigned approval':'another tech being checked in').join(' and ')}`, 'warn');
+  }
+  if(def.approval && !serious.some(b=>b.k==='appr'))
+    logEvt(c, apprKind(def)==='doctor' ? `Doctor approval recorded (${c.doctor}) by ${me().name}`
+                                       : `${def.n} — approved by ${me().name}`, 'step');
+  completeStep(c, track, idx, state.userId);
+  const nxt = currentSteps(c).map(x=>x.def.n).join(' + ');
+  state.boardMsg = `✓ ${c.id} · ${def.n} done${nxt? ' → now at '+nxt : ' → track complete'}`;
+  if(fromModal) closeModal(); else render();
+}
+function kbAdvance(cid, track, idx){ leadAdvance(cid, track, idx, true); }
 function kbAssign(cid, track, idx){
   const tid=document.getElementById('kb-assign').value;
   if(!tid){ return; }
@@ -2872,7 +2928,7 @@ function render(){
   document.getElementById('app').innerHTML = `
     <header class="app">
       <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
-      <div><h1>Renew LMS <span class="sub">v2.9 prototype · real team, sample cases</span></h1></div>
+      <div><h1>Renew LMS <span class="sub">v3.0 prototype · real team, sample cases</span></h1></div>
       <div class="role-pick">
         <select onchange="setRole(this.value)">
           <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
