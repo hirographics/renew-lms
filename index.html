@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Renew LMS — v2.1 Prototype</title>
+<title>Renew LMS — v2.6 Prototype</title>
 <style>
 :root{
   color-scheme: light;
@@ -54,11 +54,21 @@ nav.tabs{
   display:flex; padding-bottom:env(safe-area-inset-bottom);
 }
 nav.tabs button{
-  flex:1; background:none; border:none; padding:9px 2px 7px; cursor:pointer;
+  flex:1 1 0; min-width:0; background:none; border:none; padding:9px 1px 7px; cursor:pointer;
   font-size:11px; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:2px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 nav.tabs button .ic{font-size:19px; line-height:1;}
 nav.tabs button.on{color:var(--accent); font-weight:700;}
+/* eight tabs have to fit a narrow phone without the last one falling off the edge */
+@media (max-width:430px){
+  nav.tabs button{font-size:9.5px; padding:8px 0 6px;}
+  nav.tabs button .ic{font-size:17px; padding:2px 7px;}
+}
+@media (max-width:360px){
+  nav.tabs button{font-size:8.5px;}
+  nav.tabs button .ic{font-size:16px; padding:2px 4px;}
+}
 
 /* ---- cards & tiles ---- */
 .card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:12px;}
@@ -228,7 +238,7 @@ label.f{display:block; font-size:12px; color:var(--ink2); margin:10px 0 4px; fon
 .btn.primary{box-shadow:0 2px 8px rgba(42,120,214,.28);}
 .fchip, .qcase, .my-row, .kb-card{transition:border-color .12s ease, box-shadow .12s ease;}
 .qcase:hover, .kb-card:hover{border-color:var(--accent);}
-nav.tabs button .ic{padding:2px 14px; border-radius:10px; transition:background .15s ease;}
+nav.tabs button .ic{padding:2px 12px; border-radius:10px; transition:background .15s ease;}
 nav.tabs button.on .ic{background:var(--accent-soft);}
 header.app{box-shadow:0 1px 0 var(--grid), inset 0 -2px 0 var(--accent-soft);}
 .logo-molar{width:26px; height:26px; flex:none; margin-right:2px;}
@@ -392,36 +402,27 @@ h2.pagetitle{font-size:17px; margin:2px 0 10px;}
 .rk-stat .v{font-size:19px; font-weight:700;}
 .rk-stat .k{font-size:10.5px; color:var(--ink2);}
 
-/* ---- team map (responsibility web) ---- */
-.tm-legend{display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:0 2px 10px; font-size:11.5px; color:var(--ink2);}
-.tm-legend span{display:flex; align-items:center; gap:6px;}
-.tm-legend i.sw{width:20px; height:12px; border-radius:4px; display:inline-block;}
-.tm-legend i.sw.step{background:var(--accent-soft); border:1px solid var(--accent);}
-.tm-legend i.sw.person{background:var(--surface); border:1px solid var(--baseline);}
+/* ---- team map (cards) ---- */
+.tm-people{display:flex; gap:7px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:2px 2px 10px;}
+.tm-people .fchip.tm-out{border-style:dashed; border-color:var(--serious); color:var(--warn-ink);}
 
-.tm-band{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:8px 4px 6px; margin-bottom:10px;}
-.tm-band h4{margin:2px 0 2px 11px; font-size:11.5px; font-weight:700; text-transform:uppercase;
+.tm-band{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 10px 10px; margin-bottom:10px;}
+.tm-band h4{margin:0 0 8px 2px; font-size:11.5px; font-weight:700; text-transform:uppercase;
   letter-spacing:.6px; color:var(--accent);}
-.tm-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch; padding:0 8px 4px;}
-.tm-inner{display:table; margin:0 auto;}
-.tm-scroll svg{display:block; max-width:none;}
+.tm-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px;}
 
-line.tm-edge{fill:none;}
-line.tm-edge.p{stroke:var(--accent); stroke-width:2.2; stroke-linecap:round;}
-line.tm-edge.b{stroke:var(--baseline); stroke-width:1.3; stroke-dasharray:4 3.5; stroke-linecap:round;}
-line.tm-edge.dim{opacity:.12;}
-
-.tm-node{cursor:pointer;}
-.tm-node rect{transition:fill .12s ease, stroke .12s ease, opacity .12s ease;}
-.tm-node text{font-size:11px; text-anchor:middle; fill:var(--ink); pointer-events:none;}
-.tm-node text.sub{font-size:8.5px; fill:var(--muted);}
-.tm-node.step rect{fill:var(--accent-soft); stroke:var(--accent); stroke-width:1;}
-.tm-node.step text{font-weight:700; font-size:10.5px;}
-.tm-node.person rect{fill:var(--surface); stroke:var(--baseline); stroke-width:1;}
-.tm-node.out rect{stroke:var(--serious); stroke-width:1.6; stroke-dasharray:5 3;}
-.tm-node.on rect{stroke:var(--ink); stroke-width:2;}
-.tm-node.dim{opacity:.22;}
-.tm-node:hover rect{stroke:var(--ink);}
+.tmc{border:1px solid var(--grid); border-radius:10px; padding:8px 9px 7px; cursor:pointer; background:var(--page);
+  transition:border-color .12s ease, opacity .12s ease, box-shadow .12s ease;}
+.tmc:hover{border-color:var(--accent);}
+.tmc.on{border-color:var(--accent); box-shadow:0 0 0 1.5px var(--accent); background:var(--accent-soft);}
+.tmc.dim{opacity:.32;}
+.tmc-step{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink2); margin-bottom:4px;}
+.tmc-own{display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;}
+.tmc-name-chip{font-size:12.5px; font-weight:700; color:var(--ink);}
+.tmc-name-chip:not(:last-child)::after{content:","; font-weight:400; color:var(--muted);}
+.tmc-name-chip.out{color:var(--warn-ink); text-decoration:underline dotted;}
+.tmc-cov{font-size:10.5px; color:var(--muted); min-height:13px;}
+.tmc-gap{color:var(--critical); font-weight:600; font-size:11px;}
 
 .tm-hint{font-size:12.5px; color:var(--ink2);}
 .tm-panel-hd{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:7px;}
@@ -440,6 +441,41 @@ line.tm-edge.dim{opacity:.12;}
 .pill.warn{background:rgba(250,178,25,.14); border-color:var(--warn); color:var(--warn-ink);}
 .pill.bad{background:rgba(208,59,59,.10); border-color:var(--critical); color:var(--critical);}
 .btn.sm{padding:4px 10px; font-size:11.5px;}
+
+/* ---- digital Rx forms ---- */
+.rx-pick{display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px; margin-bottom:12px;}
+.rx-rec{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+  border-top:1px solid var(--grid); padding:8px 0;}
+.rx-rec-l{font-size:12.5px; max-width:52%; min-width:180px;}
+.rx-rec-l b{color:var(--critical);}
+.rx-rec-r{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.rx-seg{display:flex; border:1px solid var(--baseline); border-radius:9px; overflow:hidden;}
+.rx-seg button{border:none; background:var(--surface); color:var(--ink2); font-size:11px; padding:5px 9px; cursor:pointer;}
+.rx-seg button.on{background:var(--accent); color:#fff; font-weight:700;}
+.rx-item-line{font-size:12px; padding:4px 0; border-top:1px solid var(--grid); display:flex; gap:7px; align-items:center; flex-wrap:wrap;}
+.rx-item-line .subtle{margin-left:auto;}
+.rx-sub{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; border-top:1px solid var(--grid); padding:8px 0; flex-wrap:wrap;}
+.rx-sub.rej{opacity:.55;}
+.rx-done h3{color:var(--good-text);}
+.rx-sum{font-size:13px;}
+textarea.field{resize:vertical; font:inherit;}
+
+/* ---- workflow builder ---- */
+.btn.ghost{background:transparent; border-color:var(--grid); color:var(--ink2);}
+.wf-track{background:var(--surface); border:1px solid var(--grid); border-radius:14px; padding:10px 12px; margin:0 2px 12px;}
+.wf-track.split{border-left:4px solid var(--accent); background:var(--accent-soft);}
+.wf-track-hd{display:flex; gap:7px; align-items:center; flex-wrap:wrap; font-size:12.5px; margin-bottom:8px;}
+.wf-step{border:1px solid var(--grid); border-radius:11px; padding:8px 10px; margin-bottom:8px; background:var(--page);}
+.wf-step-hd{display:flex; gap:6px; align-items:center;}
+.wf-num{flex:0 0 22px; height:22px; line-height:22px; text-align:center; border-radius:7px;
+  background:var(--baseline); color:var(--ink2); font-size:11px; font-weight:700;}
+input.wf-name{flex:1 1 auto; min-width:90px; font-weight:600;}
+input.wf-tname{flex:0 1 150px; width:auto; font-weight:700;}
+input.wf-pos{flex:0 0 58px; width:58px;}
+.wf-step-rw{display:flex; gap:8px; flex-wrap:wrap; margin-top:7px;}
+.wf-step-rw label{flex:1 1 130px; font-size:11px; color:var(--muted); font-weight:600;}
+.wf-step-rw label .field{margin-top:2px;}
+.wf-kind-note{font-size:11.5px; color:var(--muted); margin-top:6px;}
 </style>
 </head>
 <body>
@@ -458,21 +494,20 @@ const dayDiff = d => Math.round((new Date(d.getFullYear(),d.getMonth(),d.getDate
 const DEPTS = ['Scanning','Design','Milling','Printing','Finishing','QC','Shipping'];
 
 const TECHS = [
-  {id:'t1',  name:'Richard C.', dept:'Finishing', role:'lead'},
-  {id:'t2',  name:'Mel R.',     dept:'Finishing', role:'tech'},
-  {id:'t3',  name:'Diego S.',   dept:'Finishing', role:'tech'},
-  {id:'t4',  name:'Kayla P.',   dept:'Finishing', role:'tech'},
-  {id:'t5',  name:'Lena V.',    dept:'Design',    role:'lead'},
-  {id:'t6',  name:'Priya M.',   dept:'Design',    role:'tech'},
-  {id:'t7',  name:'Tomas B.',   dept:'Design',    role:'tech'},
-  {id:'t8',  name:'Jake H.',    dept:'Milling',   role:'tech'},
-  {id:'t9',  name:'Sam T.',     dept:'Milling',   role:'tech'},
-  {id:'t10', name:'Aria K.',    dept:'Printing',  role:'tech'},
-  {id:'t11', name:'Marco D.',   dept:'Scanning',  role:'tech'},
-  {id:'t12', name:'Ines F.',    dept:'QC',        role:'tech'},
-  {id:'t13', name:'Ben W.',     dept:'Shipping',  role:'tech'},
-  {id:'t14', name:'Dana L.',    dept:'Front Desk',role:'frontdesk'},
-  {id:'t0',  name:'Dr. Weiss',  dept:'Management',role:'owner'},   // lab owner — approvals, oversight
+  {id:'t1',  name:'Richard C.', dept:'Finishing', role:'lead'},      // Finishing Lead
+  {id:'t2',  name:'Will W.',    dept:'Finishing', role:'tech'},      // ceramics / polish
+  {id:'t3',  name:'Kyle',       dept:'Finishing', role:'tech'},      // ceramics / polish
+  {id:'t4',  name:'Meghan',     dept:'Finishing', role:'tech'},      // green state, dentures, sintering
+  {id:'t10', name:'Rodrigo R.', dept:'Finishing', role:'tech'},      // prototypes, try-ins, guards
+  {id:'t5',  name:'Josh T.',    dept:'Design',    role:'lead'},      // Design Lead
+  {id:'t6',  name:'Jerrik M.',  dept:'Design',    role:'tech'},
+  {id:'t7',  name:'Daniel',     dept:'Design',    role:'tech'},
+  {id:'t8',  name:'Ragnar',     dept:'Design',    role:'tech'},
+  {id:'t9',  name:'Brandon H.', dept:'Printing',  role:'tech'},      // printers, mill, scanning — the digital chain
+  {id:'t12', name:'Cambelle',   dept:'Shipping',  role:'tech'},      // front desk — owns shipping
+  {id:'t11', name:'Maya F.',    dept:'Front Desk',role:'frontdesk'},
+  {id:'t13', name:'Tara',       dept:'Front Desk',role:'frontdesk'},
+  {id:'t0',  name:'Kent H.',    dept:'Management',role:'owner'},     // lab owner — final approvals
 ];
 const tech = id => TECHS.find(t=>t.id===id);
 const HOURS_PER_DAY = 9;        // 10h shift (Mon–Thu) minus ~1h breaks/cleanup — tune with real scan data
@@ -492,16 +527,29 @@ function workdaysBetween(a, b){   // workdays after a, up to and including b
 /* ---- skills matrix: default = every step of your own department at primary level.
    Overrides: 0 = can't do it (yet), 1 = primary, 2 = backup / cross-trained. ---- */
 const SKILL_OVERRIDES = {
-  t4:  {'Structure':0},                                   // Kayla — still training on structure
-  t12: {'Cement/Polish':2, 'Finishing':2},                // Ines (QC) cross-trained as finishing backup
-  t3:  {'QC':2},                                          // Diego can cover QC in a pinch
-  t7:  {'Scanning':2},                                    // Tomas can scan
+  /* Encodes the real skills matrix (see Renew-Team-Coverage-Model.xlsx).
+     0 = can't / not their lane, 1 = primary, 2 = backup. All regular technicians
+     are PRIMARY on QC of their own work; leads hold the final release check. */
+  t1:  {'Stain':2,'Structure':2,'Cement/Polish':2,'Adjustment/Prep':2,'Finishing':2,
+        'Contour/Sinter':2,'Inspection':2,'QC':1},                    // Richard — backup across finishing BY DESIGN, owns final release
+  t5:  {'Set Teeth':2,'Final Design':2,'Split Bar/Sleeve':2,'Design (NG)':2,'Scanning':2,'QC':1},  // Josh — backup across design BY DESIGN
+  t2:  {'Finishing':0,'Adjustment/Prep':2,'Contour/Sinter':2,'Inspection':2,'QC':1},  // Will — ceramics primary; green state backup
+  t3:  {'Finishing':0,'Adjustment/Prep':2,'Contour/Sinter':2,'Inspection':2,'QC':1},  // Kyle — ceramics primary; green state backup
+  t4:  {'Stain':0,'Structure':0,'Cement/Polish':0,'Contour/Sinter':1,'Inspection':1,'QC':1},       // Meghan — green state, dentures, sintering; no ceramics yet
+  t10: {'Stain':0,'Structure':0,'Cement/Polish':0,'Adjustment/Prep':0,'Inspection':0,'QC':1},      // Rodrigo — removable/temp finishing primary; not zirconia room
+  t6:  {'Split Bar/Sleeve':0,'QC':1},                                 // Jerrik — still learning bar/sleeve splits
+  t7:  {'QC':1},                                                      // Daniel
+  t8:  {'QC':1},                                                      // Ragnar
+  t9:  {'CAM-Mill':1,'Contour/Sinter':2,'Scanning':1,'Scanning (NG)':1,
+        'Set Teeth':2,'Final Design':2,'Split Bar/Sleeve':2,'Design (NG)':2,'QC':1},  // Brandon — whole digital chain + design backup
+  t0:  {'CAM-Print':2,'CAM-Mill':2},                                  // Kent — emergency cover on printers/mill
+  t11: {'Shipping':2},                                                // Maya backs up shipping
+  t13: {'Shipping':2},                                                // Tara backs up shipping
 };
 
 /* ---- absences: from/to are inclusive date offsets from today (0 = today) ---- */
 let ABSENCES = [
-  {tid:'t3', from:0, to:0, note:'out sick'},              // Diego out today
-  {tid:'t6', from:4, to:8, note:'vacation'},              // Priya out next week
+  {tid:'t6', from:4, to:8, note:'vacation'},              // Jerrik out next week (sample)
 ];
 
 /* ---- Workflows (from the documented 3Shape production flows) ---- */
@@ -511,12 +559,12 @@ const WORKFLOWS = {
     main:[
       {n:'Scanning', d:'Scanning', h:0.5},
       {n:'Set Teeth', d:'Design', h:1.5},
-      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'Final Design', d:'Design', h:1.0},
-      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'CAM-Print', d:'Printing', h:1.0},
       {n:'Finishing', d:'Finishing', h:1.5},
-      {n:'QC', d:'QC', h:0.3},
+      {n:'QC', d:'QC', h:0.3, rule:'prev'},
       {n:'Shipping', d:'Shipping', h:0.2},
     ]
   },
@@ -525,23 +573,23 @@ const WORKFLOWS = {
     main:[
       {n:'Scanning', d:'Scanning', h:0.5},
       {n:'Set Teeth', d:'Design', h:1.5},
-      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'Final Design', d:'Design', h:1.0},
-      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'CAM-Print', d:'Printing', h:1.0},
       {n:'Finishing', d:'Finishing', h:1.5},
-      {n:'QC', d:'QC', h:0.3},
+      {n:'QC', d:'QC', h:0.3, rule:'prev'},
       {n:'Shipping', d:'Shipping', h:0.2},
     ]
   },
   final: {
-    name:'Final Denture', endState:'ship', linked:true,
+    name:'Final Denture', endState:'ship', linked:true, linkedTo:'tryin',
     main:[
       {n:'Final Design', d:'Design', h:1.0},
-      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'CAM-Mill', d:'Milling', h:1.5},
       {n:'Finishing', d:'Finishing', h:2.0},
-      {n:'QC', d:'QC', h:0.3},
+      {n:'QC', d:'QC', h:0.3, rule:'prev'},
       {n:'Shipping', d:'Shipping', h:0.2},
     ]
   },
@@ -550,13 +598,13 @@ const WORKFLOWS = {
     main:[
       {n:'Scanning', d:'Scanning', h:0.5},
       {n:'Set Teeth', d:'Design', h:1.5},
-      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true},
+      {n:'Tooth Setup Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'Final Design', d:'Design', h:1.0},
-      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'CAM-Print', d:'Printing', h:1.0},
       {n:'CAM-Mill', d:'Milling', h:1.0},
       {n:'Finishing', d:'Finishing', h:1.5},
-      {n:'QC', d:'QC', h:0.3},
+      {n:'QC', d:'QC', h:0.3, rule:'prev'},
     ]
   },
   sleeve: {
@@ -564,7 +612,7 @@ const WORKFLOWS = {
     main:[
       {n:'Final Design', d:'Design', h:2.0},
       {n:'Split Bar/Sleeve', d:'Design', h:0.5},
-      {n:'Final Design Approval', d:'Design', h:0.3, approval:true},
+      {n:'Final Design Approval', d:'Design', h:0.3, approval:true, approvalKind:'doctor'},
       {n:'CAM-Mill', d:'Milling', h:2.0},
       {n:'Contour/Sinter', d:'Milling', h:1.5},
       {n:'Inspection', d:'QC', h:0.5},
@@ -572,7 +620,7 @@ const WORKFLOWS = {
       {n:'Stain', d:'Finishing', h:1.0},
       {n:'Structure', d:'Finishing', h:1.5},
       {n:'Cement/Polish', d:'Finishing', h:1.0},
-      {n:'QC', d:'QC', h:0.5},
+      {n:'QC', d:'QC', h:0.5, rule:'prev'},
       {n:'Shipping', d:'Shipping', h:0.2},
     ],
     // Night-guard parallel track: spawns when main completes Adjustment/Prep (idx 6);
@@ -597,15 +645,22 @@ const REASONS = {
 };
 
 const DOCTORS = [
-  {doc:'Dr. Nguyen', clinic:'Summit Smiles'},
-  {doc:'Dr. Patel', clinic:'Ridgeline Dental'},
-  {doc:'Dr. Okafor', clinic:'Harbor Dental Group'},
-  {doc:'Dr. Weiss', clinic:'In-house practice'},
+  {doc:'Dr. Farley',    clinic:'Referring office'},
+  {doc:'Dr. Loftus',    clinic:'Referring office'},
+  {doc:'Dr. Phan',      clinic:'Referring office'},
+  {doc:'Dr. Hicks',     clinic:'Referring office'},
+  {doc:'Dr. Wilmes',    clinic:'Referring office'},
+  {doc:'Dr. Hopkinson', clinic:'Referring office'},
+  {doc:'Dr. Bock',      clinic:'Referring office'},
+  {doc:'Dr. Andresen',  clinic:'Referring office'},
+  {doc:'Dr. Goldenberg',clinic:'Referring office'},
+  {doc:'Dr. Bone',      clinic:'Referring office'},
+  {doc:'Dr. Howell',    clinic:'In-house practice'},
 ];
 
 /* ---- Case factory ---- */
 let caseSeq = 2680;
-const DEPT_SEED_TECH = {Scanning:'t11', Design:'t6', Milling:'t8', Printing:'t10', Finishing:'t3', QC:'t12', Shipping:'t13'};
+const DEPT_SEED_TECH = {Scanning:'t9', Design:'t6', Milling:'t9', Printing:'t9', Finishing:'t2', QC:'t1', Shipping:'t12'};
 function mkSteps(defs){ return defs.map(s=>({status:'todo', assignee:null, start:null, end:null})); }
 function mkCase(o){
   const wf = WORKFLOWS[o.wf];
@@ -633,85 +688,85 @@ function mkCase(o){
     c.tracks.main.steps.forEach((st,i)=>{ st.status='done'; st.assignee=DEPT_SEED_TECH[wf.main[i].d]||null; st.end=hoursAgo((wf.main.length-i)*6+(o.doneAgeH||18)); });
     if(c.tracks.ng) c.tracks.ng.steps.forEach(st=>{ st.status='done'; st.end=hoursAgo(30); });
   }
-  c.events.push({when:c.created, who:o.creator||'Dana L.', text:'Case created' + (c.linkedTo?' — linked to '+c.linkedTo:''), type:'sys'});
+  c.events.push({when:c.created, who:o.creator||'Maya F.', text:'Case created' + (c.linkedTo?' — linked to '+c.linkedTo:''), type:'sys'});
   (o.extraEvents||[]).forEach(e=>c.events.push(e));
   return c;
 }
 
 let CASES = [
   // HERO: sleeve w/ NG mid-parallel — case IS visible in finishing while NG runs
-  mkCase({wf:'sleeve', patient:'Alvarez, M.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
-    ship:daysFromNow(2), at:7, status:'in', assignee:'t2', by:'t8',
+  mkCase({wf:'sleeve', patient:'Alvarez, M.', doctor:'Dr. Farley', clinic:'Referring office',
+    ship:daysFromNow(2), at:7, status:'in', assignee:'t2', by:'t9',
     ngAt:1, ngStatus:'in', ngAssignee:'t6',
     created:daysFromNow(-16),
     notes:[{who:'Richard C.', when:hoursAgo(26), text:'Sent out briefly for physical scan after Adjustment/Prep — back on my bench. NG design running in parallel, watch the QC gate.'},
-           {who:'Dr. Patel', when:daysFromNow(-14), text:'Patient wants slightly warmer incisal shade than the try-in. See attached photos in Communicate.'}],
+           {who:'Dr. Farley', when:daysFromNow(-14), text:'Patient wants slightly warmer incisal shade than the try-in. See attached photos in Communicate.'}],
     extraEvents:[{when:hoursAgo(26), who:'System', text:'Night-guard track started (parallel)', type:'sys'}]}),
   // sleeve at CAM-Mill
-  mkCase({wf:'sleeve', patient:'Brooks, T.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
-    ship:daysFromNow(6), at:3, status:'in', assignee:'t8', created:daysFromNow(-9)}),
+  mkCase({wf:'sleeve', patient:'Brooks, T.', doctor:'Dr. Loftus', clinic:'Referring office',
+    ship:daysFromNow(6), at:3, status:'in', assignee:'t9', created:daysFromNow(-9)}),
   // sleeve — inspection failed, moved back (remake-style event)
-  mkCase({wf:'sleeve', patient:'Castillo, R.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+  mkCase({wf:'sleeve', patient:'Castillo, R.', doctor:'Dr. Phan', clinic:'Referring office',
     ship:daysFromNow(4), at:3, assignee:'t9', created:daysFromNow(-11), rush:true,
-    notes:[{who:'Ines F.', when:hoursAgo(20), text:'Failed inspection — bar doesn\'t seat passively on the model. Sent back to CAM-Mill.'}],
-    moveLog:[{when:hoursAgo(20), by:'Richard C.', from:'Inspection', to:'CAM-Mill', group:'Fit', code:'Doesn\'t seat', rtype:'Internal remake', person:'Sam T.'}],
+    notes:[{who:'Meghan', when:hoursAgo(20), text:'Failed inspection — bar doesn\'t seat passively on the model. Sent back to CAM-Mill.'}],
+    moveLog:[{when:hoursAgo(20), by:'Richard C.', from:'Inspection', to:'CAM-Mill', group:'Fit', code:'Doesn\'t seat', rtype:'Internal remake', person:'Brandon H.'}],
     extraEvents:[{when:hoursAgo(20), who:'Richard C.', text:'Moved back: Inspection → CAM-Mill. Reason: Fit — Doesn\'t seat', type:'moveback'}]}),
   // try-in at Set Teeth
-  mkCase({wf:'tryin', patient:'Dawson, K.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+  mkCase({wf:'tryin', patient:'Dawson, K.', doctor:'Dr. Loftus', clinic:'Referring office',
     ship:daysFromNow(5), at:1, status:'in', assignee:'t7', created:daysFromNow(-2)}),
   // try-in waiting on approval (lives in chat)
-  mkCase({wf:'tryin', patient:'Egan, S.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+  mkCase({wf:'tryin', patient:'Egan, S.', doctor:'Dr. Farley', clinic:'Referring office',
     ship:daysFromNow(3), at:2, created:daysFromNow(-4),
-    notes:[{who:'Tomas B.', when:hoursAgo(9), text:'Setup done. Midline shifted 0.5mm left per the photos — take a look before it goes out.'},
-           {who:'Lena V.', when:hoursAgo(8), text:'Checking it this morning. Photos are with Dr. Patel too.'}]}),
+    notes:[{who:'Daniel', when:hoursAgo(9), text:'Setup done. Midline shifted 0.5mm left per the photos — take a look before it goes out.'},
+           {who:'Josh T.', when:hoursAgo(8), text:'Checking it this morning. Photos are with Dr. Farley too.'}]}),
   // try-in in finishing, UNASSIGNED, ships tomorrow
-  mkCase({wf:'tryin', patient:'Farrell, J.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+  mkCase({wf:'tryin', patient:'Farrell, J.', doctor:'Dr. Phan', clinic:'Referring office',
     ship:daysFromNow(1), at:6, created:daysFromNow(-6), rush:true}),
   // proto at CAM-Print
-  mkCase({wf:'proto', patient:'Gill, A.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
-    ship:daysFromNow(4), at:5, status:'in', assignee:'t10', created:daysFromNow(-3)}),
+  mkCase({wf:'proto', patient:'Gill, A.', doctor:'Dr. Loftus', clinic:'Referring office',
+    ship:daysFromNow(4), at:5, status:'in', assignee:'t9', created:daysFromNow(-3)}),
   // proto at QC, ships today
-  mkCase({wf:'proto', patient:'Huang, L.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
-    ship:daysFromNow(0), at:7, assignee:'t12', created:daysFromNow(-7)}),
+  mkCase({wf:'proto', patient:'Huang, L.', doctor:'Dr. Farley', clinic:'Referring office',
+    ship:daysFromNow(0), at:7, assignee:'t1', created:daysFromNow(-7)}),
   // final denture linked, in finishing, ships today
-  mkCase({wf:'final', patient:'Ito, N.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
-    ship:daysFromNow(0), at:3, status:'in', assignee:'t3', linkedTo:'R-2588', created:daysFromNow(-8),
-    notes:[{who:'Diego S.', when:hoursAgo(2), text:'Try-in notes said reduce buccal fullness UL — carried over to final.'}]}),
+  mkCase({wf:'final', patient:'Ito, N.', doctor:'Dr. Phan', clinic:'Referring office',
+    ship:daysFromNow(0), at:3, status:'in', assignee:'t10', linkedTo:'R-2588', created:daysFromNow(-8),
+    notes:[{who:'Rodrigo R.', when:hoursAgo(2), text:'Try-in notes said reduce buccal fullness UL — carried over to final.'}]}),
   // final denture at Final Design
-  mkCase({wf:'final', patient:'Jones, P.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+  mkCase({wf:'final', patient:'Jones, P.', doctor:'Dr. Loftus', clinic:'Referring office',
     ship:daysFromNow(7), at:0, assignee:'t5', linkedTo:'R-2601', created:daysFromNow(-1)}),
   // flangeless in-house, finishing, unassigned, seat today
-  mkCase({wf:'flange', patient:'Kim, D.', doctor:'Dr. Weiss', clinic:'In-house practice',
+  mkCase({wf:'flange', patient:'Kim, D.', doctor:'Dr. Howell', clinic:'In-house practice',
     ship:daysFromNow(0), at:7, created:daysFromNow(-5),
-    notes:[{who:'Dr. Weiss', when:daysFromNow(-1), text:'Surgery moved up to this afternoon — needs to be chairside by 1pm.'}]}),
+    notes:[{who:'Dr. Howell', when:daysFromNow(-1), text:'Surgery moved up to this afternoon — needs to be chairside by 1pm.'}]}),
   // try-in STALLED at scanning 3 days, unassigned, overdue
-  mkCase({wf:'tryin', patient:'Lopez, V.', doctor:'Dr. Patel', clinic:'Ridgeline Dental',
+  mkCase({wf:'tryin', patient:'Lopez, V.', doctor:'Dr. Farley', clinic:'Referring office',
     ship:daysFromNow(-1), at:0, created:daysFromNow(-4), age:50,
     extraEvents:[{when:hoursAgo(70), who:'System', text:'No movement in 72h', type:'sys'}]}),
   // proto shipped yesterday (with a historical external remake + a revision on record)
-  mkCase({wf:'proto', patient:'Marsh, E.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+  mkCase({wf:'proto', patient:'Marsh, E.', doctor:'Dr. Phan', clinic:'Referring office',
     ship:daysFromNow(-1), doneCase:true, created:daysFromNow(-10),
     moveLog:[
-      {when:hoursAgo(96), by:'Richard C.', from:'QC', to:'Finishing', group:'Finishing', code:'Shade / stain mismatch', rtype:'External remake', person:'Kayla P.'},
-      {when:hoursAgo(150), by:'Lena V.', from:'Final Design Approval', to:'Final Design', group:'External', code:'Doctor-requested change', rtype:'Revision', person:'—'},
+      {when:hoursAgo(96), by:'Richard C.', from:'QC', to:'Finishing', group:'Finishing', code:'Shade / stain mismatch', rtype:'External remake', person:'Meghan'},
+      {when:hoursAgo(150), by:'Josh T.', from:'Final Design Approval', to:'Final Design', group:'External', code:'Doctor-requested change', rtype:'Revision', person:'—'},
     ]}),
   // flangeless delivered in-house
-  mkCase({wf:'flange', patient:'Novak, I.', doctor:'Dr. Weiss', clinic:'In-house practice',
+  mkCase({wf:'flange', patient:'Novak, I.', doctor:'Dr. Howell', clinic:'In-house practice',
     ship:daysFromNow(-2), doneCase:true, created:daysFromNow(-9)}),
   // held case — special attention before anyone starts it
-  mkCase({wf:'tryin', patient:'Quinn, B.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+  mkCase({wf:'tryin', patient:'Quinn, B.', doctor:'Dr. Phan', clinic:'Referring office',
     ship:daysFromNow(3), at:6, created:daysFromNow(-4),
     notes:[{who:'Richard C.', when:hoursAgo(5), text:'HOLD — implant analog looks off on the model. Verify against the scan with me before finishing starts.'}]}),
   // shipped try-ins that the seeded Final Denture cases link back to
-  mkCase({id:2588, wf:'tryin', patient:'Ito, N.', doctor:'Dr. Okafor', clinic:'Harbor Dental Group',
+  mkCase({id:2588, wf:'tryin', patient:'Ito, N.', doctor:'Dr. Phan', clinic:'Referring office',
     ship:daysFromNow(-12), doneCase:true, doneAgeH:290, created:daysFromNow(-20),
-    notes:[{who:'Dr. Okafor', when:daysFromNow(-13), text:'Try-in approved. Reduce buccal fullness UL before the final.'}]}),
-  mkCase({id:2601, wf:'tryin', patient:'Jones, P.', doctor:'Dr. Nguyen', clinic:'Summit Smiles',
+    notes:[{who:'Dr. Phan', when:daysFromNow(-13), text:'Try-in approved. Reduce buccal fullness UL before the final.'}]}),
+  mkCase({id:2601, wf:'tryin', patient:'Jones, P.', doctor:'Dr. Loftus', clinic:'Referring office',
     ship:daysFromNow(-8), doneCase:true, doneAgeH:195, created:daysFromNow(-15)}),
 ];
 
 // a flagged case: tech flagged for lead
-CASES[4].flag = {by:'Priya M.', when:hoursAgo(3), text:'Doctor approval pending 2+ days — do we call the office?'};
+CASES[4].flag = {by:'Daniel', when:hoursAgo(3), text:'Doctor approval pending 2+ days — do we call the office?'};
 // hold flag on Quinn
 (CASES.find(c=>c.patient.startsWith('Quinn'))||{}).hold = {by:'Richard C.', when:hoursAgo(5), reason:'Implant analog issue — verify with lead before starting'};
 // a nudge example: finishing pinged printing about the NG print
@@ -726,6 +781,8 @@ const state = {
   boardMode:'assign',     // assign | kanban
   boardSel:null,
   tmSel:null,            // team map selection {kind:'step'|'person', id}
+  rxSel:null, rxMode:{}, rxAtt:{}, rxDone:null,   // digital Rx form state
+  wfDraft:null, wfMsg:null,                       // workflow builder: open draft + last result
   kbSel:null,             // selected kanban card {cid, track, idx}
   kbMsg:null,
   capMode:'dept',         // dept | person | type
@@ -753,9 +810,10 @@ const state = {
 };
 
 const ROLE_TABS = {
-  lead:      [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['bench','▣','Bench'],['team','◈','Team']],
-  owner:     [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['cases','▤','Cases'],['team','◈','Team']],
-  frontdesk: [['dash','◧','Today'],['cases','▤','Cases'],['chat','💬','Chat'],['team','◈','Team']],
+  lead:      [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['rx','⎙','Rx'],['cases','▤','Cases'],['bench','▣','Bench'],['team','◈','Team'],['workflows','⑂','Flows']],
+  owner:     [['dash','◧','Today'],['board','⇄','Board'],['chat','💬','Chat'],['rx','⎙','Rx'],['cases','▤','Cases'],['team','◈','Team'],['workflows','⑂','Flows']],
+  frontdesk: [['dash','◧','Today'],['rx','⎙','Rx'],['cases','▤','Cases'],['chat','💬','Chat'],['team','◈','Team']],
+  doctor:    [['rx','⎙','New Rx']],
   tech:      [['bench','▣','My Bench'],['cases','▤','Cases'],['chat','💬','Chat'],['team','◈','Team']],
 };
 const BENCHABLE = t => t.dept!=='Front Desk' && t.dept!=='Management';
@@ -764,7 +822,7 @@ const WF_COLORS = {tryin:'#2a78d6', proto:'#eb6834', final:'#1baf7a', flange:'#e
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const me = () => tech(state.userId);
 const isLead = () => state.role==='lead' || state.role==='owner';
-const canApprove = () => (state.role==='lead'||state.role==='owner') && (state.userId==='t5' || state.userId==='t0');   // Design Lead + Lab Owner, in a management role — a tech signed in as Lena's bench does NOT inherit this
+const canApprove = () => (state.role==='lead'||state.role==='owner') && (state.userId==='t5' || state.userId==='t0');   // Josh (Design Lead) + Kent (Owner) — a tech signed in at Josh's bench does NOT inherit this
 const getCase = id => CASES.find(c=>c.id===id);
 const wfOf = c => WORKFLOWS[c.wf];
 const stepDefs = (c,track) => track==='ng' ? wfOf(c).ng : wfOf(c).main;
@@ -1017,12 +1075,44 @@ function deptStepNames(dept){
    Strict tiers: primary techs → backup techs → primary leads → backup leads.
    Backups only get work when every primary is full; leads only when no tech has capacity. */
 function assignTier(t, def){ return (t.role==='lead'?2:0) + (stepQual(t,def)===2?1:0); }
+/* ---- steps that follow the previous step ----
+   Technician QC is not skills-gated. Whoever did the work does its QC, so the
+   owner is dictated by the step before it, not by who is qualified or free. */
+function prevAssignee(c, track, idx){
+  const steps = c.tracks[track].steps;
+  for(let i=idx-1; i>=0; i--){ if(steps[i].assignee) return steps[i].assignee; }
+  // a split track inherits from the main track it forked off, if it has no work of its own yet
+  if(track!=='main' && c.tracks.main){
+    const m = c.tracks.main.steps;
+    for(let i=m.length-1; i>=0; i--){ if(m[i].assignee) return m[i].assignee; }
+  }
+  return null;
+}
+function followsPrev(def){ return def && def.rule==='prev'; }
 function computeDraft(){
   const picks=[], overflow=[];
   const loads={}; TECHS.forEach(t=>loads[t.id]=techLoad(t).hrs);
   const q=unassignedQueue();
   q.forEach(item=>{
     if(item.c.hold) return;                                  // held cases are omitted by design
+    if(followsPrev(item.def)){                               // owner is dictated, not chosen
+      const pid = prevAssignee(item.c, item.track, item.idx);
+      if(!pid){
+        overflow.push({item, reason:'it follows the previous step, and nobody is on record for that step yet',
+                       options:['assign the step before it first', slipOption(item)]});
+        return;
+      }
+      if(outToday(pid)){
+        overflow.push({item, reason:`it follows the previous step, and ${tech(pid).name} is out today`,
+                       options:[`${tech(pid).name} is back ${backOn(pid)}`,
+                                'or a lead reassigns it by hand on the case page', slipOption(item)]});
+        return;
+      }
+      picks.push({cid:item.c.id, track:item.track, idx:item.idx, stepName:item.def.n, h:item.def.h,
+                  tid:pid, before:loads[pid], backup:false, lead:tech(pid).role==='lead', follows:true});
+      loads[pid]+=item.def.h;
+      return;
+    }
     const cands=TECHS.filter(t=>BENCHABLE(t) && !outToday(t.id) && stepQual(t,item.def)>0);
     if(!cands.length){
       overflow.push({item, reason:'no one qualified is in today', options:[`first qualified back: ${firstBack(item)}`, slipOption(item)]});
@@ -1045,6 +1135,10 @@ function computeDraft(){
     loads[t.id]+=item.def.h;
   });
   return {picks, overflow};
+}
+function backOn(tid){
+  for(let d=1; d<=14; d++){ if(!isOutOn(tid,d)) return d===1?'tomorrow':'in '+d+' days'; }
+  return 'not within 14 days';
 }
 function firstBack(item){
   for(let d=1; d<=14; d++){
@@ -1543,7 +1637,7 @@ function draftPanel(){
       <div class="my-row" style="cursor:default;">
         <div class="cid">${p.cid}</div>
         <div class="cmeta" style="flex:1; min-width:0;">
-          <div class="l1" style="font-size:12.5px;">${esc(p.stepName)} → <b>${tech(p.tid).name}</b> ${p.backup?'<span class="badge b-link">BACKUP</span>':''} ${p.lead?'<span class="badge b-flag">LEAD — techs full</span>':''}</div>
+          <div class="l1" style="font-size:12.5px;">${esc(p.stepName)} → <b>${tech(p.tid).name}</b> ${p.follows?'<span class="badge b-link">FOLLOWS PREVIOUS</span>':''} ${p.backup?'<span class="badge b-link">BACKUP</span>':''} ${p.lead&&!p.follows?'<span class="badge b-flag">LEAD — techs full</span>':''}</div>
           <div class="l2">${p.before.toFixed(1)}h → ${(p.before+p.h).toFixed(1)}h of ${HOURS_PER_DAY}h</div>
         </div>
         <button class="linklike" onclick="dropPick(${i})">✕ drop</button>
@@ -1628,7 +1722,7 @@ function apprCard(c){
   return `<div class="appr-card">
     ⏳ <b>${esc(s.def.n)}</b> needs sign-off · ${esc(c.doctor)}
     ${canApprove()? `<div class="btnrow"><button class="btn primary" onclick="approveChat('${c.id}')">✓ Approve</button></div>`
-      : `<div class="subtle" style="margin-top:4px;">Waiting on the Design Lead or Dr. Weiss. ${state.role==='frontdesk'?'(You can record a phoned-in doctor approval from the case page.)':''}</div>`}
+      : `<div class="subtle" style="margin-top:4px;">Waiting on Josh or Kent. ${state.role==='frontdesk'?'(You can record a phoned-in doctor approval from the case page.)':''}</div>`}
   </div>`;
 }
 function vChat(){
@@ -1747,10 +1841,11 @@ function trackHtml(c, track){
       <div class="sbody">
         <div class="sname">${d.n} ${blocked?'<span class="badge b-stall">GATED — waiting on NG track</span>':''} ${active && !blocked && !st.assignee && !d.approval ? '<span class="badge b-link">unassigned</span>':''}</div>
         <div class="sinfo">${info}</div>
+        ${active && followsPrev(d) ? `<div class="sinfo" style="color:var(--accent);">Follows the previous step${prevAssignee(c,track,i)? ' — '+tech(prevAssignee(c,track,i)).name:''}</div>`:''}
         ${active && !d.approval && isLead() && !caseDone(c) ? `
           <select class="field" style="padding:3px 8px; font-size:11.5px; margin-top:4px; max-width:230px;" onchange="sheetAssign('${c.id}','${track}',${i},this.value)">
             <option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>
-            ${assignOptions(d, st.assignee)}
+            ${assignOptions(d, st.assignee, followsPrev(d)? prevAssignee(c,track,i): null)}
             ${st.assignee? `<option value="__clear__">↥ return to queue</option>`:''}
           </select>`:''}
         ${fork ? (c.tracks.ng ? `
@@ -1793,6 +1888,7 @@ function vCaseSheet(c){
         ${isLead() && !done ? `<button class="btn danger" onclick="voidCase('${c.id}')">🗑 Void</button>`:''}
       </div>
       <div class="card"><h3>Production flow</h3><div class="track">${trackHtml(c,'main')}</div></div>
+      ${typeof rxCaseCard==='function'? rxCaseCard(c):''}
       <div class="card"><h3>💬 Case chat — follows the case</h3>
         ${chatHtml(c)}
       </div>
@@ -1881,6 +1977,7 @@ function vBench(){
         <button class="btn" onclick="openModal({type:'flag', cid:'${c.id}', bench:true})">⚑ Flag for lead</button>
         <button class="btn" onclick="openCase('${c.id}')">Details</button>
       </div>
+      ${typeof rxCaseCard==='function'? rxCaseCard(c):''}
       ${c.notes.length? `<div style="text-align:left; margin-top:8px;"><div class="track-title">💬 Latest chat</div>${c.notes.slice(-2).reverse().map(n=>`<div class="note"><div class="who">${esc(n.who)} · ${fmtWhen(new Date(n.when))}${n.ping?' · 👉 '+esc(n.ping):''}</div>${esc(n.text)}</div>`).join('')}</div>`:''}
       ${(()=>{ const ln=linkedNotes(c); return ln? `<div style="text-align:left; margin-top:8px;"><div class="track-title">⧉ From linked ${ln.id}</div>${ln.notes.map(n=>`<div class="note"><div class="who">${esc(n.who)} · ${fmtWhen(new Date(n.when))}</div>${esc(n.text)}</div>`).join('')}</div>`:''; })()}
     </div>
@@ -1993,7 +2090,7 @@ function vModal(){
       ${blocked? '<div class="assign-hint">⛔ Gated — night-guard track must finish before this advances.</div>':''}
       <button class="opt-row" onclick="closeModal(); openCase('${c.id}')">📄 Open case</button>
       ${isLead()? `<button class="opt-row" ${blocked?'disabled':''} onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${def.approval?'✓ Record doctor approval':'✓ Complete step'}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`:''}
-      ${isLead() && !def.approval? `<div style="display:flex; gap:6px; margin:6px 0;"><select id="kb-assign" class="field" style="flex:1;"><option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>${assignOptions(def, st.assignee)}</select><button class="btn" onclick="kbAssign('${c.id}','${m.track}',${m.idx})">Assign</button></div>`:''}
+      ${isLead() && !def.approval? `<div style="display:flex; gap:6px; margin:6px 0;"><select id="kb-assign" class="field" style="flex:1;"><option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>${assignOptions(def, st.assignee, followsPrev(def)? prevAssignee(c,m.track,m.idx): null)}</select><button class="btn" onclick="kbAssign('${c.id}','${m.track}',${m.idx})">Assign</button></div>`:''}
       ${isLead() && m.track==='main'? `<button class="opt-row" onclick="openModal({type:'moveback', cid:'${c.id}'})">↩ Move back (reason required)</button>`:''}
       <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
   }
@@ -2155,9 +2252,11 @@ function goAssign(){ state.boardMode='assign'; setView('board'); }
 function allowedTabs(){ return ROLE_TABS[state.role].map(x=>x[0]); }
 function setRole(r){
   state.role=r;
+  if(typeof rxReset==='function') rxReset();
   if(r==='tech'){ state.userId=state.benchTechId; }        // keep whoever was at the bench — a lead stays himself
-  else if(r==='frontdesk'){ state.userId='t14'; }
+  else if(r==='frontdesk'){ state.userId='t11'; }
   else if(r==='owner'){ state.userId='t0'; }
+  else if(r==='doctor'){ state.userId='t11'; }
   else if(r==='design'){ state.role='lead'; state.userId='t5'; state.benchTechId='t5'; state.pipeDept='Design'; }
   else { state.userId='t1'; state.benchTechId='t1'; state.pipeDept='Finishing'; }
   if(!allowedTabs().includes(state.view)) state.view=allowedTabs()[0];
@@ -2215,10 +2314,10 @@ function openAtMyBench(cid, track, idx){
   state.view='bench'; state.boardMsg=null; state.boardMsgAction=null;
   render();
 }
-function assignOptions(def, currentTid){
-  const rank = t => (stepQual(t,def)===1?0:stepQual(t,def)===2?1:2) + (outToday(t.id)?0.5:0);
+function assignOptions(def, currentTid, dictatedTid){
+  const rank = t => (t.id===dictatedTid ? -1 : (stepQual(t,def)===1?0:stepQual(t,def)===2?1:2) + (outToday(t.id)?0.5:0));
   return TECHS.filter(BENCHABLE).slice().sort((a,b)=>rank(a)-rank(b) || a.name.localeCompare(b.name))
-    .map(t=>`<option value="${t.id}" ${currentTid===t.id?'disabled':''}>${t.name} — ${t.dept}${outToday(t.id)?' · out today':''}${stepQual(t,def)===0?' · ⚠ not skilled':stepQual(t,def)===2?' · backup':''}</option>`).join('');
+    .map(t=>`<option value="${t.id}" ${currentTid===t.id?'disabled':''}>${t.name} — ${t.dept}${t.id===dictatedTid?' · did the step before':''}${outToday(t.id)?' · out today':''}${t.id!==dictatedTid && stepQual(t,def)===0?' · ⚠ not skilled':stepQual(t,def)===2?' · backup':''}</option>`).join('');
 }
 function sheetAssign(cid, track, idx, val){
   if(!val){ return; }
@@ -2239,7 +2338,10 @@ function sheetAssign(cid, track, idx, val){
   const t=tech(val);
   const warns=[];
   if(t.dept!==def.d) warns.push('cross-department');
-  if(stepQual(t,def)===0) warns.push('not in their skill set');
+  if(followsPrev(def)){
+    const should = prevAssignee(c, track, idx);
+    if(should && should!==val) warns.push(`this step follows the previous one — ${tech(should).name} did that work`);
+  } else if(stepQual(t,def)===0) warns.push('not in their skill set');
   if(outToday(t.id)) warns.push('marked out today');
   if(c.hold) warns.push('case is on HOLD — they can\'t start it until it\'s released');
   logEvt(c, `${def.n} ${prev? 'reassigned from '+tech(prev).name+' to':'assigned to'} ${t.name} (from case page)${warns.length? ' (⚠ '+warns.join(', ')+')':''}`, warns.length?'warn':'step');
@@ -2515,7 +2617,9 @@ function createCase(){
   if(!patient){ err('Patient name is required — it\'s how everyone finds the case.'); return; }
   if(WORKFLOWS[wfKey].linked && !link){ err(WORKFLOWS[wfKey].name+' must be linked to its try-in case.'); return; }
   if(link && !getCase(link)){ err('Case '+link+' isn\'t in the system — check the number.'); return; }
-  if(WORKFLOWS[wfKey].linked && link && getCase(link).wf!=='tryin'){ err(link+' is a '+wfOf(getCase(link)).name+' — a '+WORKFLOWS[wfKey].name+' links to a Denture Try-in.'); return; }
+  const wantWf = WORKFLOWS[wfKey].linkedTo;   // set by the workflow builder, not hardcoded
+  if(WORKFLOWS[wfKey].linked && link && wantWf && getCase(link).wf!==wantWf){
+    err(link+' is a '+wfOf(getCase(link)).name+' — a '+WORKFLOWS[wfKey].name+' links to a '+WORKFLOWS[wantWf].name+'.'); return; }
   const rush=document.getElementById('n-rush').checked;
   const c = mkCase({wf:wfKey, patient, doctor:DOCTORS[di].doc, clinic:DOCTORS[di].clinic, ship:daysFromNow(days), rush, linkedTo:link, created:now(), at:0, creator:me().name});
   const holdEl=document.getElementById('n-hold');
@@ -2656,7 +2760,7 @@ setInterval(()=>{ if(Math.random()<0.6) walkMascot(); }, 85000);
 let renderTimer=null;
 function renderSoon(){ clearTimeout(renderTimer); renderTimer=setTimeout(render, 350); }
 function render(){
-  const views={dash:vDash, board:vBoard, cases:vCases, bench:vBench, chat:vChat, team:vTeamMap};
+  const views={dash:vDash, board:vBoard, cases:vCases, bench:vBench, chat:vChat, team:vTeamMap, rx:vRx, workflows:vWorkflows};
   const openC = state.caseId? getCase(state.caseId): null;
   const searchEl = document.activeElement && document.activeElement.tagName==='INPUT' ? document.activeElement : null;
   const searchPos = searchEl? searchEl.selectionStart : null;
@@ -2664,14 +2768,15 @@ function render(){
   document.getElementById('app').innerHTML = `
     <header class="app">
       <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
-      <div><h1>Renew LMS <span class="sub">v2.1 prototype · sample data</span></h1></div>
+      <div><h1>Renew LMS <span class="sub">v2.6 prototype · real team, sample cases</span></h1></div>
       <div class="role-pick">
         <select onchange="setRole(this.value)">
           <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
-          <option value="design" ${state.role==='lead'&&state.userId==='t5'?'selected':''}>Lena (Design Lead)</option>
-          <option value="owner" ${state.role==='owner'?'selected':''}>Dr. Weiss (Owner)</option>
+          <option value="design" ${state.role==='lead'&&state.userId==='t5'?'selected':''}>Josh (Design Lead)</option>
+          <option value="owner" ${state.role==='owner'?'selected':''}>Kent (Owner)</option>
           <option value="tech" ${state.role==='tech'?'selected':''}>Technician</option>
           <option value="frontdesk" ${state.role==='frontdesk'?'selected':''}>Front desk</option>
+          <option value="doctor" ${state.role==='doctor'?'selected':''}>Doctor (Rx portal preview)</option>
         </select>
       </div>
     </header>
@@ -2688,22 +2793,22 @@ function render(){
   }
 }
 render();
-/* ===================== Team Map =====================
-   Interactive responsibility web: every step in every workflow, who owns it,
-   who can cover it. Reads the same skills matrix the auto-assign engine reads,
-   so the picture can never drift from how work is actually routed.
-   Solid line = primary. Dashed line = backup / cross-trained. Position = department.
------------------------------------------------------------------------------- */
+/* ===================== Team Map (v2: cards, no edges) =====================
+   Who owns each step, who covers it. Reads the same skills matrix the
+   auto-assign engine reads, so it cannot drift from how work is routed.
+   v1 drew owner/cover lines between nodes; the crossings made it unreadable.
+   v2 puts owners and covers inside each step card, with a tappable people
+   strip for the person-centric view.
+--------------------------------------------------------------------------- */
 
 const TM_DEPT_ORDER = ['Design','Finishing','Milling','Printing','Scanning','QC','Shipping','Front Desk'];
 
-function tmSteps(){                       // every distinct bench step, with its department
+function tmSteps(){
   const seen = new Map();
   Object.values(WORKFLOWS).forEach(w=>{
     [...w.main, ...(w.ng||[])].forEach(d=>{
-      if(d.approval) return;              // approvals are waits, handled in their own band
-      if(!seen.has(d.n)) seen.set(d.n, {n:d.n, d:d.d, h:d.h, wfs:new Set()});
-      seen.get(d.n).wfs.add(w.name);
+      if(d.approval) return;
+      if(!seen.has(d.n)) seen.set(d.n, {n:d.n, d:d.d, h:d.h});
     });
   });
   return [...seen.values()];
@@ -2717,7 +2822,7 @@ function tmApprovals(){
 }
 const tmApprovers = () => TECHS.filter(t=>t.id==='t5'||t.id==='t0');   // mirrors canApprove()
 
-function tmPeopleFor(step){               // {P:[tech], B:[tech]} for one step
+function tmPeopleFor(step){
   const P=[], B=[];
   TECHS.forEach(t=>{
     if(!BENCHABLE(t) && step.d!=='Front Desk' && step.d!=='Shipping') return;
@@ -2726,7 +2831,7 @@ function tmPeopleFor(step){               // {P:[tech], B:[tech]} for one step
   });
   return {P, B};
 }
-function tmOwnedBy(t){                     // what one person owns / covers
+function tmOwnedBy(t){
   const own=[], cov=[];
   tmSteps().forEach(s=>{ const q=stepQual(t,s); if(q===1) own.push(s.n); else if(q===2) cov.push(s.n); });
   return {own, cov};
@@ -2738,78 +2843,42 @@ function tmSel(kind, id){
 }
 function tmClear(){ state.tmSel=null; render(); }
 
-/* ---- one department band, drawn as SVG ---- */
-function tmBand(dept, steps){
-  const NW=118, NH=34, PW=104, PH=32, GAPX=16, TOP=8, MID=76;
-  const people = [...new Set(steps.flatMap(s=>{ const {P,B}=tmPeopleFor(s); return [...P,...B]; }))];
-  if(!steps.length || !people.length) return '';
-
-  // barycentre pass: pull people toward the steps they own so solid lines run near-parallel
-  const W = q => q===1 ? 4 : q===2 ? 1 : 0;
-  people.sort((a,b)=>{
-    const bc = t => { let n=0,d=0; steps.forEach((s,i)=>{ const w=W(stepQual(t,s)); if(w){n+=w*i; d+=w;} });
-                      return d? n/d : 0; };
-    return bc(a)-bc(b) || a.name.localeCompare(b.name);
-  });
-
-  const wS = steps.length*(NW+GAPX), wP = people.length*(PW+GAPX);
-  const W_ = Math.max(wS, wP, 300), H_ = MID+PH+TOP+6;
-  const sx = i => (W_ - wS)/2 + i*(NW+GAPX) + NW/2;
-  const px = i => (W_ - wP)/2 + i*(PW+GAPX) + PW/2;
-
+/* ---- one step card ---- */
+function tmCard(s, isAppr){
+  const {P,B} = isAppr ? {P:tmApprovers(), B:[]} : tmPeopleFor(s);
   const sel = state.tmSel;
-  const dim = (stepName, tid) => {
-    if(!sel) return false;
-    return sel.kind==='step' ? sel.id!==stepName : sel.id!==tid;
-  };
-
-  let edges='';
-  steps.forEach((s,i)=>{
-    const {P,B} = tmPeopleFor(s);
-    [...P.map(t=>[t,1]), ...B.map(t=>[t,2])].forEach(([t,q])=>{
-      const j = people.indexOf(t); if(j<0) return;
-      const d = dim(s.n, t.id);
-      edges += `<line x1="${sx(i)}" y1="${TOP+NH}" x2="${px(j)}" y2="${MID}"
-        class="tm-edge ${q===1?'p':'b'} ${d?'dim':''}"/>`;
-    });
-  });
-
-  const stepNodes = steps.map((s,i)=>{
-    const {P,B} = tmPeopleFor(s);
-    const d = dim(s.n, null) && !(sel && sel.kind==='person' && (P.concat(B)).some(t=>t.id===sel.id));
-    const on = sel && ((sel.kind==='step' && sel.id===s.n) || (sel.kind==='person' && P.concat(B).some(t=>t.id===sel.id)));
-    return `<g class="tm-node step ${d?'dim':''} ${on?'on':''}" onclick="tmSel('step',${JSON.stringify(s.n).replace(/"/g,'&quot;')})">
-      <rect x="${sx(i)-NW/2}" y="${TOP}" width="${NW}" height="${NH}" rx="7"/>
-      <text x="${sx(i)}" y="${TOP+NH/2}" dominant-baseline="middle">${esc(s.n)}</text>
-    </g>`;
-  }).join('');
-
-  const personNodes = people.map((t,j)=>{
-    const rel = steps.some(s=>stepQual(t,s)>0 && sel && sel.kind==='step' && sel.id===s.n);
-    const d = sel && !( (sel.kind==='person' && sel.id===t.id) || rel );
-    const on = sel && ((sel.kind==='person' && sel.id===t.id) || rel);
-    const out = outToday(t.id);
-    return `<g class="tm-node person ${d?'dim':''} ${on?'on':''} ${out?'out':''}"
-        onclick="tmSel('person','${t.id}')">
-      <rect x="${px(j)-PW/2}" y="${MID}" width="${PW}" height="${PH}" rx="7"/>
-      <text x="${px(j)}" y="${MID+(t.role==='lead'||t.role==='owner'||out?13:PH/2+1)}" dominant-baseline="middle">${esc(t.name)}</text>
-      ${(t.role==='lead'||t.role==='owner'||out)? `<text class="sub" x="${px(j)}" y="${MID+24}" dominant-baseline="middle">${
-        out? 'out today' : (t.role==='owner'?'owner':'lead')}</text>`:''}
-    </g>`;
-  }).join('');
-
-  return `<div class="tm-band">
-    <h4>${esc(dept)}</h4>
-    <div class="tm-scroll"><div class="tm-inner"><svg viewBox="0 0 ${W_} ${H_}" width="${W_}" height="${H_}" role="img"
-      aria-label="${esc(dept)}: which people own and cover each step">${edges}${stepNodes}${personNodes}</svg></div></div>
+  let dim=false, on=false;
+  if(sel){
+    if(sel.kind==='step'){ on = sel.id===s.n; dim = !on; }
+    else { const q = isAppr ? (tmApprovers().some(t=>t.id===sel.id)?1:0)
+                            : stepQual(tech(sel.id), s);
+           on = q>0; dim = !on; }
+  }
+  const name = t => `<span class="tmc-name-chip ${outToday(t.id)?'out':''}">${esc(t.name)}</span>`;
+  return `<div class="tmc ${dim?'dim':''} ${on?'on':''}" onclick="tmSel('step',${JSON.stringify(s.n).replace(/"/g,'&quot;')})">
+    <div class="tmc-step">${esc(s.n)}</div>
+    <div class="tmc-own">${P.length? P.map(name).join('') : '<span class="tmc-gap">no owner</span>'}</div>
+    <div class="tmc-cov">${B.length? 'If out: '+B.map(t=>esc(t.name)+(outToday(t.id)?' (out)':'')).join(', ')
+                          : (P.length>1? '' : '<span class="tmc-gap">no cover named</span>')}</div>
   </div>`;
 }
 
-/* ---- the detail panel for whatever is selected ---- */
+/* ---- the people strip ---- */
+function tmPeopleStrip(){
+  const sel = state.tmSel;
+  const ppl = TECHS.filter(t=>t.dept!=='Management' || t.role==='owner');
+  return `<div class="tm-people">${ppl.map(t=>{
+    const on = sel && sel.kind==='person' && sel.id===t.id;
+    return `<button class="fchip ${on?'on':''} ${outToday(t.id)?'tm-out':''}"
+      onclick="tmSel('person','${t.id}')">${esc(t.name)}${outToday(t.id)?' · out':''}</button>`;
+  }).join('')}</div>`;
+}
+
+/* ---- detail panel ---- */
 function tmPanel(){
   const sel = state.tmSel;
-  if(!sel) return `<div class="card tm-hint"><b>Tap any box.</b> Tap a step to see everyone who can work it.
-    Tap a person to see everything they own and everything they can cover. Tap it again to clear.</div>`;
+  if(!sel) return `<div class="card tm-hint"><b>Tap a person</b> to highlight everything they own and cover.
+    <b>Tap a step</b> for the full who-does-it. Tap again to clear.</div>`;
 
   if(sel.kind==='person'){
     const t = tech(sel.id); if(!t) return '';
@@ -2820,7 +2889,7 @@ function tmPanel(){
       <div class="tm-panel-hd"><b>${esc(t.name)}</b>
         <span class="subtle">${esc(t.dept)}${t.role==='lead'?' · lead':t.role==='owner'?' · owner':''}</span>
         <button class="btn ghost sm" onclick="tmClear()">Clear</button></div>
-      ${outToday(t.id)? `<div class="pill warn">Out today — go to a dashed-line name instead</div>`:''}
+      ${outToday(t.id)? `<div class="pill warn">Out today — use the covers on their steps</div>`:''}
       <div class="tm-lists">
         <div><h5>Owns (${own.length})</h5>${own.length? own.map(n=>`<span class="chip p">${esc(n)}</span>`).join(''):'<span class="subtle">nothing yet</span>'}</div>
         <div><h5>Can cover (${cov.length})</h5>${cov.length? cov.map(n=>`<span class="chip b">${esc(n)}</span>`).join(''):'<span class="subtle">nothing yet</span>'}</div>
@@ -2853,23 +2922,18 @@ function vTeamMap(){
   const byDept = {};
   tmSteps().forEach(s=>{ (byDept[s.d]=byDept[s.d]||[]).push(s); });
   const depts = TM_DEPT_ORDER.filter(d=>byDept[d]).concat(Object.keys(byDept).filter(d=>!TM_DEPT_ORDER.includes(d)));
-
   const appr = tmApprovals();
   const gaps = tmSteps().filter(s=>!tmPeopleFor(s).P.length);
   const solo = tmSteps().filter(s=>tmPeopleFor(s).P.length===1);
 
   return `
   <h2 class="pgttl">Team map <span class="subtle">who do I go to?</span></h2>
-  <div class="tm-legend">
-    <span><svg width="26" height="8"><line x1="1" y1="4" x2="25" y2="4" class="tm-edge p"/></svg> owns it</span>
-    <span><svg width="26" height="8"><line x1="1" y1="4" x2="25" y2="4" class="tm-edge b"/></svg> can cover it</span>
-    <span><i class="sw step"></i> a step</span>
-    <span><i class="sw person"></i> a person</span>
-  </div>
+  ${tmPeopleStrip()}
   ${tmPanel()}
-  ${depts.map(d=>tmBand(d, byDept[d])).join('')}
-  ${appr.length? `<div class="tm-band"><h4>Approvals</h4>
-    <div class="tm-scroll">${tmBandApprovals(appr)}</div></div>`:''}
+  ${depts.map(d=>`<div class="tm-band"><h4>${esc(d)}</h4>
+    <div class="tm-grid">${byDept[d].map(s=>tmCard(s,false)).join('')}</div></div>`).join('')}
+  ${appr.length? `<div class="tm-band"><h4>Approvals <span class="subtle" style="text-transform:none;font-weight:400;">· happen in Chat</span></h4>
+    <div class="tm-grid">${appr.map(s=>tmCard(s,true)).join('')}</div></div>`:''}
   ${(state.role==='lead'||state.role==='owner') ? `<div class="card">
      <h3>Coverage check</h3>
      ${gaps.length? `<div class="pill bad">${gaps.length} step${gaps.length===1?'':'s'} with no owner: ${gaps.map(s=>esc(s.n)).join(', ')}</div>`
@@ -2878,36 +2942,589 @@ function vTeamMap(){
      <div class="subtle" style="margin-top:6px;">This map reads the same skills matrix the auto-assign engine uses, so it
        cannot drift from how work is actually routed. Edit it in Board → Team setup.</div>
    </div>`:''}
-  <div class="subtle" style="margin:10px 2px 4px;">A dashed line means qualified to cover, not that the work normally goes
-    there. Leads are covers across their own specialties on purpose, so they stay free to lead. If a step you work is missing,
+  <div class="subtle" style="margin:10px 2px 4px;">"If out" names are qualified covers, not where work normally goes.
+    Leads are covers across their own specialties on purpose, so they stay free to lead. If a step you work is missing,
     tell your lead: an error here becomes an error in case assignment.</div>`;
 }
+/* ===================== Digital Rx forms =====================
+   One form per product. Picking the product drives the records checklist, so
+   doctors are prompted for exactly what that product needs. Each record can be
+   supplied digitally (default) or as an analog item shipped to the lab.
+   Record lists are PLACEHOLDERS pending the lab's real per-product lists.
+   Shared definitions: the doctor portal preview and front-desk intake render
+   the same forms from RX_PRODUCTS.
+------------------------------------------------------------------------------ */
 
-function tmBandApprovals(appr){
-  const NW=138, NH=34, PW=118, PH=32, GAPX=18, TOP=8, MID=76;
-  const people = tmApprovers();
-  const wS=appr.length*(NW+GAPX), wP=people.length*(PW+GAPX);
-  const W_=Math.max(wS,wP,300), H_=MID+PH+TOP+6;
-  const sx=i=>(W_-wS)/2+i*(NW+GAPX)+NW/2, px=i=>(W_-wP)/2+i*(PW+GAPX)+PW/2;
-  const sel = state.tmSel;
-  const isAppr = sel && sel.kind==='person' && people.some(t=>t.id===sel.id);
-  const stepSel = sel && sel.kind==='step' && appr.some(s=>s.n===sel.id);
-  const dimStep = s => sel && !(stepSel && sel.id===s.n) && !isAppr;
-  const dimPer  = t => sel && !(sel.kind==='person' && sel.id===t.id) && !stepSel;
-  let e='';
-  appr.forEach((s,i)=>people.forEach((t,j)=>{
-    const d = dimStep(s) || dimPer(t);
-    e+=`<line x1="${sx(i)}" y1="${TOP+NH}" x2="${px(j)}" y2="${MID}" class="tm-edge p ${d?'dim':''}"/>`;
+/* r(label, req, analogAlt, hint) */
+const _r = (l, req, analog, hint) => ({l, req: !!req, analog: analog||null, hint: hint||null});
+
+const RX_PRODUCTS = [
+ {key:'fullarch', name:'Full-arch final', wf:'sleeve', desc:'Sleeve, monolithic, or PMMA final arch',
+  arch:true, records:[
+   _r('Intraoral scans: upper, lower, bite', 1, 'PVS impressions + bite registration shipping to lab'),
+   _r('Scan of existing prosthesis or approved temp', 1, 'Prosthesis shipping to lab'),
+   _r('Photos: full-face smile, retracted, shade tab in frame', 1, null, 'Shade tab must be visible in at least one photo'),
+   _r('Implant details: positions, scan body type, MUA heights', 1, null),
+   _r('Shade selection', 1, null),
+   _r('CBCT / DICOM', 0, 'CD or drive shipping to lab'),
+  ]},
+ {key:'proto', name:'Prototype (digital)', wf:'proto', desc:'Printed prototype for try-in',
+  arch:true, records:[
+   _r('Intraoral scans: upper, lower, bite', 1, 'PVS impressions + bite registration shipping to lab'),
+   _r('Scan of existing prosthesis or denture', 0, 'Prosthesis shipping to lab'),
+   _r('Photos: full-face smile, retracted', 1, null),
+   _r('Implant details: positions, scan body type', 1, null),
+   _r('Shade selection', 0, null),
+  ]},
+ {key:'tryin', name:'Denture try-in', wf:'tryin', desc:'Wax / printed try-in',
+  arch:true, records:[
+   _r('Intraoral scans: upper, lower', 1, 'Final impressions shipping to lab'),
+   _r('Bite registration / bite rims', 1, 'Bite rims shipping to lab'),
+   _r('Shade and mould selection', 1, null),
+   _r('Photos: full-face smile, retracted', 0, null),
+   _r('Scan of existing denture', 0, 'Existing denture shipping to lab'),
+  ]},
+ {key:'finaldent', name:'Final denture', wf:'final', desc:'Processed final from an approved try-in',
+  linked:true, records:[
+   _r('Approved try-in case number', 1, null, 'The final is made from the linked try-in design'),
+   _r('Approved try-in', 1, 'Try-in shipping back to lab', 'Ship the approved try-in back, or confirm approval digitally'),
+   _r('Notes on any changes requested at try-in', 0, null),
+  ]},
+ {key:'immediate', name:'Immediate denture', wf:'flange', desc:'Flangeless / immediate placement',
+  arch:true, records:[
+   _r('Intraoral scans: upper, lower, bite', 1, 'Impressions + bite registration shipping to lab'),
+   _r('Teeth planned for extraction', 1, null, 'List tooth numbers'),
+   _r('Photos: full-face smile, retracted', 1, null),
+   _r('Shade selection', 1, null),
+  ]},
+ {key:'crown', name:'Crown & bridge', wf:null, desc:'Implant or tooth-borne crowns and bridges',
+  records:[
+   _r('Intraoral scans: preps, opposing, bite', 1, 'PVS impressions + bite registration shipping to lab'),
+   _r('Tooth numbers and units', 1, null),
+   _r('Shade selection + shade tab photo', 1, null),
+   _r('Implant details if implant-borne: positions, scan bodies', 0, null),
+   _r('Prep / stump shade photos', 0, null),
+  ]},
+ {key:'nightguard', name:'Night guard', wf:null, desc:'Occlusal guard',
+  arch:true, records:[
+   _r('Intraoral scans: upper, lower, bite', 1, 'Impressions shipping to lab'),
+   _r('Arch to fabricate (upper or lower)', 1, null),
+   _r('Notes on thickness / material preference', 0, null),
+  ]},
+ {key:'surgguide', name:'Surgical guide', wf:null, desc:'Simple surgical guide',
+  records:[
+   _r('CBCT / DICOM files', 1, 'CD or drive shipping to lab'),
+   _r('Intraoral scans: upper, lower', 1, 'Impressions shipping to lab'),
+   _r('Implant system, sizes, and planned positions', 1, null),
+   _r('Treatment plan / prescription notes', 0, null),
+  ]},
+ {key:'designonly', name:'Design only', wf:null, desc:'We design, you produce — STLs emailed back',
+  records:[
+   _r('Intraoral scans: upper, lower, bite', 1, null, 'Design-only work is digital: no analog option'),
+   _r('Design instructions', 1, null),
+   _r('Photos', 0, null),
+  ]},
+];
+const rxProduct = k => RX_PRODUCTS.find(p=>p.key===k);
+
+/* seeded example so the front-desk queue is never empty */
+let RX_INBOX = [
+ {id:'RX-1041', when: now(), from:'Doctor portal', product:'fullarch', patient:'Alvarez, M.',
+  doc:0, status:'pending', rush:false, notes:'Patient prefers slightly brighter than B1.',
+  items:[{l:'Intraoral scans: upper, lower, bite', st:'attached'},
+         {l:'Scan of existing prosthesis or approved temp', st:'attached'},
+         {l:'Photos: full-face smile, retracted, shade tab in frame', st:'attached'},
+         {l:'Implant details: positions, scan body type, MUA heights', st:'attached'},
+         {l:'Shade selection', st:'attached'},
+         {l:'CBCT / DICOM', st:'shipping'}]},
+];
+let RX_SEQ = 1042;
+
+function rxReset(){ state.rxSel=null; state.rxMode={}; state.rxAtt={}; state.rxDone=null; }
+function rxPick(k){ state.rxSel=k; state.rxMode={}; state.rxAtt={}; state.rxDone=null; render(); }
+function rxSetMode(i, m){ state.rxMode[i]=m; if(m!=='dig') delete state.rxAtt[i]; render(); }
+function rxAttach(i){ state.rxAtt[i]=!state.rxAtt[i]; render(); }
+
+function rxSubmit(){
+  const p = rxProduct(state.rxSel);
+  const err = m => { const e=document.getElementById('rx-err'); if(e) e.innerHTML=m; };
+  const patient = document.getElementById('rx-patient').value.trim();
+  if(!patient) return err('Patient name is required.');
+  const missing = [];
+  p.records.forEach((r,i)=>{
+    const mode = state.rxMode[i] || 'dig';
+    if(!r.req) return;
+    if(mode==='dig' && !state.rxAtt[i]) missing.push(r.l);
+    if(mode==='na') missing.push(r.l);
+  });
+  if(missing.length) return err('<b>Still needed before this Rx can be submitted:</b><br>· '+missing.map(esc).join('<br>· '));
+  const items = p.records.map((r,i)=>{
+    const mode = state.rxMode[i] || 'dig';
+    return {l:r.l, st: mode==='dig' ? (state.rxAtt[i]?'attached':'not provided')
+                     : mode==='ship' ? 'shipping' : 'not provided'};
+  });
+  const sub = {id:'RX-'+(RX_SEQ++), when:now(), product:p.key, patient,
+    from: state.role==='doctor' ? 'Doctor portal' : 'Front desk',
+    status: state.role==='doctor' ? 'pending' : 'approved',
+    doc:+document.getElementById('rx-doc').value,
+    rush: document.getElementById('rx-rush').checked,
+    notes: document.getElementById('rx-notes').value.trim(), items};
+  RX_INBOX.unshift(sub);
+  state.rxDone = sub.id;
+  render();
+}
+
+const rxCanApprove = () => state.role==='lead' || state.role==='owner';
+function rxApprove(subId){
+  const s = RX_INBOX.find(x=>x.id===subId); if(!s || !rxCanApprove()) return;
+  s.status='approved'; s.approvedBy=me().name; render();
+}
+function rxRejectStart(subId){
+  const s = RX_INBOX.find(x=>x.id===subId); if(!s || !rxCanApprove()) return;
+  s.rejecting = !s.rejecting; render();
+}
+function rxReject(subId){
+  const s = RX_INBOX.find(x=>x.id===subId); if(!s || !rxCanApprove()) return;
+  const el = document.getElementById('rx-rej-'+subId);
+  s.status='rejected'; s.rejectedBy=me().name; s.rejectReason=(el&&el.value.trim())||'No reason given';
+  s.rejecting=false; render();
+}
+function rxCreateCase(subId){
+  const s = RX_INBOX.find(x=>x.id===subId); if(!s) return;
+  if(s.status!=='approved'){ s.needsApprovalNudge=true; render(); return; }
+  const p = rxProduct(s.product);
+  if(!p.wf){ s.noWf=true; render(); return; }
+  const c = mkCase({wf:p.wf, patient:s.patient, doctor:DOCTORS[s.doc].doc, clinic:DOCTORS[s.doc].clinic,
+    ship:daysFromNow(TURNAROUND_DAYS), rush:s.rush, linkedTo:null, created:now(), at:0, creator:me().name});
+  c.rx = {id:s.id, product:p.name, items:s.items.map(it=>({...it}))};
+  c.events.push({when:now(), who:me().name, text:`Created from digital Rx ${s.id} (${p.name})${s.approvedBy?' — approved by '+s.approvedBy:''}`, type:'step'});
+  if(s.notes) c.notes.push({who:DOCTORS[s.doc].doc, when:now(), text:'From Rx form: '+s.notes});
+  const shipping = s.items.filter(it=>it.st==='shipping');
+  if(shipping.length){
+    c.hold = {by:me().name, when:now(), reason:'Waiting on analog records: '+shipping.map(it=>it.l).join('; ')};
+    c.events.push({when:now(), who:'System', text:'HOLD — analog records in transit: '+shipping.map(it=>it.l).join('; '), type:'warn'});
+  }
+  RX_INBOX = RX_INBOX.filter(x=>x.id!==subId);
+  CASES.unshift(c);
+  state.caseId = c.id;
+  render();
+}
+function rxMarkReceived(cid, idx){
+  const c = getCase(cid); if(!c || !c.rx) return;
+  c.rx.items[idx].st = 'received';
+  c.events.push({when:now(), who:me().name, text:'Analog record received: '+c.rx.items[idx].l, type:'step'});
+  if(c.hold && !c.rx.items.some(it=>it.st==='shipping')){
+    c.events.push({when:now(), who:me().name, text:'All analog records received — hold can be released', type:'step'});
+  }
+  render();
+}
+
+/* ---- the form ---- */
+function rxForm(){
+  const p = rxProduct(state.rxSel);
+  if(state.rxDone){
+    const s = RX_INBOX.find(x=>x.id===state.rxDone);
+    return `<div class="card rx-done">
+      <h3>✓ Rx ${esc(state.rxDone)} submitted</h3>
+      ${s? `<p class="rx-sum"><b>${esc(rxProduct(s.product).name)}</b> for <b>${esc(s.patient)}</b> — ${esc(DOCTORS[s.doc].doc)}${s.rush?' · <b>RUSH</b>':''}</p>
+      ${s.items.map(it=>`<div class="rx-item-line">${it.st==='attached'?'✓':it.st==='shipping'?'⛟':'—'} ${esc(it.l)}
+        <span class="subtle">${it.st==='shipping'?'shipping to lab':it.st}</span></div>`).join('')}
+      <p class="subtle" style="margin-top:8px;">${s.items.some(i=>i.st==='shipping')
+        ? 'The case will be held at the lab until the shipped records arrive.'
+        : 'All records were provided digitally. The lab will confirm the case shortly.'}</p>`:''}
+      <div class="btnrow"><button class="btn primary" onclick="rxReset(); render();">Start another Rx</button></div>
+    </div>`;
+  }
+  return `<div class="card">
+    <div class="tm-panel-hd"><b>${esc(p.name)}</b><span class="subtle">${esc(p.desc)}</span>
+      <button class="btn ghost sm" onclick="rxReset(); render();">Change product</button></div>
+
+    <label class="f">Patient (Last, F.)</label>
+    <input id="rx-patient" class="field" placeholder="e.g. Rivera, J.">
+    <label class="f">Doctor / practice</label>
+    <select id="rx-doc" class="field">${DOCTORS.map((d,i)=>`<option value="${i}">${d.doc} — ${d.clinic}</option>`).join('')}</select>
+    ${p.arch? `<label class="f">Arch</label>
+    <select id="rx-arch" class="field"><option>Upper</option><option>Lower</option><option>Both</option></select>`:''}
+    ${p.linked? `<label class="f">Linked try-in case #</label><input id="rx-link" class="field" placeholder="R-xxxx">`:''}
+    <label class="f"><input type="checkbox" id="rx-rush" style="width:auto;"> Rush</label>
+
+    <h3 style="margin-top:12px;">Records for this product</h3>
+    <div class="subtle" style="margin-bottom:8px;">Digital is preferred. Pick "shipping analog" for anything physical: the lab will expect it and hold the case until it arrives. <b>*</b> = required.</div>
+    ${p.records.map((r,i)=>{
+      const mode = state.rxMode[i] || 'dig';
+      const att = !!state.rxAtt[i];
+      return `<div class="rx-rec">
+        <div class="rx-rec-l">${esc(r.l)}${r.req?' <b>*</b>':''}${r.hint?`<div class="subtle">${esc(r.hint)}</div>`:''}</div>
+        <div class="rx-rec-r">
+          <div class="rx-seg">
+            <button class="${mode==='dig'?'on':''}" onclick="rxSetMode(${i},'dig')">Digital</button>
+            ${r.analog? `<button class="${mode==='ship'?'on':''}" onclick="rxSetMode(${i},'ship')">Shipping analog</button>`:''}
+            ${!r.req? `<button class="${mode==='na'?'on':''}" onclick="rxSetMode(${i},'na')">N/A</button>`:''}
+          </div>
+          ${mode==='dig'? `<button class="btn sm ${att?'':'primary'}" onclick="rxAttach(${i})">${att?'✓ attached (mock)':'Attach file'}</button>`:''}
+          ${mode==='ship'? `<span class="subtle">⛟ ${esc(r.analog)}</span>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+
+    <label class="f">Notes to the lab</label>
+    <textarea id="rx-notes" class="field" rows="2" placeholder="Anything the bench should know"></textarea>
+    <div id="rx-err" style="color:var(--critical); font-size:12.5px; margin-top:6px;"></div>
+    <div class="btnrow"><button class="btn primary" onclick="rxSubmit()">Submit Rx</button></div>
+    <div class="subtle" style="margin-top:6px;">Record lists are placeholders until the lab finalizes per-product requirements. File attachment is mocked in this prototype.</div>
+  </div>`;
+}
+
+function rxPicker(){
+  return `<div class="rx-pick">
+    ${RX_PRODUCTS.map(p=>`<div class="tmc" onclick="rxPick('${p.key}')">
+      <div class="tmc-step">${esc(p.name)}</div>
+      <div class="subtle" style="font-size:11px;">${esc(p.desc)}</div>
+      <div class="tmc-cov" style="margin-top:4px;">${p.records.filter(r=>r.req).length} required record${p.records.filter(r=>r.req).length===1?'':'s'}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function rxInbox(){
+  if(state.role==='doctor') return '';
+  if(!RX_INBOX.length) return `<div class="card"><h3>Submitted Rx queue</h3><div class="subtle">Nothing waiting. New submissions from the doctor portal land here.</div></div>`;
+  return `<div class="card"><h3>Submitted Rx queue <span class="subtle">(${RX_INBOX.length})</span></h3>
+    <div class="subtle" style="margin-bottom:6px;">Doctor submissions need a lead or owner to approve them before a case is created. Nothing reaches the boards unapproved.</div>
+    ${RX_INBOX.map(s=>{
+      const p = rxProduct(s.product);
+      const ship = s.items.filter(i=>i.st==='shipping').length;
+      const badge = s.status==='pending' ? '<span class="pill warn" style="margin:0 0 0 6px;">awaiting admin approval</span>'
+                  : s.status==='rejected' ? '<span class="pill bad" style="margin:0 0 0 6px;">rejected</span>'
+                  : `<span class="pill good" style="margin:0 0 0 6px;">approved${s.approvedBy?' · '+esc(s.approvedBy):''}</span>`;
+      return `<div class="rx-sub ${s.status==='rejected'?'rej':''}">
+        <div><b>${esc(s.id)}</b> · ${esc(p.name)} — <b>${esc(s.patient)}</b> ${badge}
+          <div class="subtle">${esc(DOCTORS[s.doc].doc)} · via ${esc(s.from)}${s.rush?' · RUSH':''}</div>
+          ${ship? `<div class="subtle">⛟ ${ship} analog item${ship===1?'':'s'} shipping — case will start on hold</div>`:''}
+          ${s.status==='rejected'? `<div class="subtle">Rejected by ${esc(s.rejectedBy)}: ${esc(s.rejectReason)} — the doctor would be notified to resubmit.</div>`:''}
+          ${s.noWf? `<div style="color:var(--warn-ink); font-size:11.5px;">This product's workflow isn't in the prototype yet — case creation is mocked for it.</div>`:''}
+          ${s.needsApprovalNudge && s.status==='pending'? `<div style="color:var(--warn-ink); font-size:11.5px;">Needs lead or owner approval first.</div>`:''}
+          ${s.rejecting? `<div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;">
+             <input id="rx-rej-${s.id}" class="field" style="flex:1; min-width:160px; margin:0;" placeholder="Reason sent back to the doctor">
+             <button class="btn sm" onclick="rxReject('${s.id}')">Confirm reject</button></div>`:''}
+        </div>
+        <div class="btnrow" style="margin:0;">
+          ${s.status==='pending' && rxCanApprove()? `<button class="btn primary sm" onclick="rxApprove('${s.id}')">✓ Approve</button>
+            <button class="btn ghost sm" onclick="rxRejectStart('${s.id}')">Reject</button>`:''}
+          ${s.status==='pending' && !rxCanApprove()? `<span class="subtle">a lead or Kent approves this</span>`:''}
+          ${s.status==='approved'? `<button class="btn primary sm" onclick="rxCreateCase('${s.id}')">Create case</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function vRx(){
+  return `
+  <h2 class="pgttl">Digital Rx <span class="subtle">${state.role==='doctor'?'doctor portal preview':'per-product record prompts'}</span></h2>
+  ${state.rxSel? rxForm() : `<div class="card tm-hint"><b>Pick the product.</b> Each product asks for exactly the records it needs — no more guessing what to send.</div>${rxPicker()}`}
+  ${state.rxSel? '' : rxInbox()}`;
+}
+
+/* records card for the case sheet */
+function rxCaseCard(c){
+  if(!c.rx) return '';
+  return `<div class="card"><h3>⎙ Rx records · ${esc(c.rx.product)} <span class="subtle">${esc(c.rx.id)}</span></h3>
+    ${c.rx.items.map((it,i)=>`<div class="rx-item-line">
+      ${it.st==='attached'?'✓':it.st==='received'?'✓':it.st==='shipping'?'⛟':'—'} ${esc(it.l)}
+      <span class="subtle">${it.st}</span>
+      ${it.st==='shipping' && (isLead()||state.role==='frontdesk')? `<button class="btn ghost sm" onclick="rxMarkReceived('${c.id}',${i})">Mark received</button>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+/* ===================== Workflow builder =====================
+   Admin authors workflows inside the software. Add a step, pick what KIND of
+   step it is, and the routing rules follow from that choice.
+
+   Step kinds map 1:1 onto the backend's assignee_rule:
+     'skills'    owned  - goes to whoever is qualified, balanced by capacity
+     'prev'      inherit - ALWAYS whoever did the previous step. Technician QC.
+     'approver'  approval - whoever holds the matching approval right
+
+   A track other than 'main' is a split: it forks after a main step and rejoins
+   before another. Night guards use this today; bar and sleeve would too.
+
+   Export produces the seed for the real database, so what is authored here is
+   what the backend runs.
+--------------------------------------------------------------------------- */
+
+const STEP_KINDS = [
+  ['skills',       'Owned',                'Goes to whoever is qualified for it, balanced by who has room today'],
+  ['prev',         'Follows previous',     'Always the tech who did the step before it. This is technician QC.'],
+  ['approver_dr',  'Approval: doctor',     'The case waits here until the doctor signs off'],
+  ['approver_d',   'Approval: design lead','Josh signs the design off before it goes to production'],
+  ['approver_f',   'Approval: owner',      'Kent signs it off before it leaves'],
+];
+const slugTrack = s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
+const kindLabel = k => (STEP_KINDS.find(x=>x[0]===k)||STEP_KINDS[0])[1];
+
+/* ---- convert the running WORKFLOWS into the builder's general shape ---- */
+function wfToDraft(key){
+  const w = WORKFLOWS[key];
+  const conv = (d) => ({
+    n: d.n, d: d.d, h: d.h,
+    kind: d.approval ? ({doctor:'approver_dr', design:'approver_d', final:'approver_f'}[d.approvalKind] || 'approver_dr')
+                     : (d.rule === 'prev' ? 'prev' : 'skills')
+  });
+  const tracks = [{name:'main', label:'Main', isMain:true, steps:(w.main||[]).map(conv)}];
+  if(w.splits && w.splits.length){          // authored here: every split kept, with its own name
+    w.splits.forEach(s=>tracks.push({name:s.name, label:s.label, isMain:false,
+      forkAfter:(s.forkAfter??0)+1, joinBefore:(s.joinAt??0)+1, steps:s.steps.map(conv)}));
+  } else if(w.ng){                          // built-in shape: the one night-guard track
+    tracks.push({name:'night_guard', label:'Night guard', isMain:false,
+                 forkAfter:(w.forkAfter??0)+1, joinBefore:(w.joinAt??0)+1,
+                 steps:w.ng.map(conv)});
+  }
+  return {key, name:w.name, endState:w.endState||'ship', linked:w.linkedTo||null, tracks};
+}
+function newDraft(){
+  return {key:null, name:'', endState:'ship', linked:null,
+          tracks:[{name:'main', label:'Main', isMain:true, steps:[]}]};
+}
+
+/* ---- edit actions ---- */
+const wfD = () => state.wfDraft;
+function wfOpen(key){ state.wfDraft = key ? wfToDraft(key) : newDraft(); state.wfMsg=null; render(); }
+function wfClose(){ state.wfDraft=null; state.wfMsg=null; render(); }
+function wfSetName(v){ wfD().name=v; }
+function wfSetEnd(v){ wfD().endState=v; }
+function wfSetLinked(v){ wfD().linked = v || null; }
+
+function wfAddStep(ti){
+  wfD().tracks[ti].steps.push({n:'New step', d:DEPTS[0], h:0.5, kind:'skills'});
+  render();
+}
+function wfDelStep(ti,si){ wfD().tracks[ti].steps.splice(si,1); render(); }
+function wfMoveStep(ti,si,dir){
+  const s = wfD().tracks[ti].steps, j = si+dir;
+  if(j<0 || j>=s.length) return;
+  [s[si], s[j]] = [s[j], s[si]];
+  render();
+}
+function wfEditStep(ti,si,field,v){
+  const st = wfD().tracks[ti].steps[si];
+  st[field] = (field==='h') ? (parseFloat(v)||0) : v;
+  if(field==='kind') render();   // name/hours/room must NOT re-render: it would steal focus mid-typing
+}
+function wfAddTrack(){
+  const d = wfD();
+  const n = d.tracks.filter(t=>!t.isMain).length + 1;
+  d.tracks.push({name:'split_'+n, label:'Split '+n, isMain:false,
+                 forkAfter:Math.max(1,d.tracks[0].steps.length), joinBefore:d.tracks[0].steps.length,
+                 steps:[]});
+  render();
+}
+function wfDelTrack(ti){ wfD().tracks.splice(ti,1); render(); }
+function wfSetTrack(ti,field,v){
+  const t = wfD().tracks[ti];
+  t[field] = (field==='forkAfter'||field==='joinBefore') ? (parseInt(v,10)||1) : v;
+  // no render: nothing else on screen depends on these, and re-rendering mid-edit
+  // detaches the input the user is still in and drops the next keystroke
+}
+
+/* ---- validation: refuse to save something the engine cannot run ---- */
+function wfValidate(d){
+  const errs = [];
+  if(!d.name.trim()) errs.push('The workflow needs a name.');
+  const main = d.tracks.find(t=>t.isMain);
+  if(!main || !main.steps.length) errs.push('The main track needs at least one step.');
+  main && main.steps.forEach((s,i)=>{
+    if(!s.n.trim()) errs.push(`Main step ${i+1} has no name.`);
+    if(s.kind==='prev' && i===0) errs.push(`Step 1 cannot follow the previous step: there isn't one.`);
+  });
+  d.tracks.filter(t=>!t.isMain).forEach(t=>{
+    if(!t.steps.length) errs.push(`Split "${t.label}" has no steps.`);
+    if(t.forkAfter >= t.joinBefore) errs.push(`Split "${t.label}" must rejoin after it forks.`);
+    if(main && t.joinBefore > main.steps.length) errs.push(`Split "${t.label}" rejoins past the end of the main track.`);
+    t.steps.forEach((s,i)=>{ if(s.kind==='prev' && i===0)
+      errs.push(`"${t.label}" step 1 cannot follow the previous step.`); });
+  });
+  // every non-approval step should have somebody qualified, or it can never be assigned
+  const unowned = [];
+  d.tracks.forEach(t=>t.steps.forEach(s=>{
+    if(s.kind!=='skills') return;
+    const any = TECHS.some(p=>stepQual(p, {n:s.n, d:s.d})>0);
+    if(!any && !unowned.includes(s.n)) unowned.push(s.n);
   }));
-  return `<div class="tm-inner"><svg viewBox="0 0 ${W_} ${H_}" width="${W_}" height="${H_}" role="img" aria-label="who approves what">${e}
-    ${appr.map((s,i)=>`<g class="tm-node step ${dimStep(s)?'dim':''} ${(stepSel&&sel.id===s.n)||isAppr?'on':''}"
-        onclick="tmSel('step',${JSON.stringify(s.n).replace(/"/g,'&quot;')})">
-      <rect x="${sx(i)-NW/2}" y="${TOP}" width="${NW}" height="${NH}" rx="7"/>
-      <text x="${sx(i)}" y="${TOP+NH/2}" dominant-baseline="middle">${esc(s.n)}</text></g>`).join('')}
-    ${people.map((t,j)=>`<g class="tm-node person ${dimPer(t)?'dim':''} ${(sel&&sel.kind==='person'&&sel.id===t.id)||stepSel?'on':''}"
-        onclick="tmSel('person','${t.id}')">
-      <rect x="${px(j)-PW/2}" y="${MID}" width="${PW}" height="${PH}" rx="7"/>
-      <text x="${px(j)}" y="${MID+13}" dominant-baseline="middle">${esc(t.name)}</text>
-      <text class="sub" x="${px(j)}" y="${MID+24}" dominant-baseline="middle">approves in Chat</text></g>`).join('')}</svg></div>`;
+  return {errs, unowned};
+}
+
+function wfSave(){
+  const d = wfD();
+  const {errs, unowned} = wfValidate(d);
+  if(errs.length){ state.wfMsg={bad:true, lines:errs}; render(); return; }
+
+  const back = (s)=>{
+    const o = {n:s.n.trim(), d:s.d, h:s.h};
+    if(s.kind==='approver_dr'){ o.approval=true; o.approvalKind='doctor'; }
+    else if(s.kind==='approver_d'){ o.approval=true; o.approvalKind='design'; }
+    else if(s.kind==='approver_f'){ o.approval=true; o.approvalKind='final'; }
+    else if(s.kind==='prev'){ o.rule='prev'; }
+    return o;
+  };
+  const main = d.tracks.find(t=>t.isMain);
+  const splits = d.tracks.filter(t=>!t.isMain);
+  const key = d.key || ('wf'+Date.now().toString(36));
+  const wf = {name:d.name.trim(), endState:d.endState, main:main.steps.map(back)};
+  if(d.linked){ wf.linked = true; wf.linkedTo = d.linked; }
+  if(splits.length){
+    // every split is kept in full; the first is also mirrored into the ng/forkAfter/joinAt
+    // shape the prototype's case engine already knows how to run
+    wf.splits = splits.map((t,i)=>({name:slugTrack(t.label)||('split_'+(i+1)), label:t.label,
+      forkAfter:t.forkAfter-1, joinAt:t.joinBefore-1, steps:t.steps.map(back)}));
+    wf.ng = wf.splits[0].steps;
+    wf.forkAfter = wf.splits[0].forkAfter;
+    wf.joinAt = wf.splits[0].joinAt;
+  }
+  WORKFLOWS[key] = wf;
+  state.wfDraft = null;
+  state.wfMsg = {bad:false, lines:[
+    `Saved "${wf.name}".` + (splits.length>1 ? ' Note: this prototype only runs the first split on a live case; the export carries all of them.' : ''),
+    ...(unowned.length ? ['Nobody is qualified for: '+unowned.join(', ')+'. Set that in Team setup or these steps cannot be assigned.'] : [])
+  ]};
+  render();
+}
+
+/* ---- export: the seed for the real database ---- */
+function wfExport(){
+  const out = {};
+  Object.entries(WORKFLOWS).forEach(([k,w])=>{
+    const conv = (s)=>({
+      name:s.n, department:s.d, est_hours:s.h,
+      assignee_rule: s.approval ? 'approver' : (s.rule==='prev' ? 'inherit_previous' : 'skills'),
+      is_approval: !!s.approval,
+      approval_kind: s.approval ? (s.approvalKind||'doctor') : null
+    });
+    const tracks = [{name:'main', label:'Main', is_main:true, steps:(w.main||[]).map(conv)}];
+    if(w.splits && w.splits.length){
+      w.splits.forEach(s=>tracks.push({name:s.name, label:s.label, is_main:false,
+        fork_after_position:(s.forkAfter??0)+1, join_before_position:(s.joinAt??0)+1,
+        steps:s.steps.map(conv)}));
+    } else if(w.ng) tracks.push({name:'night_guard', label:'Night guard', is_main:false,
+      fork_after_position:(w.forkAfter??0)+1, join_before_position:(w.joinAt??0)+1,
+      steps:w.ng.map(conv)});
+    out[w.name] = {end_state: w.endState==='inhouse'?'in_house':'ship',
+                   requires_linked_case: !!w.linked,
+                   linked_workflow: w.linkedTo && WORKFLOWS[w.linkedTo] ? WORKFLOWS[w.linkedTo].name : null,
+                   tracks};
+  });
+  const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'renew-workflows.json';
+  a.click();
+  state.wfMsg = {bad:false, lines:['Exported renew-workflows.json. This is the seed for the real database.']};
+  render();
+}
+
+/* ===================== views ===================== */
+function vWorkflows(){
+  if(state.wfDraft) return wfEditor();
+  const rows = Object.entries(WORKFLOWS).map(([k,w])=>{
+    const n = (w.main||[]).length + (w.ng?w.ng.length:0);
+    const kinds = [];
+    if((w.main||[]).some(s=>s.approval)) kinds.push('approvals');
+    if((w.main||[]).some(s=>s.rule==='prev')) kinds.push('follows-previous');
+    if(!(w.main||[]).some(s=>s.approval && s.approvalKind==='final')) kinds.push('⚠ no owner sign-off');
+    if(w.ng) kinds.push('1 split');
+    return `<div class="tmc" onclick="wfOpen('${k}')">
+      <div class="tmc-step">${esc(w.name)}</div>
+      <div class="tmc-own"><span class="tmc-name-chip">${n} steps</span></div>
+      <div class="tmc-cov">${w.endState==='inhouse'?'seats in-house':'ships'}${kinds.length?' · '+kinds.join(' · '):''}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <h2 class="pgttl">Workflows <span class="subtle">build and edit them here</span></h2>
+  ${state.wfMsg? `<div class="card"><div class="pill ${state.wfMsg.bad?'bad':'good'}">${state.wfMsg.lines.map(esc).join('<br>')}</div></div>`:''}
+  <div class="card tm-hint"><b>Tap a workflow to edit it, or start a blank one.</b> Every step declares what kind
+    it is, and the routing follows: owned steps go to qualified people, follows-previous steps stay with the tech
+    who did the step before, approvals go to whoever can sign them.</div>
+  <div class="btnrow" style="margin:0 2px 10px;">
+    <button class="btn primary" onclick="wfOpen(null)">＋ New workflow</button>
+    <button class="btn" onclick="wfExport()">⭳ Export for the database</button>
+  </div>
+  <div class="tm-grid">${rows}</div>`;
+}
+
+function trackBlock(t, ti, mainLen){
+  const steps = t.steps.map((s,si)=>`
+    <div class="wf-step">
+      <div class="wf-step-hd">
+        <span class="wf-num">${si+1}</span>
+        <input class="field wf-name" value="${esc(s.n)}" oninput="wfEditStep(${ti},${si},'n',this.value)">
+        <button class="btn ghost sm" onclick="wfMoveStep(${ti},${si},-1)" title="Move up">↑</button>
+        <button class="btn ghost sm" onclick="wfMoveStep(${ti},${si},1)" title="Move down">↓</button>
+        <button class="btn ghost sm" onclick="wfDelStep(${ti},${si})" title="Remove">✕</button>
+      </div>
+      <div class="wf-step-rw">
+        <label>Room
+          <select class="field" onchange="wfEditStep(${ti},${si},'d',this.value)">
+            ${DEPTS.map(d=>`<option ${s.d===d?'selected':''}>${d}</option>`).join('')}
+          </select></label>
+        <label>Hours
+          <input class="field" type="number" step="0.1" min="0" value="${s.h}"
+                 oninput="wfEditStep(${ti},${si},'h',this.value)"></label>
+        <label>Kind of step
+          <select class="field" onchange="wfEditStep(${ti},${si},'kind',this.value)">
+            ${STEP_KINDS.map(([k,l])=>`<option value="${k}" ${s.kind===k?'selected':''}>${l}</option>`).join('')}
+          </select></label>
+      </div>
+      <div class="wf-kind-note">${esc((STEP_KINDS.find(x=>x[0]===s.kind)||STEP_KINDS[0])[2])}</div>
+    </div>`).join('');
+
+  return `<div class="wf-track ${t.isMain?'':'split'}">
+    <div class="wf-track-hd">
+      ${t.isMain ? '<b>Main track</b>'
+        : `<input class="field wf-tname" value="${esc(t.label)}" oninput="wfSetTrack(${ti},'label',this.value)">
+           <span class="subtle">splits off after step</span>
+           <input class="field wf-pos" type="number" min="1" max="${mainLen}" value="${t.forkAfter}"
+                  onchange="wfSetTrack(${ti},'forkAfter',this.value)">
+           <span class="subtle">rejoins before step</span>
+           <input class="field wf-pos" type="number" min="1" max="${mainLen}" value="${t.joinBefore}"
+                  onchange="wfSetTrack(${ti},'joinBefore',this.value)">
+           <button class="btn ghost sm" onclick="wfDelTrack(${ti})">Remove split</button>`}
+    </div>
+    ${steps || '<div class="subtle" style="padding:6px 2px;">No steps yet.</div>'}
+    <button class="btn sm" onclick="wfAddStep(${ti})">＋ Add step</button>
+  </div>`;
+}
+
+function wfEditor(){
+  const d = wfD();
+  const mainLen = d.tracks[0].steps.length;
+  return `
+  <h2 class="pgttl">${d.key?'Edit workflow':'New workflow'}</h2>
+  ${state.wfMsg? `<div class="card"><div class="pill ${state.wfMsg.bad?'bad':'good'}">${state.wfMsg.lines.map(esc).join('<br>')}</div></div>`:''}
+  <div class="card">
+    <label class="f">Name</label>
+    <input id="wf-name" class="field" value="${esc(d.name)}" placeholder="e.g. Sleeve Final (w/ NG)"
+           oninput="wfSetName(this.value)">
+    <div class="wf-step-rw" style="margin-top:6px;">
+      <label>Ends with
+        <select class="field" onchange="wfSetEnd(this.value)">
+          <option value="ship" ${d.endState==='ship'?'selected':''}>Shipping to the doctor</option>
+          <option value="inhouse" ${d.endState==='inhouse'?'selected':''}>Seating in-house</option>
+        </select></label>
+      <label>Starts from another case
+        <select class="field" onchange="wfSetLinked(this.value)">
+          <option value="" ${!d.linked?'selected':''}>No — stands on its own</option>
+          ${Object.entries(WORKFLOWS).filter(([k])=>k!==d.key)
+              .map(([k,w])=>`<option value="${k}" ${d.linked===k?'selected':''}>Must link to a ${esc(w.name)}</option>`).join('')}
+        </select></label>
+    </div>
+  </div>
+  ${d.tracks.map((t,i)=>trackBlock(t,i,mainLen)).join('')}
+  <div class="btnrow" style="margin:10px 2px;">
+    <button class="btn" onclick="wfAddTrack()">＋ Add a split track</button>
+    <button class="btn primary" onclick="wfSave()">Save workflow</button>
+    <button class="btn ghost" onclick="wfClose()">Cancel</button>
+  </div>
+  <div class="subtle" style="margin:0 2px 6px;">A split is work that runs alongside the main line, like a night
+    guard beside an arch. It starts when the main track passes the step you name, and the main track cannot pass
+    the rejoin step until the split is finished.</div>`;
 }
 </script></body></html>
