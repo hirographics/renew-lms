@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Renew LMS — v2.6 Prototype</title>
+<title>Renew LMS — v2.9 Prototype</title>
 <style>
 :root{
   color-scheme: light;
@@ -460,6 +460,13 @@ h2.pagetitle{font-size:17px; margin:2px 0 10px;}
 .rx-sum{font-size:13px;}
 textarea.field{resize:vertical; font:inherit;}
 
+/* ---- remake card: anything with a number behind it opens ---- */
+.rk-click{cursor:pointer; border-radius:8px; transition:background .12s ease;}
+.rk-click:hover{background:var(--accent-soft);}
+.rk-click:active{transform:scale(.99);}
+.rk-stat.rk-click:hover .v{color:var(--accent);}
+.rk-row.rk-click .n{color:var(--ink2); font-variant-numeric:tabular-nums;}
+
 /* ---- workflow builder ---- */
 .btn.ghost{background:transparent; border-color:var(--grid); color:var(--ink2);}
 .wf-track{background:var(--surface); border:1px solid var(--grid); border-radius:14px; padding:10px 12px; margin:0 2px 12px;}
@@ -822,7 +829,34 @@ const WF_COLORS = {tryin:'#2a78d6', proto:'#eb6834', final:'#1baf7a', flange:'#e
 const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const me = () => tech(state.userId);
 const isLead = () => state.role==='lead' || state.role==='owner';
-const canApprove = () => (state.role==='lead'||state.role==='owner') && (state.userId==='t5' || state.userId==='t0');   // Josh (Design Lead) + Kent (Owner) — a tech signed in at Josh's bench does NOT inherit this
+/* ---- approval kinds ----
+   Three genuinely different gates, not three labels for the same thing:
+     'doctor'  the case stops until the DOCTOR replies; a lead or front desk records it
+     'design'  waits on the design lead (Josh). Kent can also clear it as backup
+     'final'   waits on the owner (Kent). Nobody else can clear it
+   A step with no approvalKind is treated as a doctor approval, which is what the
+   original two seeded approval steps are. */
+const APPROVER_DESIGN = 't5';   // Josh T.
+const APPROVER_OWNER  = 't0';   // Kent H.
+function apprKind(def){ return def && def.approval ? (def.approvalKind || 'doctor') : null; }
+function apprWaitingOn(c, def){                       // display name of whoever it sits with
+  const k = apprKind(def);
+  if(k==='design') return tech(APPROVER_DESIGN).name;
+  if(k==='final')  return tech(APPROVER_OWNER).name;
+  return c ? c.doctor : 'the doctor';
+}
+function apprVerb(def){                               // what the button should say
+  const k = apprKind(def);
+  return k==='doctor' ? '✓ Record doctor approval' : '✓ Approve';
+}
+function canApproveStep(def){
+  const k = apprKind(def);
+  if(k==='final')  return state.userId===APPROVER_OWNER;
+  if(k==='design') return state.userId===APPROVER_DESIGN || state.userId===APPROVER_OWNER;
+  // doctor approvals are RECORDED by whoever is holding the case, not granted by them
+  return isLead() || state.role==='frontdesk';
+}
+const canApprove = () => (state.role==='lead'||state.role==='owner') && (state.userId===APPROVER_DESIGN || state.userId===APPROVER_OWNER);
 const getCase = id => CASES.find(c=>c.id===id);
 const wfOf = c => WORKFLOWS[c.wf];
 const stepDefs = (c,track) => track==='ng' ? wfOf(c).ng : wfOf(c).main;
@@ -970,6 +1004,10 @@ function moveBack(c, targetIdx, group, code, rtype, person){
   const entry = {when:now(), by:me().name, from:fromName, to:defs[targetIdx].n, group, code, rtype:rtype||'Internal remake', person:person||'—'};
   c.moveLog.push(entry);
   logEvt(c, `Moved back (${entry.rtype}): ${fromName} → ${defs[targetIdx].n}. Reason: ${group} — ${code}${entry.person!=='—' ? ' · responsible: '+entry.person : ''}`, 'moveback');
+}
+function stepHoursByName(c, name){
+  const d = (wfOf(c).main||[]).find(x=>x.n===name) || ((wfOf(c).ng||[]).find(x=>x.n===name));
+  return d ? d.h : 0;
 }
 function allMoves(weekOnly){
   const cutoff = Date.now() - 7*86400e3;
@@ -1251,7 +1289,8 @@ function priorityReport(){
     if(c.rush){ score+=30; why.push('rush'); }
     if(isStalled(c)){ score+=25; why.push('stalled'); }
     if(currentSteps(c).some(s=>stepLate(c, s.track, s.idx))){ score+=20; why.push('step behind schedule'); }
-    if(currentSteps(c).some(s=>s.def.approval)){ score+=10; why.push('waiting on doctor'); }
+    const apprHere = currentSteps(c).find(s=>s.def.approval);
+    if(apprHere){ score+=10; why.push('waiting on '+apprWaitingOn(c, apprHere.def)); }
     else if(currentSteps(c).some(s=>!s.st.assignee && !s.blocked)){ score+=10; why.push('unassigned'); }
     if(currentSteps(c).some(s=>s.blocked)){ why.push('QC gated on NG'); }
     if(c.hold){ why.push('⏸ on hold'); }
@@ -1298,7 +1337,7 @@ function caseBadges(c){
 function currentLabel(c){
   const cs = currentSteps(c);
   if(!cs.length) return 'Complete';
-  return cs.map(s=>`${s.def.n}${s.blocked?' (gated)':''}${s.def.approval?' · ⏳ waiting on doctor':''}${s.def.d!==s.def.n?' · '+s.def.d:''}${s.def.approval?'':(s.st.assignee?' · '+tech(s.st.assignee).name:' · unassigned')}`).join('  +  ');
+  return cs.map(s=>`${s.def.n}${s.blocked?' (gated)':''}${s.def.approval?' · ⏳ waiting on '+apprWaitingOn(c,s.def):''}${s.def.d!==s.def.n?' · '+s.def.d:''}${s.def.approval?'':(s.st.assignee?' · '+tech(s.st.assignee).name:' · unassigned')}`).join('  +  ');
 }
 function caseRow(c){
   return `<div class="case-row" onclick="openCase('${c.id}')">
@@ -1477,9 +1516,11 @@ function remakesCard(){
     moves.forEach(m=>{ const k=key(m); t[k]=(t[k]||0)+1; });
     return Object.entries(t).sort((a,b)=>b[1]-a[1]).slice(0,5);
   };
-  const bars = rows => {
+  const bars = (rows, field) => {
     const max=Math.max(1,...rows.map(r=>r[1]));
-    return rows.map(([k,n])=>`<div class="rk-row"><div class="lbl">${esc(k)}</div><div class="bar"><i style="width:${n/max*100}%"></i></div><div class="n">${n}</div></div>`).join('') || '<div class="empty">Nothing logged.</div>';
+    return rows.map(([k,n])=>`<div class="rk-row rk-click" onclick="rkOpen('${field}','${esc(String(k)).replace(/'/g,"\\'")}')" title="See these ${n}">
+      <div class="lbl">${esc(k)}</div><div class="bar"><i style="width:${n/max*100}%"></i></div><div class="n">${n} ›</div></div>`).join('')
+      || '<div class="empty">Nothing logged.</div>';
   };
   return `<div class="card">
     <h3>Remakes &amp; revisions <span class="subtle" style="text-transform:none; font-weight:400;">— replaces the Google Form tracker</span></h3>
@@ -1488,17 +1529,51 @@ function remakesCard(){
       <button class="${!state.rkWeek?'on':''}" onclick="state.rkWeek=false; render();">All time</button>
     </div>
     <div class="rk-stats">
-      <div class="rk-stat"><div class="v">${count('Internal remake')}</div><div class="k">Internal</div></div>
-      <div class="rk-stat"><div class="v">${count('External remake')}</div><div class="k">External</div></div>
-      <div class="rk-stat"><div class="v">${count('Revision')}</div><div class="k">Revisions</div></div>
+      <div class="rk-stat rk-click" onclick="rkOpen('rtype','Internal remake')"><div class="v">${count('Internal remake')}</div><div class="k">Internal</div></div>
+      <div class="rk-stat rk-click" onclick="rkOpen('rtype','External remake')"><div class="v">${count('External remake')}</div><div class="k">External</div></div>
+      <div class="rk-stat rk-click" onclick="rkOpen('rtype','Revision')"><div class="v">${count('Revision')}</div><div class="k">Revisions</div></div>
     </div>
     <div class="track-title">By reason</div>
-    ${bars(tally(m=>m.code))}
+    ${bars(tally(m=>m.code), 'code')}
     <div class="track-title" style="margin-top:10px;">By responsible person</div>
-    ${bars(tally(m=>m.person||'—'))}
-    ${moves.length? `<div class="track-title" style="margin-top:10px;">Latest</div>${moves.slice(0,3).map(m=>`<div class="evt warn">↩ <b>${m.c.id}</b> ${esc(m.from)} → ${esc(m.to)} · ${esc(m.group)} — ${esc(m.code)} · ${esc(m.rtype)} <span class="t">· ${esc(m.by)} ${fmtWhen(new Date(m.when))}</span></div>`).join('')}`:''}
-    <div class="subtle" style="margin-top:6px;">Same 21 reason codes and slices (reason, person, week) as the Sheets dashboard, captured automatically on every move-back.</div>
+    ${bars(tally(m=>m.person||'—'), 'person')}
+    ${moves.length? `<div class="track-title" style="margin-top:10px;">Latest</div>${moves.slice(0,3).map(m=>`<div class="evt warn rk-click" onclick="openCase('${m.c.id}')">↩ <b>${m.c.id}</b> ${esc(m.from)} → ${esc(m.to)} · ${esc(m.group)} — ${esc(m.code)} · ${esc(m.rtype)} <span class="t">· ${esc(m.by)} ${fmtWhen(new Date(m.when))}</span></div>`).join('')}`:''}
+    <div class="btnrow" style="margin:8px 0 0;">
+      <button class="btn" onclick="rkOpen('all','')">View all ${moves.length} ${state.rkWeek?'this week':'logged'} ›</button>
+      ${moves.length? `<button class="btn" onclick="rkExport()">⭳ Export CSV</button>`:''}
+    </div>
+    <div class="subtle" style="margin-top:6px;">Same 21 reason codes and slices (reason, person, week) as the Sheets dashboard, captured automatically on every move-back. Tap any number to see the cases behind it.</div>
   </div>`;
+}
+
+/* ---- remake drill-in ----
+   Every number on the card has cases behind it. A count you cannot open is a
+   number you have to take on trust, which is the problem with the Sheets version. */
+function rkOpen(field, value){ openModal({type:'remakes', field, value}); }
+function rkMatches(field, value){
+  const moves = allMoves(state.rkWeek);
+  if(field==='all') return moves;
+  if(field==='rtype')  return moves.filter(m=>m.rtype===value);
+  if(field==='code')   return moves.filter(m=>m.code===value);
+  if(field==='person') return moves.filter(m=>(m.person||'—')===value);
+  return moves;
+}
+function rkTitle(field, value){
+  if(field==='all')    return 'All move-backs';
+  if(field==='rtype')  return value;
+  if(field==='code')   return 'Reason: '+value;
+  if(field==='person') return value==='—' ? 'Nobody named responsible' : 'Responsible: '+value;
+  return 'Move-backs';
+}
+function rkExport(){
+  const rows = [['Case','Patient','Doctor','Workflow','From step','To step','Group','Reason','Type','Responsible','Logged by','When']];
+  allMoves(state.rkWeek).forEach(m=>rows.push([m.c.id, m.c.patient, m.c.doctor, wfOf(m.c).name,
+    m.from, m.to, m.group, m.code, m.rtype, m.person||'', m.by, new Date(m.when).toISOString()]));
+  const csv = rows.map(r=>r.map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`renew-remakes-${state.rkWeek?'this-week':'all-time'}.csv`;
+  a.click();
 }
 
 /* ===================== board: assign + kanban ===================== */
@@ -1678,9 +1753,9 @@ function vKanban(){
                  draggable="${isLead()}"
                  ondragstart="kbDragStart('${k.c.id}','${k.track}',${k.idx})"
                  onclick="openModal({type:'kbcard', cid:'${k.c.id}', track:'${k.track}', idx:${k.idx}})">
-              <div class="kc-top">${k.c.id} ${k.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${k.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${k.def.approval?'<span class="badge b-flag">⏳ DR</span>':''} ${k.blocked?'<span title="gated">🔒</span>':''}</div>
-              <div class="kc-step">${esc(k.def.n)}${k.def.approval?' · waiting on doctor':''}${dueLabel(k.c, k.track, k.idx, k.st)} · ${esc(k.c.patient)}</div>
-              <div class="kc-bot"><span>${k.def.approval? esc(k.c.doctor) : (k.st.assignee? tech(k.st.assignee).name : 'unassigned')}</span><span>${shipLabel(k.c)}</span></div>
+              <div class="kc-top">${k.c.id} ${k.track==='ng'?'<span class="badge b-ng">NG</span>':''} ${k.c.rush?'<span class="badge b-rush">RUSH</span>':''} ${k.def.approval?`<span class="badge b-flag">⏳ ${apprKind(k.def)==='doctor'?'DR':(apprKind(k.def)==='final'?'OWNER':'DESIGN')}</span>`:''} ${k.blocked?'<span title="gated">🔒</span>':''}</div>
+              <div class="kc-step">${esc(k.def.n)}${k.def.approval?' · waiting on '+apprWaitingOn(k.c,k.def):''}${dueLabel(k.c, k.track, k.idx, k.st)} · ${esc(k.c.patient)}</div>
+              <div class="kc-bot"><span>${k.def.approval? esc(apprWaitingOn(k.c,k.def)) : (k.st.assignee? tech(k.st.assignee).name : 'unassigned')}</span><span>${shipLabel(k.c)}</span></div>
             </div>`).join('') || '<div class="empty" style="padding:6px 0;">—</div>'}
         </div>`).join('')}
       <div class="kb-col" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="this.classList.remove('dragover'); kbDrop('__DONE__');">
@@ -1709,7 +1784,7 @@ function openThread(cid){ state.chatOpen=cid; state.chatRead[cid]=Date.now(); re
 function approveChat(cid){
   const c=getCase(cid);
   const s=apprNeeded(c);
-  if(!s || !canApprove()) return;
+  if(!s || !canApproveStep(s.def)) return;
   logEvt(c, `${s.def.n} — approved by ${me().name}`, 'step');
   completeStep(c, 'main', s.idx, state.userId);
   c.notes.push({who:me().name, when:now(), text:`✅ Approved: ${s.def.n}`});
@@ -1721,7 +1796,7 @@ function apprCard(c){
   if(!s) return '';
   return `<div class="appr-card">
     ⏳ <b>${esc(s.def.n)}</b> needs sign-off · ${esc(c.doctor)}
-    ${canApprove()? `<div class="btnrow"><button class="btn primary" onclick="approveChat('${c.id}')">✓ Approve</button></div>`
+    ${(()=>{const a=apprNeeded(c); return a && canApproveStep(a.def);})()? `<div class="btnrow"><button class="btn primary" onclick="approveChat('${c.id}')">${(()=>{const a=apprNeeded(c);return apprVerb(a.def);})()}</button></div>`
       : `<div class="subtle" style="margin-top:4px;">Waiting on Josh or Kent. ${state.role==='frontdesk'?'(You can record a phoned-in doctor approval from the case page.)':''}</div>`}
   </div>`;
 }
@@ -1834,7 +1909,7 @@ function trackHtml(c, track){
     if(st.assignee) info += ` · ${tech(st.assignee).name}`;
     if(st.status==='in') info += ` · checked in ${fmtWhen(new Date(st.start))}`;
     if(st.status==='done' && st.end) info += ` · done ${fmtWhen(new Date(st.end))}`;
-    if(d.approval) info += active? ' · ⏳ waiting on doctor' : ' · doctor approval';
+    if(d.approval) info += active? ' · ⏳ waiting on '+apprWaitingOn(c,d) : ' · '+(apprKind(d)==='doctor'?'doctor':apprKind(d)==='final'?'owner':'design lead')+' approval';
     const fork = track==='main' && wfOf(c).forkAfter===i && wfOf(c).ng;
     return `<div class="step ${cls}">
       <div class="rail"><div class="dot"></div><div class="line"></div></div>
@@ -1877,7 +1952,10 @@ function vCaseSheet(c){
       ${c.flag? `<div class="assign-hint">⚑ <b>${esc(c.flag.by)}:</b> ${esc(c.flag.text)} ${isLead()?`<a href="#" onclick="clearFlag(event,'${c.id}')">clear</a>`:''}</div>`:''}
       ${(()=>{
         const appr = currentSteps(c).find(s=>s.track==='main' && s.def.approval);
-        if(appr && (isLead()||state.role==='frontdesk')) return `<div class="assign-hint">⏳ <b>${esc(appr.def.n)}</b> is waiting on ${esc(c.doctor)}. <button class="btn primary" style="margin-left:6px;" onclick="recordApproval('${c.id}',${appr.idx})">✓ Record doctor approval</button></div>`;
+        if(appr && (isLead()||state.role==='frontdesk')){
+          const mine = canApproveStep(appr.def);
+          return `<div class="assign-hint">⏳ <b>${esc(appr.def.n)}</b> is waiting on ${esc(apprWaitingOn(c,appr.def))}.${mine? ` <button class="btn primary" style="margin-left:6px;" onclick="recordApproval('${c.id}',${appr.idx})">${apprVerb(appr.def)}</button>`:' <span class="subtle">Only they can clear it.</span>'}</div>`;
+        }
         return '';
       })()}
       <div class="btnrow">
@@ -1934,7 +2012,7 @@ function vBench(){
     stepCard = `<div class="bench-step">
       <div class="big-case">${c.id} · ${esc(c.patient)} · ${wfOf(c).name}</div>
       <div class="big-name" style="font-size:17px;">${headline}</div>
-      ${cs.length? `<div class="assign-hint" style="margin-top:8px; text-align:left;">Current step${cs.length>1?'s':''}: ${cs.map(s=>`<b>${esc(s.def.n)}</b> (${s.def.d}${s.st.assignee?' · '+tech(s.st.assignee).name:''})${s.def.approval?' · ⏳ waiting on doctor':''}${s.blocked?' · gated':''}`).join(' + ')}.<br>${explain}</div>`:''}
+      ${cs.length? `<div class="assign-hint" style="margin-top:8px; text-align:left;">Current step${cs.length>1?'s':''}: ${cs.map(s=>`<b>${esc(s.def.n)}</b> (${s.def.d}${s.st.assignee?' · '+tech(s.st.assignee).name:''})${s.def.approval?' · ⏳ waiting on '+apprWaitingOn(c,s.def):''}${s.blocked?' · gated':''}`).join(' + ')}.<br>${explain}</div>`:''}
       <div class="btnrow" style="margin-top:12px;">
         <button class="btn" onclick="openCase('${c.id}')">Details</button>
         <button class="btn" onclick="openModal({type:'chat', cid:'${c.id}', bench:true})">💬 Chat</button>
@@ -2079,6 +2157,26 @@ function vModal(){
         </div>`).join('') : '<div class="empty">No open steps.</div>'}
       <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
   }
+  if(m.type==='remakes'){
+    const rows = rkMatches(m.field, m.value);
+    const hrs = rows.reduce((a,r)=>a+(stepHoursByName(r.c, r.from)||0),0);
+    body = `<h3>${esc(rkTitle(m.field,m.value))} <span class="subtle" style="font-weight:400;">· ${rows.length} ${state.rkWeek?'this week':'all time'}</span></h3>
+      ${hrs>0? `<div class="assign-hint">Roughly <b>${hrs.toFixed(1)}h</b> of bench work was redone.</div>`:''}
+      ${rows.length? rows.map(r=>`
+        <div class="my-row rk-click" onclick="closeModal(); openCase('${r.c.id}')">
+          <div class="cid">${r.c.id}</div>
+          <div class="cmeta" style="flex:1; min-width:0;">
+            <div class="l1" style="font-size:12.5px;">${esc(r.from)} → ${esc(r.to)} <span class="dept-chip">${esc(r.rtype)}</span></div>
+            <div class="l2">${esc(r.c.patient)} · ${esc(r.group)} — ${esc(r.code)}${r.person&&r.person!=='—'?' · '+esc(r.person):''}</div>
+            <div class="l2">${esc(r.by)} · ${fmtWhen(new Date(r.when))}</div>
+          </div>
+          <span class="linklike">open ›</span>
+        </div>`).join('') : '<div class="empty">Nothing logged for this.</div>'}
+      <div class="btnrow">
+        ${m.field!=='all'? `<button class="btn" onclick="rkOpen('all','')">See all move-backs</button>`:''}
+        <button class="btn" onclick="closeModal()">Close</button>
+      </div>`;
+  }
   if(m.type==='kbcard'){
     const defs = stepDefs(c, m.track);
     const def = defs[m.idx];
@@ -2089,7 +2187,7 @@ function vModal(){
       <div class="subtle" style="margin-bottom:8px;">${esc(c.patient)} · ${wfOf(c).name} · ${st.assignee? 'assigned to '+tech(st.assignee).name : 'unassigned'} · ${shipLabel(c)}</div>
       ${blocked? '<div class="assign-hint">⛔ Gated — night-guard track must finish before this advances.</div>':''}
       <button class="opt-row" onclick="closeModal(); openCase('${c.id}')">📄 Open case</button>
-      ${isLead()? `<button class="opt-row" ${blocked?'disabled':''} onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${def.approval?'✓ Record doctor approval':'✓ Complete step'}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`:''}
+      ${isLead()? `<button class="opt-row" ${blocked?'disabled':''} onclick="kbAdvance('${c.id}','${m.track}',${m.idx})">${def.approval?apprVerb(def):'✓ Complete step'}${next? ' → next: '+esc(next.n)+' ('+next.d+')' : ' → track done'}</button>`:''}
       ${isLead() && !def.approval? `<div style="display:flex; gap:6px; margin:6px 0;"><select id="kb-assign" class="field" style="flex:1;"><option value="">${st.assignee? '⇄ reassign…':'＋ assign…'}</option>${assignOptions(def, st.assignee, followsPrev(def)? prevAssignee(c,m.track,m.idx): null)}</select><button class="btn" onclick="kbAssign('${c.id}','${m.track}',${m.idx})">Assign</button></div>`:''}
       ${isLead() && m.track==='main'? `<button class="opt-row" onclick="openModal({type:'moveback', cid:'${c.id}'})">↩ Move back (reason required)</button>`:''}
       <div class="btnrow"><button class="btn" onclick="closeModal()">Close</button></div>`;
@@ -2426,8 +2524,14 @@ function resolveInbox(cid, kind, ni){
 }
 function recordApproval(cid, idx){
   const c=getCase(cid);
-  if(trackIdx(c,'main')!==idx || !stepDefs(c,'main')[idx].approval) return;
-  logEvt(c, `Doctor approval recorded (${c.doctor}) by ${me().name}`, 'step');
+  const def = stepDefs(c,'main')[idx];
+  if(trackIdx(c,'main')!==idx || !def || !def.approval) return;
+  if(!canApproveStep(def)){
+    state.boardMsg = `${def.n} can only be cleared by ${apprWaitingOn(c,def)}.`; render(); return;
+  }
+  const k = apprKind(def);
+  logEvt(c, k==='doctor' ? `Doctor approval recorded (${c.doctor}) by ${me().name}`
+                         : `${def.n} — approved by ${me().name}`, 'step');
   completeStep(c, 'main', idx, state.userId);
   render();
 }
@@ -2768,7 +2872,7 @@ function render(){
   document.getElementById('app').innerHTML = `
     <header class="app">
       <svg class="logo-molar" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 C18 6 10 14 10 26 C10 34 14 38 16 44 C18 50 18 58 22 58 C26 58 25 48 32 48 C39 48 38 58 42 58 C46 58 46 50 48 44 C50 38 54 34 54 26 C54 14 46 6 32 6 Z" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linejoin="round"/></svg>
-      <div><h1>Renew LMS <span class="sub">v2.6 prototype · real team, sample cases</span></h1></div>
+      <div><h1>Renew LMS <span class="sub">v2.9 prototype · real team, sample cases</span></h1></div>
       <div class="role-pick">
         <select onchange="setRole(this.value)">
           <option value="lead" ${state.role==='lead'&&state.userId==='t1'?'selected':''}>Richard (Finishing Lead)</option>
@@ -3416,7 +3520,88 @@ function wfExport(){
   a.href = URL.createObjectURL(blob);
   a.download = 'renew-workflows.json';
   a.click();
-  state.wfMsg = {bad:false, lines:['Exported renew-workflows.json. This is the seed for the real database.']};
+  state.wfMsg = {bad:false, lines:['Exported renew-workflows.json. This is the seed for the real database, and it is also your save point: use Load a saved file to pick up where you left off.']};
+  render();
+}
+
+/* ---- import: the export is the save file, so it has to load back ----
+   Nothing in this prototype survives a reload. Without this, an interrupted
+   authoring session is lost work and the exported file is a dead end. */
+function wfImportClick(){ document.getElementById('wf-file').click(); }
+function wfImportFile(input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { wfApplyImport(JSON.parse(rd.result)); }
+    catch(e){ state.wfMsg = {bad:true, lines:['That file is not readable as workflow JSON: '+e.message,
+                                              'Pick the renew-workflows.json you exported from this screen.']}; render(); }
+  };
+  rd.onerror = () => { state.wfMsg={bad:true, lines:['Could not read that file.']}; render(); };
+  rd.readAsText(f);
+  input.value = '';   // so picking the same file twice still fires
+}
+function wfApplyImport(raw){
+  if(!raw || typeof raw!=='object' || Array.isArray(raw)) throw new Error('expected an object of workflows');
+  const names = Object.keys(raw);
+  if(!names.length) throw new Error('the file contains no workflows');
+
+  // reverse of wfExport's conv()
+  const back = (s)=>{
+    if(!s || !s.name) throw new Error('a step is missing its name');
+    const o = {n:s.name, d:s.department, h:Number(s.est_hours)||0};
+    if(s.is_approval || s.assignee_rule==='approver'){ o.approval=true; o.approvalKind=s.approval_kind||'doctor'; }
+    else if(s.assignee_rule==='inherit_previous'){ o.rule='prev'; }
+    return o;
+  };
+  // keep existing keys where the name matches, so sample cases already running on
+  // 'tryin' or 'sleeve' keep pointing at the workflow they were created against
+  const keyFor = (name)=>{
+    const hit = Object.entries(WORKFLOWS).find(([,w])=>w.name===name);
+    return hit ? hit[0] : ('wf'+slugTrack(name).slice(0,18));
+  };
+  const built = {};
+  names.forEach(name=>{
+    const w = raw[name];
+    if(!w || !Array.isArray(w.tracks)) throw new Error(`"${name}" has no tracks`);
+    const main = w.tracks.find(t=>t.is_main);
+    if(!main) throw new Error(`"${name}" has no main track`);
+    const o = {name, endState: w.end_state==='in_house'?'inhouse':'ship', main: main.steps.map(back)};
+    const splits = w.tracks.filter(t=>!t.is_main);
+    if(splits.length){
+      o.splits = splits.map((t,i)=>({name:t.name||('split_'+(i+1)), label:t.label||t.name||('Split '+(i+1)),
+        forkAfter:(t.fork_after_position||1)-1, joinAt:(t.join_before_position||1)-1,
+        steps:(t.steps||[]).map(back)}));
+      o.ng = o.splits[0].steps; o.forkAfter = o.splits[0].forkAfter; o.joinAt = o.splits[0].joinAt;
+    }
+    built[keyFor(name)] = o;
+  });
+  // second pass: linked_workflow is stored by NAME, resolve to the key we just assigned
+  names.forEach(name=>{
+    const w = raw[name], k = keyFor(name);
+    if(w.requires_linked_case){
+      built[k].linked = true;
+      if(w.linked_workflow){
+        const t = Object.keys(built).find(x=>built[x].name===w.linked_workflow);
+        if(t) built[k].linkedTo = t;
+      }
+    }
+  });
+
+  // any workflow a live sample case is running on must survive, or those cases break
+  const inUse = [...new Set(CASES.map(c=>c.wf))];
+  const kept = {};
+  inUse.forEach(k=>{ if(!built[k] && WORKFLOWS[k]) kept[k] = WORKFLOWS[k]; });
+  Object.keys(WORKFLOWS).forEach(k=>delete WORKFLOWS[k]);
+  Object.assign(WORKFLOWS, built, kept);   // kept last: a running case never loses its definition
+
+  state.wfDraft = null;
+  const keptNames = Object.values(kept).map(w=>w.name);
+  state.wfMsg = {bad:false, lines:[
+    `Loaded ${names.length} workflow${names.length===1?'':'s'} from that file.`,
+    ...(keptNames.length ? ['Kept the previous definition of '+keptNames.join(', ')+
+        ' because sample cases are still running on it. Your file did not include it.'] : [])
+  ]};
   render();
 }
 
@@ -3446,7 +3631,12 @@ function vWorkflows(){
   <div class="btnrow" style="margin:0 2px 10px;">
     <button class="btn primary" onclick="wfOpen(null)">＋ New workflow</button>
     <button class="btn" onclick="wfExport()">⭳ Export for the database</button>
+    <button class="btn" onclick="wfImportClick()">⭱ Load a saved file</button>
+    <input id="wf-file" type="file" accept="application/json,.json" style="display:none"
+           onchange="wfImportFile(this)">
   </div>
+  <div class="subtle" style="margin:-4px 2px 10px;">Nothing here survives closing the tab. Export whenever you
+    have made progress: that file is your save, and Load a saved file brings it back.</div>
   <div class="tm-grid">${rows}</div>`;
 }
 
