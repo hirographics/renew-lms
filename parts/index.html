@@ -671,7 +671,7 @@ function exoHTML(p){
   return h+'</ul></section>';
 }
 /* ---------- Part helpers ---------- */
-function partName(p){return p.v?TYPE_LABEL[p.type]+': '+p.v:TYPE_LABEL[p.type]}
+function partName(p){var L=TYPE_LABEL[p.type];if(!p.v)return L;return p.v.toLowerCase().indexOf(L.toLowerCase())===0?p.v:L+': '+p.v} /* no "Analog: Analog" */
 function vName(p){return p.v||TYPE_LABEL[p.type]}
 var ICONS={
  analog:'<rect x="12" y="7" width="24" height="7" rx="1.5"/><path d="M15 14v24a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V14"/><path d="M15 22h18M15 28h18"/><path d="M21 7V4h6v3"/>',
@@ -1477,7 +1477,7 @@ function viewsHTML(p){
 function onOrder(pid){var q=0;S.lines.forEach(function(l){if(l.status==='ordered'&&l.partId===pid)q+=l.qty});return q}
 function onOrderPill(p){var q=onOrder(p.id);return q?' <span class="pill p-acc">'+q+' on order</span>':''}
 function ctx(p){if(isFam(p))return 'DESS, fits the multi-unit RP top (Nobel, 3i Low Profile, and others)';var s=sysById(p.sys),bn=brandById(p.brand).name.replace(/ \(.*\)$/,''),sn=s.name.replace(/ \(.*\)$/,''),fit=(sn.toLowerCase().indexOf(bn.split(' ')[0].toLowerCase())===0?sn:bn+' '+sn)+', '+p.plat+(p.level==='mua'?' (multi-unit level)':'');return p.maker!==p.brand?brandById(p.maker).name+', fits '+fit:fit}
-function pnLabel(p){return (p.real?'Part # ':(/^SMP-/.test(p.pn)?'Sample # ':'Part: '))+p.pn}
+function pnLabel(p){if(/^not /i.test(p.pn||''))return 'No part number yet ('+p.pn.charAt(0).toLowerCase()+p.pn.slice(1)+')';return (p.real?'Part # ':(/^SMP-/.test(p.pn)?'Sample # ':'Part: '))+p.pn}
 function makerChip(p){return p.maker==='dess'?'<span class="pill p-dess">DESS</span>':'<span class="pill p-none">'+esc(brandById(p.maker).name.replace(/ \(.*\)$/,''))+'</span>'}
 function status(p){
   if(!p.stocked)return{k:'none',t:'Not stocked'};
@@ -1729,7 +1729,10 @@ function stockFiltered(){
     if(UI.stockStatus==='out'&&st!=='out')return false;
     if(UI.stockStatus==='ask'&&!(p.stocked&&isAsk(p)))return false;
     if(UI.stockStatus==='none'&&p.stocked)return false;
-    if(q){var hay=(partName(p)+' '+ctx(p)+' '+p.pn+' '+(p.bin||'')+' '+locText(p)+' '+exoFor(p).map(function(e){return e.n}).join(' ')).toLowerCase();if(hay.indexOf(q)<0)return false}
+    if(q){var hay=(partName(p)+' '+ctx(p)+' '+p.pn+' '+(p.bin||'')+' '+locText(p)+' '+exoFor(p).map(function(e){return e.n}).join(' ')).toLowerCase();
+      /* part numbers match with or without dots, spaces, dashes or slashes: 15007, 15.007, dess15.007 */
+      var qz=q.replace(/[\s.\-\/]/g,''),pz=String(p.pn||'').toLowerCase().replace(/[\s.\-\/]/g,'');
+      if(hay.indexOf(q)<0&&!(qz.length>=3&&pz.indexOf(qz)>=0))return false}
     return true;
   }).sort(function(a,b){
     function key(p){if(p.loc==='bin'){var m=p.bin.match(/([A-Z])(\d+)/);return '0'+m[1]+pad(+m[2])}return (p.stocked?(p.loc==='maya'?'1':'2'):'3')+p.brand+p.sys+p.plat+p.k}
@@ -1737,7 +1740,7 @@ function stockFiltered(){
   });
 }
 function stockRow(p){
-  return '<div class="li click" data-act="open" data-v="'+p.id+'"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div></div><div class="rt">'+(p.stocked?'<span><span class="num">'+p.onHand+'</span> <span class="small muted">min '+p.min+'</span></span>':'')+'<span>'+pill(p)+onOrderPill(p)+'</span></div></div>';
+  return '<div class="li click" data-act="open" data-v="'+p.id+'"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb"><b>'+esc(pnLabel(p))+'</b></div></div><div class="rt">'+(p.stocked?'<span><span class="num">'+p.onHand+'</span> <span class="small muted">min '+p.min+'</span></span>':'')+'<span>'+pill(p)+onOrderPill(p)+'</span></div></div>';
 }
 function stockListHTML(){
   var rows=stockFiltered();
@@ -2623,20 +2626,26 @@ var STK_SUPER={'sc-bdg':1,'sc-fa':1,'sc-mist':1,'sc-pb':1,'sc-rosen':1,'sc-vorte
 /* DESS multi-unit catalog: the screw comes from the top's drive. Uni Grip 19.006, hex 1.20 19.055, hex 1.27 19.110, ANGLEBase 19.306 */
 function stkTopScrewK(top){if(!top||top.maker!=='dess')return null;var pn=top.pn||'';
   if(/DESS 3[67]\./.test(pn))return 'sc-pa';if(/H120/.test(pn))return 'sc-h048';if(/H127/.test(pn))return 'sc-h050';if(/H122/.test(pn))return 'sc-h122';return 'sc-p'}
+/* "DESS only" switch on the pick screen */
+function stkIsD(p){return p.maker==='dess'&&/^DESS /.test(p.pn||'')} /* real DESS part numbers only, no samples */
+function stkHasD(sys,plat){return S.parts.some(function(p){return stkIsD(p)&&p.sys===sys&&(!plat||p.plat===plat)})}
 function stkCands(layer){
   var s=stkState(),mua=s.mua&&s.mua!=='skip'?partById(s.mua):null,top=s.top&&s.top!=='direct'?partById(s.top):null,list=[];
   if(layer==='mua'){
     list=S.parts.filter(function(p){return p.sys===s.sys&&p.plat===s.plat&&p.type==='mua'});
+    if(s.dess)list=list.filter(stkIsD);
     list.sort(function(a,b){var da=muaDims(a),db=muaDims(b);return stkRank(a)-stkRank(b)||da[0]-db[0]||da[1]-db[1]});
     return list.map(function(p){return {id:p.id,p:p}}).concat([{id:'skip',label:'No multi-unit',sub:'The next part goes straight onto the implant'}]);
   }
   if(layer==='top'){
     if(mua){var ms=stkMuaSys(mua);if(!ms)return [];
       list=partsFor(ms[0],ms[1]).filter(function(p){return ['tibase','tempcyl','scanbody','healcap','attach'].indexOf(p.type)>=0&&!/P10|-P\d/.test(p.pn)});
+      if(s.dess)list=list.filter(stkIsD);
       list.sort(function(a,b){return stkRank(a)-stkRank(b)||['tibase','tempcyl','scanbody','healcap','attach'].indexOf(a.type)-['tibase','tempcyl','scanbody','healcap','attach'].indexOf(b.type)});
       return list.map(function(p){return {id:p.id,p:p}}).concat([{id:'direct',label:'Direct to multi-unit',sub:'No ti-base. The frame sits on the multi-unit'}]);
     }
     list=S.parts.filter(function(p){return p.sys===s.sys&&p.plat===s.plat&&(p.type==='tibase'||p.type==='scanbody')&&!/P10|-P\d/.test(p.pn)});
+    if(s.dess)list=list.filter(stkIsD);
     list.sort(function(a,b){return stkRank(a)-stkRank(b)||(a.type==='tibase'?0:1)-(b.type==='tibase'?0:1)});
     return list.map(function(p){return {id:p.id,p:p}});
   }
@@ -2657,10 +2666,12 @@ function stkCands(layer){
         list=list.filter(function(p){return p.pn!=='DESS 19.306'}); /* 19.306 is the AngleBase screw only */
         want=fitScrew(DEFAULT_SCREW[s.mode==='proto'?'proto':'final'],m2[0],m2[1]);
       }
+      if(s.dess){list=list.filter(stkIsD);if(list.indexOf(want)<0)want=list.filter(function(p){return p.k==='sc-p'})[0]}
       list.sort(function(a,b){return (b===want)-(a===want)||stkRank(a)-stkRank(b)});
       return list.map(function(p){return {id:p.id,p:p,rec:p===want}});
     }
     list=S.parts.filter(function(p){return p.type==='screw'&&p.sys===s.sys&&p.plat===s.plat});
+    if(s.dess)list=list.filter(stkIsD);
     list.sort(function(a,b){return stkRank(a)-stkRank(b)});
     return list.map(function(p){return {id:p.id,p:p}});
   }
@@ -2885,16 +2896,17 @@ function viewStack(){
   var s=stkState(),h='<header class="vh"><h1>Build the stack</h1><p class="lede">Pick the implant. Then the parts that fit hover above it. Swipe through them and stop on one: it clicks into place. Layer by layer, down to the screw.</p></header>';
   if(s.step==='pick'||!s.sys){
     h+='<div class="card"><div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">';
-    h+='<label class="field">Brand<select id="stk-brand"><option value="">Pick a brand</option>'+BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id&&x.level==='implant'})}).map(function(b){return '<option value="'+b.id+'"'+(s.brand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select></label>';
-    if(s.brand)h+='<label class="field">Implant system<select id="stk-sys"><option value="">Pick a system</option>'+SYSTEMS.filter(function(x){return x.brand===s.brand&&x.level==='implant'}).map(function(x){return '<option value="'+x.id+'"'+(s.sys===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>';
-    if(s.sys)h+='<label class="field">Platform<select id="stk-plat"><option value="">Pick a platform</option>'+sysById(s.sys).plats.map(function(pl){return '<option'+(s.plat===pl?' selected':'')+'>'+esc(pl)+'</option>'}).join('')+'</select></label>';
+    h+='<label class="field">Brand<select id="stk-brand"><option value="">Pick a brand</option>'+BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id&&x.level==='implant'&&(!s.dess||stkHasD(x.id))})}).map(function(b){return '<option value="'+b.id+'"'+(s.brand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select></label>';
+    if(s.brand)h+='<label class="field">Implant system<select id="stk-sys"><option value="">Pick a system</option>'+SYSTEMS.filter(function(x){return x.brand===s.brand&&x.level==='implant'&&(!s.dess||stkHasD(x.id))}).map(function(x){return '<option value="'+x.id+'"'+(s.sys===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>';
+    if(s.sys)h+='<label class="field">Platform<select id="stk-plat"><option value="">Pick a platform</option>'+sysById(s.sys).plats.filter(function(pl){return !s.dess||stkHasD(s.sys,pl)}).map(function(pl){return '<option'+(s.plat===pl?' selected':'')+'>'+esc(pl)+'</option>'}).join('')+'</select></label>';
     h+='<div class="field">Case<span class="seg">'+['final','proto'].map(function(m){return '<button data-act="stk-mode" data-v="'+m+'"'+(s.mode===m?' aria-pressed="true"':'')+'>'+(m==='final'?'Final':'Prototype')+'</button>'}).join('')+'</span></div>';
+    h+='<div class="field">Parts<span class="seg"><button data-act="stk-dess" data-v="0" aria-pressed="'+!s.dess+'">All makers</button><button data-act="stk-dess" data-v="1" aria-pressed="'+!!s.dess+'">DESS only</button></span></div>';
     h+='<button class="btn" data-act="stk-start"'+(s.sys&&s.plat?'':' disabled')+'>Show the implant</button></div></div>';
     return h;
   }
   var sy=sysById(s.sys),chips='<div class="stk-chips"><button class="chip" data-act="stk-back" data-v="pick">'+esc(brandById(sy.brand).name.replace(/ \(.*\)$/,''))+' '+esc(sy.name.replace(/ \(.*\)$/,''))+', '+esc(s.plat)+'</button>';
   STK_LAYERS.forEach(function(L){var v=s[L[0]],lab=v==='skip'?'No multi-unit':(v==='direct'?'Direct':(v?vName(partById(v)):''));if(v)chips+='<span class="sep">›</span><button class="chip" data-act="stk-back" data-v="'+L[0]+'">'+esc(L[1])+': '+esc(lab)+'</button>'});
-  chips+='<span class="pill p-none" style="margin-left:auto">'+(s.mode==='proto'?'Prototype':'Final')+'</span></div>';
+  chips+='<span class="pill p-none" style="margin-left:auto">'+(s.mode==='proto'?'Prototype':'Final')+(s.dess?' · DESS only':'')+'</span></div>';
   h+=chips;
   var layer=STK_LAYERS.filter(function(L){return L[0]===s.step})[0];
   h+='<div class="stk-wrap"><div id="stk-stage" class="stk-stage"><div id="stk-dwell" class="stk-dwell" hidden><span>Placing…</span></div>';
@@ -2955,6 +2967,7 @@ var A={
     var p=partById(F.partId),r=doPull(p,F.qty,F.patient);save();
     F.done=['Patient '+F.patient+': '+partName(p)+'. '+r.msg];F.step='done';render();toast(r.msg);
   },
+  'stk-dess':function(v){var s=stkState();s.dess=v==='1';if(s.dess&&s.sys&&!stkHasD(s.sys)){s.sys=null;s.plat=null}if(s.dess&&s.brand&&!SYSTEMS.some(function(x){return x.brand===s.brand&&x.level==='implant'&&stkHasD(x.id)})){s.brand=null;s.sys=null;s.plat=null}if(s.dess&&s.sys&&s.plat&&!stkHasD(s.sys,s.plat))s.plat=null;STK&&(STK.built='');save();render()},
   'stk-mode':function(v){stkState().mode=v;STK&&(STK.built='');save();render()},
   'stk-start':function(){var s=stkState();if(!s.sys||!s.plat)return;s.step='mua';s.mua=s.top=s.screw=null;save();render()},
   'stk-back':function(v){var s=stkState();if(v==='pick'){s.step='pick'}else if(v==='mua'){s.mua=s.top=s.screw=null;s.step='mua'}else if(v==='top'){s.top=s.screw=null;s.step='top'}else if(v==='screw'){s.screw=null;s.step='screw'}save();render()},
