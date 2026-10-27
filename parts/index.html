@@ -192,6 +192,7 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 .view{margin:0;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 10px 12px;text-align:center}
 .view figcaption{font-weight:700;font-size:14px;text-align:left}
 .view svg{width:100%;max-width:170px;height:auto;display:block;margin:4px auto 0}
+.view-img{width:100%;max-width:170px;height:auto;display:block;margin:4px auto 0;background:#fff;border-radius:8px}
 .view p{margin:6px 0 0;font-size:13px;line-height:1.3;color:var(--muted)}
 .keys{margin:14px 0 0;padding-left:20px}
 .keys li{margin:4px 0}
@@ -301,7 +302,7 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 <script>
 (function(){
 'use strict';
-var STORE='renew-parts-demo-v14';
+var STORE='renew-parts-demo-v15';
 var ORDER_DAY=3; // Wednesday
 var TODAY=new Date(); TODAY.setHours(12,0,0,0);
 
@@ -495,6 +496,8 @@ function buildSeed(){
     idx++;var p={id:'p'+idx,brand:sysById(sid).brand,maker:'dess',sys:sid,plat:pl,k:k,type:tp,level:lv,stocked:false,loc:null,bin:null,onHand:0,min:0,cost:Math.round((CC[tp]||10)*(row[8]?1.4:1)*(row[9]>1?8:1))};
     for(var y in o)p[y]=o[y];parts.push(p);
   });
+  // DESS intraoral scan bodies. Numbers checked against the DESS Quick Reference Guide and DESS's own exocad libraries (Oct 27 2026).
+  Object.keys(DESS_SB).forEach(function(key){var a=key.split('|'),n=DESS_SB[key];parts.forEach(function(p){if(p.type==='scanbody'&&p.maker==='dess'&&p.sys===a[0]&&p.plat===a[1]){p.pn='DESS '+n;p.v='Intraoral';p.real=true;if(DESS_SB_NOFILE.indexOf(n)<0)p.sbHead='io'}})});
   // stock the real DESS parts that match the lab's stock rules
   function realFor(sid,pl,rk){
     var c=parts.filter(function(p){return p.sys===sid&&p.plat===pl&&p.real&&p.maker==='dess'});
@@ -681,6 +684,10 @@ function driverHTML(p,compact){
   var src=p.maker==='dess'?'from the DESS screw list':(p.maker==='badger'?'Renew bench practice':'from the brand catalog');
   return '<span class="drv">'+icon('screw',18,'ic-in')+what+': <b>'+esc(DRV[d].t)+'</b>'+(compact?'':' <span class="muted small">('+src+')</span>')+'</span>';
 }
+/* ---------- Exact pictures drawn by Claude from DESS's open exocad scan-head file (52.041_Intraoral.stl). Same head on every DESS intraoral scan body. ---------- */
+var DESS_SB={"astra-os|NP":"52.023","astra-os|RP":"52.024","astra-os|WP":"52.025","bh-ti|3.0":"52.099","bh-ti|3.5":"52.087","bh-ti|4.5":"52.088","bh-ti|5.7":"52.089","neo-gm|GM":"52.035","nobel-cc|3.0":"52.068","nobel-cc|NP":"52.041","nobel-cc|RP":"52.042","nobel-cc|WP":"52.069","nobel-tcc|NP":"52.004","nobel-tcc|RP":"52.005","nobel-tcc|WP":"52.006","nobel-tcc|6.0":"52.097","nobel-mua|Regular":"52.007","nobel-mua|Wide":"52.047","str-blt|NC":"52.043","str-blt|RC":"52.044","str-tl|NNC":"52.070","str-tl|RN":"52.009","str-tl|WN":"52.045","zv-certain|3.4":"52.014","zv-certain|4.1":"52.015","zv-certain|5.0":"52.016","zv-tsv|3.5":"52.017","zv-tsv|4.5":"52.018","zv-tsv|5.7":"52.019"};
+var DESS_SB_NOFILE=["52.099"];
+var SB_IO={"side":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////Z2dnl5eWLi4vGxsapqam4uLhaWlqXl5d3d3f29vZmZmYeHh4eHh4eHh4eHh5KSkoeHh4eHh4eHh4eHh4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8NgsVAAAAMHRSTlMA///////////////9Dc8u/22wk1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAmQXg6AAADKElEQVR42u3di46qMBRAUaCltkXx+f/fetsiWlFAMjO5B7J3nIRJzMQ19QlHLQoiIiIiIiIiIiIiIiIay5e6XJbOMl21qUTajNFJV2X5dMp6hSVOyFqrlHOuaXYn5yXi6qi7L171XtnDdIKZh6yOMhVlzS62Rtxw1fTT1uEcOHDgwIEDBw4cOHDgwIEDBw4cOHDgwIEDBw4cOHDgwIEDBw7c/8aZreJMhrPgVoHTLzjb4+42mbh+9muElq3cYPGiLd7s4uq5Zidxss3fabOu3Ge6wa/U/Y6lcZVE3MiyjU8kmgfsWbx6CtR9tE2NW36ypbUTqPtgm54lHcGJ1L3Z5gZlx3BKydMNcPNTwOM4eboX2zcjzhM464TpMtt389sTuKCT9YiwkDaNC4/qonQLaTM4YbqlthlcfEZWicItes/EDE6SzpcLbbO4mBCd13+BE6L7m5VTttouLpzFb3fllAMHDhw4cODAgQMHjifOK3lBF1+sVpt9sWpVXVa/ipOzE8Ur55SpNrqDSLlw12Z19Xu79uTsuEy48GO+vm6uaKdsxLl0qfQvHCsQdigk3uZcd8G+vGOZPBAi6yBWhvuSN3UIS9hQg3cZTn1z0xvFWbUTNrCRcJnOzvJGcOGe5CTtwGqHc/nFrMtJ32ecdTtxtk+4wNOjzzirUr/jrFWNQFvANZ94qjbv6xfA2sSBGmUHV8hmJ9F2xz0upu0Lv9Rm8HFnuo7DJqHsXxHOmCbbJNrCQ0FQhEzf64exaf2ciqqf8Hy0phvaO5WFvLk9n1xJM/8RdINhy25siGFS6TjNGPBmcIzegxOE4+0u4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCB+zGu1/VfVNDIxc3oXmT5V4T0tO7NxjJxnWsg8t4ven+nVVYibrpb27bXYqPdzsV2O9/uG/tre76052xj/V2v7eWYcMdDPGUbG8Cdi9sl4Q7plG2sv+Oh6FZp/3Zaf5dbcbxsFXds+9vcBnEkt/1+fX8ZHDhwYnF/FziuluDAbQdHREQkt38aM7i0MKoohgAAAABJRU5ErkJggg==","angled":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////ExMS5ubl6enqpqalZWVmYmJhlZWWHh4fo6Oj09PTW1tZISEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAb1a89AAAAMHRSTlMA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5apAlAAAEqklEQVR42u3d3ZKkIAwFYBNQBPr9n3cBf1ptbdGmdoN7ztzMVO3FfhW0HQmZpkEQBEEQBEEQBEEQBEEQBPl/4pwN8cuEn52r3hVRdJSArJXo3BfXWlgbzebAZmBNPndFNqQW3g3aUL7H0kLYS6+epR/Csovn6aewf65NtO5nG5GWqnNUINo+tnABp59bOKJe5AeCLYQTedV5XwZHz8WxEomjIjptROKY7O867l4ycdr+fk/RSiiuI/tr7bRqpeL0jzoONrm4oHP3edwFm1wcc/iN8y5Pd6aVjIs6uscLZUs22bjAs+6qj7vetMZUgIvVS75MIOtAi6micvEr+Ebg0YNLerFOHIqmlKkGF3jz2+QIdMNuwXq7IJljzQKtShzxWCG7yMAKLt11gdarvlLcIFwl/BOdXEEWbZXjlj49pRt4j8IxcMABBxxwwAEHHHDAAQcccMABB9zfxMnrZ7BdIZyR12ZjWZfBta24LX/PVAoXvmFptnI4ZV6dHJpLGx/FcPHCU1aSjTyVuuYk3VaGuoXwZCuAa1+9KJv1BSsnA+emfcS4O/U7zihBuNE21e43nGlNL6hybv1/n769hwt16/qXHNzH3iLt2fJwoWxaGzk4y5+Zdosv4hJNd4JuKHs45tijcA1njOrSfvK8KsXi2G9bbI5w84b/JG3FVy41gI0+PsDpuXKpVWOMqQHHNHafpGaTVTPDsm7heU0vbUpVgRt1E3FTvPG+Ex7Y1rRKKjeszGXsJvETf0OrB8e2cYe++DRDnVLV4tgeVy4+ZCv1HdeJxvGXZUm9OsORbBwd4lipM1zrZONWN5WlTatT3MtIxy0vu8UF16sM3L9/RXSG4x0bHduWOJaPoy3OkVI5uNbKx80L8+xWssX9+0suA8crnNMqDyfhDUoGjha4M9sCJ+CFuqNznZ9xp7bFspRwcDW7dFm2N86I2KLzmaXLss04Ga+bG3eOC3fMeHYiw/bGCdnDylmY8fMgx/bGSTkrnrEwyVOWbcK9jJRd8YyFmc7sXMHJ2Xv0GTi+hhO0KU6lK9cK6tVwhXEv1QiKLYyT1sxQdFkK67KhgjhZq/L0sruIY2G475fdNZwR2NdWCifkoTn7pnINJ3OSzZNx7waiJ+J6/WBc1x3o0mCJrN95JPc47+so9SnUXjm9c9nF2TumNbl1E92drj/W4/uNVn2/zG1wY8PCuLXfq2WX4Vde7PyqYthLQG26J2eeObTVMuyFBl+7nx2fMe9u0hpOhHD6bDMHwij5xFV13CVef2lUzc4iNStfpWd5xlvM1OgVqf0mDzmoNHe1LRrbHnQKa93ahvNzwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHBPwdGTcbbQBG7XiFyXJSZwS5oJvypdCZzAP8Ww0d3FGRnDh77r7k/glmubD1TfrVxvG8lxfmcAd+4Ebm6kxxLfm8CtbVNB7KUJ3MNBJlUHLS3Oje/rBG5lek2uqSlpAvd0b9mfwD38ye1O+7pkb+D3CdzM3jYVZxgy7pfFC19h0XrvXPOQrOYeNwiCIAiCIAiCIAiCIDXmD5o0tXYpKvQAAAAAAElFTkSuQmCC","top":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////a2tr09PSGhobo6Oinp6e2trZ5eXmXl5fHx8doaGhbW1sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADqqTUaAAAAMHRSTlMA//////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC54CzRAAAC8UlEQVR42u3b646bMBBAYXwbxs77v2+NSUjYXpIFrzSm51Ol/t2jMTgOZJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPhv+M3gf/6L6OOOq3LOy38uDt72JW0rzE0cfHAvA3va+uLAcX8Kewa6LOJGjftH2b2v5rkx42K9l7i3RPx4cZ+lLbdOiaPFfdzm4hB1+93Nu88NcOHtd27nLlV3vG2AuhNty01zjLgjbc4lGSHuWJtzanrD2z6WuGM0eeNxdX872ObE8uxOLcp22Wkyu523TyXxeJvLqmp1S2iHAO9OEE1W684Oro0uabY7OefOjk7lonE51MvOZN35tnrDbHUGN7wecevoVP0V45y2uqDRXtzptvu6rHXGtoToOsTJfV1qcNebXA73umCrrkvc46JbWNoSeqzKetHNa5mxuj5xMocnMxue/4G4YGXD6xUXgsG6TnF5/lIXLxW3r5uTkYP4T0wuBH+luNli3KWX5U9sBWG+1A1FdpObg5GzT6e4Mm+szK3KrstnyxIeaUaut45x+jI5O201rst57tlm6ciTc+yyEzyYOqx2iUvFZNvkelx04RFn61t17zqM7rEqg7Wv9nKWTquymGvrEZfbqixq7xlkPl/XBleSubTJ17jU4XZisa3FiZweXDH5eG6Jy5JPXnHF5oPVNS6dG5zRthonVZITJzmDW8AuTlI+vChvwe5rKGvc4YWpt9nuG7Nb3LG6dFPLr37JnR6pk5tO0wBxR+qkmG57ift+nRTrL8pubSnp9+6Zqbb5MeJSpfp5XVbrc3vGpUaDfH4+tf+jCf/aVoWPhpdTKSP8IGTfVuvC2ysvp3DTIX7Ks29bXp18k1fTyi1N0yBx6dX6PonKX9PmMkrbNO3T1jhdHtSk30559WgUSjXLIG1T/Br2eM9p+apOUxJpJz6py3VuZWZPb+/q9olr4P0xQFkf4YRZ3TQQ/0Zs/8b+MTwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKf8AvhNKRQVst+YAAAAAElFTkSuQmCC"};
 /* ---------- Three-view drawings (typical shapes, not exact) ---------- */
 /* Connection index shapes. 'sure' = checked against the maker's own description. 'approx' = the general shape is right, the exact profile is not. */
 var CONN={'astra-os':'chex','astra-ev':'onepos','str-tl':'oct','str-blt':'cross','str-blx':'star6','uris-omni':'generic','nobel-cc':'chex','bsb-max':'chex','nobel-tcc':'trilobe','nobel-bm':'exhex','zv-certain':'hex','zv-tsv':'hex','bh-ti':'hex','bh-con':'generic','id-legacy':'hex','id-inter':'chex','neo-gm':'chex','noris-ih':'hex','hio-et':'chex','xive':'hex'};
@@ -850,9 +857,18 @@ function photoHTML(p){
   if(!p.photo)return '';
   return '<section class="views-wrap"><h3>'+(p.photoOk?'Photo of this part':'Photo to confirm')+'</h3><img src="'+p.photo+'" alt="Photo of '+esc(partName(p))+'" style="width:100%;max-width:640px;border-radius:8px;border:1px solid var(--line)">'+(p.photoNote?'<p class="small muted" style="margin:6px 0 0">'+esc(p.photoNote)+'</p>':'')+((UI.role==='lead'||isMaya())&&!p.photoOk?'<p class="small" style="margin:6px 0 0"><button class="btn sm" data-act="photo-ok" data-v="'+p.id+'">This photo is right</button> <button class="link" data-act="photo-no" data-v="'+p.id+'">Wrong part</button></p>':'')+'</section>';
 }
+function sbExactHTML(p,o,v){
+  function im(title,src,label){return '<figure class="view"><figcaption>'+title+' <span class="pill p-acc" style="font-size:11px">Exact</span></figcaption><img class="view-img" src="'+src+'" alt="'+esc(title+': '+label)+'"><p>'+esc(label)+'</p></figure>'}
+  var h='<section class="views-wrap"><h3>How to tell it apart</h3><div class="views">'+im('Side',SB_IO.side,'Scan head, 8.95 mm tall, 4.9 mm across the tab')+im('Top',SB_IO.top,'Round top with one pointed tab')+v('Bottom',bottomView(p),'0 0 120 120',o.bottom+' (sketch)')+'</div>';
+  h+='<ul class="keys"><li>Every DESS intraoral scan body has this same scan head. The top cannot tell two systems apart.</li><li>The connection underneath is what differs. Read the part number on the bag: '+esc(p.pn)+'.</li>'+(p.level==='mua'?'':'<li>Index shape underneath: '+esc(CONN_NAME[connOf(p)]||'')+'.</li>')+'</ul>';
+  h+='<p class="small muted" style="margin:6px 0 0">Side and Top: exact shape, drawn by Claude from DESS\u2019s own exocad file. Bottom: a sketch, because DESS does not publish the connection shape.</p>';
+  if(UI.role==='lead'||isMaya())h+='<p class="small" style="margin:6px 0 0">'+(p.drawFlag?'<span class="pill p-low">Drawing flagged: '+esc(p.drawFlag)+'</span> <button class="link" data-act="draw-unflag" data-v="'+p.id+'">Clear</button>':'<button class="link" data-act="draw-flag" data-v="'+p.id+'">This drawing is wrong</button>')+'</p>';
+  return h+'</section>';
+}
 function viewsHTML(p){
   var o=viewText(p);
   function v(title,inner,vb,label){return '<figure class="view"><figcaption>'+title+'</figcaption><svg viewBox="'+vb+'" role="img" aria-label="'+esc(title+': '+label)+'">'+inner+'</svg><p>'+esc(label)+'</p></figure>'}
+  if(p.sbHead==='io')return sbExactHTML(p,o,v);
   var h='<section class="views-wrap"><h3>How to tell it apart</h3><div class="views">'+v('Side',sideView(p),'0 0 120 140',o.side)+v('Top',topView(p),'0 0 120 120',o.top)+v('Bottom',bottomView(p),'0 0 120 120',o.bottom)+'</div>';
   h+='<ul class="keys">'+o.keys.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
   var sure=p.level!=='mua'&&CONN_SURE[p.sys],cn=CONN_NAME[connOf(p)];
@@ -2153,11 +2169,13 @@ document.addEventListener('input',function(e){
   if(t.id==='pt2'){var v2=t.value.replace(/\D/g,'').slice(0,8);if(v2!==t.value)t.value=v2}
   if(t.id==='stock-q'){UI.stockQ=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
 });
+/* Redraw without losing what the user is typing (a redraw used to drop the cursor out of the implant box). */
+function renderKeepFocus(){var a=document.activeElement,id=a&&a.id,val=a&&a.value,ss=a&&a.selectionStart;if(id==='rx-text')UI.rx.text=val;render();var n=id&&document.getElementById(id);if(n&&n!==a){n.focus();try{n.setSelectionRange(ss,ss)}catch(err){}}}
 document.addEventListener('change',function(e){
   var t=e.target;
   if(t.id==='rx-ex'&&t.value!==''){loadExample(+t.value);return}
   if(t.id==='rx-photo'){UI.rx.photo=t.files&&t.files[0]?t.files[0]:null;render();return}
-  if(t.id==='rx-doc'){UI.rx.doctor=t.value;if(UI.rx.read)setTimeout(render,0);return}
+  if(t.id==='rx-doc'){UI.rx.doctor=t.value;if(UI.rx.read)setTimeout(renderKeepFocus,0);return}
   if(t.id==='stock-brand'){UI.stockBrand=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
   if(t.id==='stock-status'){UI.stockStatus=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
   if(t.id==='rep-range'){UI.repRange=t.value;render()}
