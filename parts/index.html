@@ -711,7 +711,8 @@ function paThread(y0,y1,r,fill,pitch){
   for(var y=y0+0.3;y<y1-0.1;y+=pitch)d+='M'+paX(-r).toFixed(1)+' '+paY(y).toFixed(1)+' L'+paX(r).toFixed(1)+' '+paY(y+pitch*0.6).toFixed(1)+' ';
   return h+'<path d="'+d+'" stroke="rgba(25,28,31,.55)" stroke-width=".8" fill="none"/>';
 }
-function paHole(y,r){return '<ellipse cx="'+PA_W/2+'" cy="'+paY(y).toFixed(1)+'" rx="'+(r*PA_PX).toFixed(1)+'" ry="'+(r*PA_PX*0.28).toFixed(1)+'" fill="#2a2d31"/>'}
+/* A hole drawn the way technical drawings show it: a thin outline of the opening and dashed hidden lines down the channel. d = depth in mm. */
+function paHole(y,r,d){var cx=PA_W/2,yy=paY(y),rx=r*PA_PX,ry=Math.max(1.2,rx*0.28),h='';if(d){var y2=paY(y-d).toFixed(1);h+='<path d="M'+(cx-rx).toFixed(1)+' '+yy.toFixed(1)+' V'+y2+' M'+(cx+rx).toFixed(1)+' '+yy.toFixed(1)+' V'+y2+'" stroke="rgba(30,34,38,.55)" stroke-width=".7" stroke-dasharray="2.2 1.8" fill="none"/>'}return h+'<ellipse cx="'+cx+'" cy="'+yy.toFixed(1)+'" rx="'+rx.toFixed(1)+'" ry="'+ry.toFixed(1)+'" fill="rgba(30,34,38,.10)" stroke="rgba(30,34,38,.6)" stroke-width=".7"/>'}
 function paScale(){var x0=8,y=PA_H-8;return '<g stroke="#868b92" stroke-width="1"><line x1="'+x0+'" x2="'+(x0+5*PA_PX)+'" y1="'+y+'" y2="'+y+'"/><line x1="'+x0+'" x2="'+x0+'" y1="'+(y-3)+'" y2="'+(y+3)+'"/><line x1="'+(x0+5*PA_PX)+'" x2="'+(x0+5*PA_PX)+'" y1="'+(y-3)+'" y2="'+(y+3)+'"/></g><text x="'+(x0+5*PA_PX/2)+'" y="'+(y-4)+'" font-size="8" text-anchor="middle" fill="#868b92">5 mm</text>'}
 function paSvg(inner,cols,label){
   var id='pa'+(++PA_SEQ),defs='',k;cols=cols||['ti'];
@@ -721,7 +722,7 @@ function paSvg(inner,cols,label){
 }
 /* Multi-unit cone top, sitting on a shoulder at height y. 4.8 mm across the shoulder. */
 function paMuaTop(y,fill){
-  return paTurned([[y,2.4],[y+0.35,2.4],[y+0.45,2.15],[y+1.9,1.55],[y+2.05,1.35]],fill)+paHole(y+2.05,0.65);
+  return paTurned([[y,2.4],[y+0.35,2.4],[y+0.45,2.15],[y+1.9,1.55],[y+2.05,1.35]],fill)+paHole(y+2.05,0.65,3.2);
 }
 function paArtMua(ang,gh){
   gh=Math.max(0.5,gh||2);var h='',top=1.2+gh;paFit(-3.6,top+2.6);
@@ -741,7 +742,7 @@ function paArtMua(ang,gh){
 function paArtTibase(chim,col){
   chim=chim||6;var h='',c=col||'tig';paFit(0,0.3+chim);
   h+=paTurned([[0,2.45],[0.3,2.5],[0.32,2.35],[1.0,2.25],[2.0,2.0],[2.4,1.95],[2.45,1.78],[0.3+chim,1.78],[0.3+chim,1.55]],'G:'+c);
-  h+=paHole(0.3+chim,0.9);
+  h+=paHole(0.3+chim,0.9,0.3+chim);
   return paSvg(h,[c],'Ti-base, '+chim+' mm chimney');
 }
 function paArtAnalog(kind){
@@ -758,16 +759,16 @@ function paArtAnalog(kind){
 }
 function paArtScrew(kind,dark){
   var h='',f=dark?'G:dark':'G:ti';paFit(0,4.8);
-  if(kind==='flat'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.3],[3.6,1.3],[3.7,1.1]],f)+paHole(3.7,0.6);return paSvg(h,['ti','dark'],'Flat seat screw')}
-  if(kind==='ball'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.05],[3.2,1.15],[3.8,0.95],[4.1,0.55]],f)+paHole(4.1,0.45);return paSvg(h,['ti','dark'],'Angled access screw, rounded head')}
-  h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[3.2,0.55],[3.25,1.0],[4.7,1.0],[4.8,0.85]],f)+paHole(4.8,0.55);
+  if(kind==='flat'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.3],[3.6,1.3],[3.7,1.1]],f)+paHole(3.7,0.6,0.8);return paSvg(h,['ti','dark'],'Flat seat screw')}
+  if(kind==='ball'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.05],[3.2,1.15],[3.8,0.95],[4.1,0.55]],f)+paHole(4.1,0.45,0.8);return paSvg(h,['ti','dark'],'Angled access screw, rounded head')}
+  h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[3.2,0.55],[3.25,1.0],[4.7,1.0],[4.8,0.85]],f)+paHole(4.8,0.55,0.8);
   return paSvg(h,['ti','dark'],'Prosthetic screw');
 }
-function paArtHealcap(){paFit(0,3.5);var h=paTurned([[0,2.45],[0.3,2.55],[3.2,1.95],[3.5,1.7]],'G:ti')+paHole(3.5,0.8);return paSvg(h,['ti'],'Healing cap')}
+function paArtHealcap(){paFit(0,3.5);var h=paTurned([[0,2.45],[0.3,2.55],[3.2,1.95],[3.5,1.7]],'G:ti')+paHole(3.5,0.8,3.5);return paSvg(h,['ti'],'Healing cap')}
 function paArtTempcyl(){
   paFit(0,10.3);
   var st=[[0,2.45],[0.4,2.5],[0.45,2.0]],y;for(y=1.2;y<9.5;y+=0.9){st.push([y,2.0]);st.push([y+0.15,1.75]);st.push([y+0.45,1.75]);st.push([y+0.6,2.0])}st.push([10.3,2.0]);st.push([10.3,1.5]);
-  return paSvg(paTurned(st,'G:ti')+paHole(10.3,0.9),['ti'],'Temporary cylinder');
+  return paSvg(paTurned(st,'G:ti')+paHole(10.3,0.9,10.3),['ti'],'Temporary cylinder');
 }
 /* Implant-level ti-base: connection below the platform, collar of the given height, then the chimney. */
 function paArtTibaseImp(collar,eng,col,chim){
@@ -790,8 +791,8 @@ function paArtAnalogImp(kind){
 }
 function paArtScrewK(kind,dark){
   var f=dark?'G:dark':'G:ti',h='';
-  if(kind==='abut'){paFit(0,6.4);h+=paThread(0,3.4,0.8,f);h+=paTurned([[3.4,0.65],[5.0,0.65],[5.05,1.05],[6.3,1.05],[6.4,0.9]],f)+paHole(6.4,0.55);return paSvg(h,['ti','dark'],'Abutment screw')}
-  if(kind==='long'){paFit(0,7.4);h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[5.8,0.55],[5.85,1.0],[7.3,1.0],[7.4,0.85]],f)+paHole(7.4,0.55);return paSvg(h,['ti','dark'],'Long prosthetic screw')}
+  if(kind==='abut'){paFit(0,6.4);h+=paThread(0,3.4,0.8,f);h+=paTurned([[3.4,0.65],[5.0,0.65],[5.05,1.05],[6.3,1.05],[6.4,0.9]],f)+paHole(6.4,0.55,0.8);return paSvg(h,['ti','dark'],'Abutment screw')}
+  if(kind==='long'){paFit(0,7.4);h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[5.8,0.55],[5.85,1.0],[7.3,1.0],[7.4,0.85]],f)+paHole(7.4,0.55,0.8);return paSvg(h,['ti','dark'],'Long prosthetic screw')}
   if(kind==='flat'||kind==='ball')return paArtScrew(kind,dark);
   return paArtScrew('pros',dark);
 }
@@ -804,7 +805,7 @@ function paArtScanbody(mu){
   h+=paTurned([[0,2.3],[0.8,2.3]],'G:ti');
   return paSvg(h,['ti','peek'],'Scan body, flat face for the scanner');
 }
-function paArtAttach(){paFit(0,4.2);var h=paTurned([[0,2.3],[1.1,2.3],[1.2,1.4],[2.2,1.4],[2.3,1.95],[3.9,1.95],[4.2,1.7]],'G:gold')+paHole(4.2,1.0);return paSvg(h,['gold'],'Attachment on the multi-unit')}
+function paArtAttach(){paFit(0,4.2);var h=paTurned([[0,2.3],[1.1,2.3],[1.2,1.4],[2.2,1.4],[2.3,1.95],[3.9,1.95],[4.2,1.7]],'G:gold')+paHole(4.2,1.0,1.2);return paSvg(h,['gold'],'Attachment on the multi-unit')}
 function paArtTempcylMua(){return paArtTempcyl()}
 /* Pick the picture for a part. Returns '' when there is no drawing for it. */
 function partArt(p){
@@ -837,12 +838,12 @@ function paDia(D){return '<text x="'+(PA_W-6)+'" y="'+(PA_H-4)+'" font-size="9" 
 /* DESS-style implant analog for printed models: smooth body under the platform, then a neck, a ring, a groove and an end with one flat side. About twice as long as it is wide. */
 function paArtAnalogImp(kind,D){
   D=D||4.0;var r=D/2,h='',L,st;
-  if(kind==='stone'){L=Math.max(8,D*2);paFit(0,L);st=[[0,r*0.85],[0.5,r*1.05]];for(var y=1.2;y<L-1.4;y+=1.6){st.push([y,r*1.15]);st.push([y+0.8,r*0.95])}st.push([L-0.3,r*1.05]);st.push([L,r*0.95]);h+=paTurned(st,'G:ti')+paHole(L,r*0.6);return paSvg(h+paDia(D),['ti'],'Implant analog for stone models, '+D+' mm platform')}
+  if(kind==='stone'){L=Math.max(8,D*2);paFit(0,L);st=[[0,r*0.85],[0.5,r*1.05]];for(var y=1.2;y<L-1.4;y+=1.6){st.push([y,r*1.15]);st.push([y+0.8,r*0.95])}st.push([L-0.3,r*1.05]);st.push([L,r*0.95]);h+=paTurned(st,'G:ti')+paHole(L,r*0.6,0.4*L);return paSvg(h+paDia(D),['ti'],'Implant analog for stone models, '+D+' mm platform')}
   L=Math.max(7.5,D*2.1);paFit(0,L);
   st=[[0,r*0.8],[0.25,r*0.97],[0.19*L,r*0.97],[0.19*L+0.05,r*0.8],[0.24*L,r*0.8],[0.24*L+0.05,r*0.97],[0.30*L,r*0.97],[0.30*L+0.05,r*0.76],[0.41*L,r*0.76],[0.41*L+0.05,r],[L-0.25,r],[L,r*0.9]];
   h+=paTurned(st,'G:ti');
   h+='<rect x="'+paX(r*0.55).toFixed(1)+'" y="'+paY(0.19*L).toFixed(1)+'" width="'+(r*0.42*PA_PX).toFixed(1)+'" height="'+(0.19*L*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.45)" stroke="rgba(40,44,48,.35)" stroke-width=".5"/>';
-  h+=paHole(L,r*0.5);
+  h+=paHole(L,r*0.5,0.45*L);
   return paSvg(h+paDia(D),['ti'],'Digital implant analog, '+D+' mm platform');
 }
 function paArtTibaseImp(collar,eng,col,chim,D){
@@ -851,7 +852,7 @@ function paArtTibaseImp(collar,eng,col,chim,D){
   else h+=paTurned([[-1.2,cr*0.7],[-0.05,cr]],'G:'+c);
   var em=Math.max(r+0.2,2.2);
   h+=paTurned([[-0.05,r*0.8],[0,r*0.85],[collar,em],[collar+0.25,em-0.1],[collar+0.3,1.78],[top,1.78],[top,1.55]],'G:'+c);
-  h+=paHole(top,0.9);
+  h+=paHole(top,0.9,top+1.2);
   return paSvg(h+paDia(D),[c],'Ti-base, '+(eng?'engaging':'non-engaging')+', '+collar+' mm collar, '+D+' mm platform');
 }
 function paArtScanbody(mu,D){
