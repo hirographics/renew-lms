@@ -2617,6 +2617,11 @@ function stkMuaSys(mua){
   return BRAND_MUA[mua.brand]||null;
 }
 function stkRank(p){return (p.maker==='dess'?0:10)+(p.stocked?0:5)}
+/* Screws that seat in a printed or milled frame on the multi-unit, never in a ti-base */
+var STK_SUPER={'sc-bdg':1,'sc-fa':1,'sc-mist':1,'sc-pb':1,'sc-rosen':1,'sc-vortex':1,'sc-sinang':1,'sc-sinprh':1};
+/* DESS multi-unit catalog: the screw comes from the top's drive. Uni Grip 19.006, hex 1.20 19.055, hex 1.27 19.110, ANGLEBase 19.306 */
+function stkTopScrewK(top){if(!top||top.maker!=='dess')return null;var pn=top.pn||'';
+  if(/DESS 3[67]\./.test(pn))return 'sc-pa';if(/H120/.test(pn))return 'sc-h048';if(/H127/.test(pn))return 'sc-h050';if(/H122/.test(pn))return 'sc-h122';return 'sc-p'}
 function stkCands(layer){
   var s=stkState(),mua=s.mua&&s.mua!=='skip'?partById(s.mua):null,top=s.top&&s.top!=='direct'?partById(s.top):null,list=[];
   if(layer==='mua'){
@@ -2639,7 +2644,18 @@ function stkCands(layer){
     if(mua){var m2=stkMuaSys(mua);if(!m2)return [];
       list=S.parts.filter(function(p){return p.type==='screw'&&((p.sys===m2[0]&&p.plat===m2[1])||(RP_TOP[m2[0]]&&p.sys==='nobel-mua'&&p.plat==='Regular'))&&!/P10|-P\d/.test(p.pn)});
       var seen={};list=list.filter(function(p){var k=p.pn;if(seen[k])return false;seen[k]=1;return true});
-      var want=top&&/DESS 3[67]\./.test(top.pn)?S.parts.filter(function(p){return p.pn==='DESS 19.306'})[0]:fitScrew(DEFAULT_SCREW[s.mode==='proto'?'proto':'final'],m2[0],m2[1]);
+      var want;
+      if(top){
+        /* Screws for frames printed or milled straight onto the multi-unit (Badger, Rosen, MIST...) do not go in a ti-base or temp cylinder */
+        list=list.filter(function(p){return !STK_SUPER[p.k]});
+        var dk=(RP_TOP[m2[0]]||m2[0]==='nobel-mua')?stkTopScrewK(top):null;
+        if(dk)list=list.filter(function(p){return p.k===dk&&p.maker==='dess'});
+        else list=list.filter(function(p){return p.pn!=='DESS 19.306'});
+        want=list.filter(function(p){return p.k===(dk||'sc-p')})[0];
+      }else{
+        list=list.filter(function(p){return p.pn!=='DESS 19.306'}); /* 19.306 is the AngleBase screw only */
+        want=fitScrew(DEFAULT_SCREW[s.mode==='proto'?'proto':'final'],m2[0],m2[1]);
+      }
       list.sort(function(a,b){return (b===want)-(a===want)||stkRank(a)-stkRank(b)});
       return list.map(function(p){return {id:p.id,p:p,rec:p===want}});
     }
