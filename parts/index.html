@@ -688,6 +688,148 @@ function driverHTML(p,compact){
 var DESS_SB={"astra-os|NP":"52.023","astra-os|RP":"52.024","astra-os|WP":"52.025","bh-ti|3.0":"52.099","bh-ti|3.5":"52.087","bh-ti|4.5":"52.088","bh-ti|5.7":"52.089","neo-gm|GM":"52.035","nobel-cc|3.0":"52.068","nobel-cc|NP":"52.041","nobel-cc|RP":"52.042","nobel-cc|WP":"52.069","nobel-tcc|NP":"52.004","nobel-tcc|RP":"52.005","nobel-tcc|WP":"52.006","nobel-tcc|6.0":"52.097","nobel-mua|Regular":"52.007","nobel-mua|Wide":"52.047","str-blt|NC":"52.043","str-blt|RC":"52.044","str-tl|NNC":"52.070","str-tl|RN":"52.009","str-tl|WN":"52.045","zv-certain|3.4":"52.014","zv-certain|4.1":"52.015","zv-certain|5.0":"52.016","zv-tsv|3.5":"52.017","zv-tsv|4.5":"52.018","zv-tsv|5.7":"52.019"};
 var DESS_SB_NOFILE=["52.099"];
 var SB_IO={"side":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////Z2dnl5eWLi4vGxsapqam4uLhaWlqXl5d3d3f29vZmZmYeHh4eHh4eHh4eHh5KSkoeHh4eHh4eHh4eHh4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8NgsVAAAAMHRSTlMA///////////////9Dc8u/22wk1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAmQXg6AAADKElEQVR42u3di46qMBRAUaCltkXx+f/fetsiWlFAMjO5B7J3nIRJzMQ19QlHLQoiIiIiIiIiIiIiIiIay5e6XJbOMl21qUTajNFJV2X5dMp6hSVOyFqrlHOuaXYn5yXi6qi7L171XtnDdIKZh6yOMhVlzS62Rtxw1fTT1uEcOHDgwIEDBw4cOHDgwIEDBw4cOHDgwIEDBw4cOHDgwIEDBw7c/8aZreJMhrPgVoHTLzjb4+42mbh+9muElq3cYPGiLd7s4uq5Zidxss3fabOu3Ge6wa/U/Y6lcZVE3MiyjU8kmgfsWbx6CtR9tE2NW36ypbUTqPtgm54lHcGJ1L3Z5gZlx3BKydMNcPNTwOM4eboX2zcjzhM464TpMtt389sTuKCT9YiwkDaNC4/qonQLaTM4YbqlthlcfEZWicItes/EDE6SzpcLbbO4mBCd13+BE6L7m5VTttouLpzFb3fllAMHDhw4cODAgQMHjifOK3lBF1+sVpt9sWpVXVa/ipOzE8Ur55SpNrqDSLlw12Z19Xu79uTsuEy48GO+vm6uaKdsxLl0qfQvHCsQdigk3uZcd8G+vGOZPBAi6yBWhvuSN3UIS9hQg3cZTn1z0xvFWbUTNrCRcJnOzvJGcOGe5CTtwGqHc/nFrMtJ32ecdTtxtk+4wNOjzzirUr/jrFWNQFvANZ94qjbv6xfA2sSBGmUHV8hmJ9F2xz0upu0Lv9Rm8HFnuo7DJqHsXxHOmCbbJNrCQ0FQhEzf64exaf2ciqqf8Hy0phvaO5WFvLk9n1xJM/8RdINhy25siGFS6TjNGPBmcIzegxOE4+0u4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCBAwcOHDhw4MCB+zGu1/VfVNDIxc3oXmT5V4T0tO7NxjJxnWsg8t4ven+nVVYibrpb27bXYqPdzsV2O9/uG/tre76052xj/V2v7eWYcMdDPGUbG8Cdi9sl4Q7plG2sv+Oh6FZp/3Zaf5dbcbxsFXds+9vcBnEkt/1+fX8ZHDhwYnF/FziuluDAbQdHREQkt38aM7i0MKoohgAAAABJRU5ErkJggg==","angled":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////ExMS5ubl6enqpqalZWVmYmJhlZWWHh4fo6Oj09PTW1tZISEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAb1a89AAAAMHRSTlMA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5apAlAAAEqklEQVR42u3d3ZKkIAwFYBNQBPr9n3cBf1ptbdGmdoN7ztzMVO3FfhW0HQmZpkEQBEEQBEEQBEEQBEEQBPl/4pwN8cuEn52r3hVRdJSArJXo3BfXWlgbzebAZmBNPndFNqQW3g3aUL7H0kLYS6+epR/Csovn6aewf65NtO5nG5GWqnNUINo+tnABp59bOKJe5AeCLYQTedV5XwZHz8WxEomjIjptROKY7O867l4ycdr+fk/RSiiuI/tr7bRqpeL0jzoONrm4oHP3edwFm1wcc/iN8y5Pd6aVjIs6uscLZUs22bjAs+6qj7vetMZUgIvVS75MIOtAi6micvEr+Ebg0YNLerFOHIqmlKkGF3jz2+QIdMNuwXq7IJljzQKtShzxWCG7yMAKLt11gdarvlLcIFwl/BOdXEEWbZXjlj49pRt4j8IxcMABBxxwwAEHHHDAAQcccMABB9zfxMnrZ7BdIZyR12ZjWZfBta24LX/PVAoXvmFptnI4ZV6dHJpLGx/FcPHCU1aSjTyVuuYk3VaGuoXwZCuAa1+9KJv1BSsnA+emfcS4O/U7zihBuNE21e43nGlNL6hybv1/n769hwt16/qXHNzH3iLt2fJwoWxaGzk4y5+Zdosv4hJNd4JuKHs45tijcA1njOrSfvK8KsXi2G9bbI5w84b/JG3FVy41gI0+PsDpuXKpVWOMqQHHNHafpGaTVTPDsm7heU0vbUpVgRt1E3FTvPG+Ex7Y1rRKKjeszGXsJvETf0OrB8e2cYe++DRDnVLV4tgeVy4+ZCv1HdeJxvGXZUm9OsORbBwd4lipM1zrZONWN5WlTatT3MtIxy0vu8UF16sM3L9/RXSG4x0bHduWOJaPoy3OkVI5uNbKx80L8+xWssX9+0suA8crnNMqDyfhDUoGjha4M9sCJ+CFuqNznZ9xp7bFspRwcDW7dFm2N86I2KLzmaXLss04Ga+bG3eOC3fMeHYiw/bGCdnDylmY8fMgx/bGSTkrnrEwyVOWbcK9jJRd8YyFmc7sXMHJ2Xv0GTi+hhO0KU6lK9cK6tVwhXEv1QiKLYyT1sxQdFkK67KhgjhZq/L0sruIY2G475fdNZwR2NdWCifkoTn7pnINJ3OSzZNx7waiJ+J6/WBc1x3o0mCJrN95JPc47+so9SnUXjm9c9nF2TumNbl1E92drj/W4/uNVn2/zG1wY8PCuLXfq2WX4Vde7PyqYthLQG26J2eeObTVMuyFBl+7nx2fMe9u0hpOhHD6bDMHwij5xFV13CVef2lUzc4iNStfpWd5xlvM1OgVqf0mDzmoNHe1LRrbHnQKa93ahvNzwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHDAAQcccMABBxxwwAEHHHBPwdGTcbbQBG7XiFyXJSZwS5oJvypdCZzAP8Ww0d3FGRnDh77r7k/glmubD1TfrVxvG8lxfmcAd+4Ebm6kxxLfm8CtbVNB7KUJ3MNBJlUHLS3Oje/rBG5lek2uqSlpAvd0b9mfwD38ye1O+7pkb+D3CdzM3jYVZxgy7pfFC19h0XrvXPOQrOYeNwiCIAiCIAiCIAiCIDXmD5o0tXYpKvQAAAAAAElFTkSuQmCC","top":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAADcCAMAAAAshD+zAAAAkFBMVEX////a2tr09PSGhobo6Oinp6e2trZ5eXmXl5fHx8doaGhbW1sAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADqqTUaAAAAMHRSTlMA//////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC54CzRAAAC8UlEQVR42u3b646bMBBAYXwbxs77v2+NSUjYXpIFrzSm51Ol/t2jMTgOZJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPhv+M3gf/6L6OOOq3LOy38uDt72JW0rzE0cfHAvA3va+uLAcX8Kewa6LOJGjftH2b2v5rkx42K9l7i3RPx4cZ+lLbdOiaPFfdzm4hB1+93Nu88NcOHtd27nLlV3vG2AuhNty01zjLgjbc4lGSHuWJtzanrD2z6WuGM0eeNxdX872ObE8uxOLcp22Wkyu523TyXxeJvLqmp1S2iHAO9OEE1W684Oro0uabY7OefOjk7lonE51MvOZN35tnrDbHUGN7wecevoVP0V45y2uqDRXtzptvu6rHXGtoToOsTJfV1qcNebXA73umCrrkvc46JbWNoSeqzKetHNa5mxuj5xMocnMxue/4G4YGXD6xUXgsG6TnF5/lIXLxW3r5uTkYP4T0wuBH+luNli3KWX5U9sBWG+1A1FdpObg5GzT6e4Mm+szK3KrstnyxIeaUaut45x+jI5O201rst57tlm6ciTc+yyEzyYOqx2iUvFZNvkelx04RFn61t17zqM7rEqg7Wv9nKWTquymGvrEZfbqixq7xlkPl/XBleSubTJ17jU4XZisa3FiZweXDH5eG6Jy5JPXnHF5oPVNS6dG5zRthonVZITJzmDW8AuTlI+vChvwe5rKGvc4YWpt9nuG7Nb3LG6dFPLr37JnR6pk5tO0wBxR+qkmG57ift+nRTrL8pubSnp9+6Zqbb5MeJSpfp5XVbrc3vGpUaDfH4+tf+jCf/aVoWPhpdTKSP8IGTfVuvC2ysvp3DTIX7Ks29bXp18k1fTyi1N0yBx6dX6PonKX9PmMkrbNO3T1jhdHtSk30559WgUSjXLIG1T/Br2eM9p+apOUxJpJz6py3VuZWZPb+/q9olr4P0xQFkf4YRZ3TQQ/0Zs/8b+MTwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKf8AvhNKRQVst+YAAAAAElFTkSuQmCC"};
+/* Part pictures drawn by Claude from catalog sizes. Side view, true proportions, shaded to look like metal.
+   Units are mm. 1 mm = PX px. Ground (implant platform or seat) at y = BASE. */
+var PA_PX=11,PA_W=120,PA_H=170,PA_BASE=150,PA_SEQ=0;
+/* Set the ground line so the part from yMin to yMax sits centered above the scale bar. */
+function paFit(yMin,yMax){var room=PA_H-26,hgt=(yMax-yMin)*PA_PX;PA_BASE=PA_H-22-Math.max(0,(room-hgt)/2)+yMin*PA_PX}
+var PA_COL={ti:['#6f747b','#e9edf1','#9aa1a8','#c9ced4','#5e636a'],tig:['#80858b','#dfe2e5','#a7abb0','#c7cacd','#73787e'],dark:['#1e2023','#5d6268','#2c2f33','#44484d','#17191b'],gold:['#8a6d12','#f4e27a','#b9952a','#e2c955','#7a5f0e'],peek:['#b9b2a6','#f6f2ea','#d4cdc1','#e8e3da','#aaa397']};
+function paGrad(id,c){return '<linearGradient id="'+id+'" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="'+c[0]+'"/><stop offset=".32" stop-color="'+c[1]+'"/><stop offset=".55" stop-color="'+c[2]+'"/><stop offset=".8" stop-color="'+c[3]+'"/><stop offset="1" stop-color="'+c[4]+'"/></linearGradient>'}
+function paX(r){return PA_W/2+r*PA_PX}
+function paY(y){return PA_BASE-y*PA_PX}
+/* A turned part: list of [y, r] from bottom to top. Draws the outline and an edge line at every corner. */
+function paTurned(st,fill,edge){
+  var L=[],R=[],i,h='';
+  for(i=0;i<st.length;i++){L.push(paX(-st[i][1]).toFixed(1)+','+paY(st[i][0]).toFixed(1));R.unshift(paX(st[i][1]).toFixed(1)+','+paY(st[i][0]).toFixed(1))}
+  h+='<polygon points="'+L.concat(R).join(' ')+'" fill="url(#'+fill+')" stroke="#3b3f44" stroke-width=".7" stroke-linejoin="round"/>';
+  for(i=1;i<st.length-1;i++){var a=st[i],b=st[i-1],c=st[i+1];if(Math.abs(a[1]-b[1])>0.05||Math.abs(a[1]-c[1])>0.05)h+='<line x1="'+paX(-a[1]).toFixed(1)+'" x2="'+paX(a[1]).toFixed(1)+'" y1="'+paY(a[0]).toFixed(1)+'" y2="'+paY(a[0]).toFixed(1)+'" stroke="'+(edge||'rgba(40,44,48,.45)')+'" stroke-width=".6"/>'}
+  return h;
+}
+/* Screw thread between y0 and y1 at radius r */
+function paThread(y0,y1,r,fill,pitch){
+  pitch=pitch||0.4;var h=paTurned([[y0,r*0.8],[y0+0.2,r],[y1,r],[y1,r*0.85]],fill),d='';
+  for(var y=y0+0.3;y<y1-0.1;y+=pitch)d+='M'+paX(-r).toFixed(1)+' '+paY(y).toFixed(1)+' L'+paX(r).toFixed(1)+' '+paY(y+pitch*0.6).toFixed(1)+' ';
+  return h+'<path d="'+d+'" stroke="rgba(25,28,31,.55)" stroke-width=".8" fill="none"/>';
+}
+function paHole(y,r){return '<ellipse cx="'+PA_W/2+'" cy="'+paY(y).toFixed(1)+'" rx="'+(r*PA_PX).toFixed(1)+'" ry="'+(r*PA_PX*0.28).toFixed(1)+'" fill="#2a2d31"/>'}
+function paScale(){var x0=8,y=PA_H-8;return '<g stroke="#868b92" stroke-width="1"><line x1="'+x0+'" x2="'+(x0+5*PA_PX)+'" y1="'+y+'" y2="'+y+'"/><line x1="'+x0+'" x2="'+x0+'" y1="'+(y-3)+'" y2="'+(y+3)+'"/><line x1="'+(x0+5*PA_PX)+'" x2="'+(x0+5*PA_PX)+'" y1="'+(y-3)+'" y2="'+(y+3)+'"/></g><text x="'+(x0+5*PA_PX/2)+'" y="'+(y-4)+'" font-size="8" text-anchor="middle" fill="#868b92">5 mm</text>'}
+function paSvg(inner,cols,label){
+  var id='pa'+(++PA_SEQ),defs='',k;cols=cols||['ti'];
+  for(k=0;k<cols.length;k++)defs+=paGrad(id+cols[k],PA_COL[cols[k]]);
+  inner=inner.replace(/url\(#G:([a-z]+)\)/g,function(m,c){return 'url(#'+id+c+')'});
+  return '<svg viewBox="0 0 '+PA_W+' '+PA_H+'" role="img" aria-label="'+(label||'')+'"><defs>'+defs+'</defs>'+inner+paScale()+'</svg>';
+}
+/* Multi-unit cone top, sitting on a shoulder at height y. 4.8 mm across the shoulder. */
+function paMuaTop(y,fill){
+  return paTurned([[y,2.4],[y+0.35,2.4],[y+0.45,2.15],[y+1.9,1.55],[y+2.05,1.35]],fill)+paHole(y+2.05,0.65);
+}
+function paArtMua(ang,gh){
+  gh=Math.max(0.5,gh||2);var h='',top=1.2+gh;paFit(-3.6,top+2.6);
+  if(!ang){
+    h+=paThread(-3.6,-0.4,1.0,'G:ti');
+    h+=paTurned([[-0.4,1.0],[0,1.15],[0.6,1.7],[1.2,2.0],[top,2.25]],'G:ti');
+    h+=paMuaTop(top,'G:ti');
+    return paSvg(h,['ti'],'Straight multi-unit abutment, '+gh+' mm collar');
+  }
+  h+=paThread(-3.6,-0.9,0.95,'G:dark');
+  h+=paTurned([[-0.9,1.15],[0,1.15],[0.05,1.45],[0.6,1.7],[1.2,2.0],[top,2.2]],'G:ti');
+  h+='<line x1="'+paX(-1.15)+'" x2="'+paX(1.15)+'" y1="'+paY(-0.45)+'" y2="'+paY(-0.45)+'" stroke="rgba(40,44,48,.45)" stroke-width=".6"/>';
+  var cx=PA_W/2,cy=paY(top);
+  h+='<g transform="rotate('+ang+' '+cx+' '+cy+')">'+paTurned([[top-0.6,2.05],[top,2.3]],'G:ti')+paMuaTop(top,'G:ti')+'</g>';
+  return paSvg(h,['ti','dark'],ang+' degree multi-unit abutment, '+gh+' mm collar');
+}
+function paArtTibase(chim,col){
+  chim=chim||6;var h='',c=col||'tig';paFit(0,0.3+chim);
+  h+=paTurned([[0,2.45],[0.3,2.5],[0.32,2.35],[1.0,2.25],[2.0,2.0],[2.4,1.95],[2.45,1.78],[0.3+chim,1.78],[0.3+chim,1.55]],'G:'+c);
+  h+=paHole(0.3+chim,0.9);
+  return paSvg(h,[c],'Ti-base, '+chim+' mm chimney');
+}
+function paArtAnalog(kind){
+  var h='';paFit(0,kind==='stone'?8.7:12);
+  if(kind==='stone'){
+    h+=paTurned([[0,1.9],[0.5,2.4],[1.3,2.6],[1.8,2.2],[2.6,2.6],[3.4,2.2],[4.2,2.6],[5.0,2.2],[5.8,2.6],[6.6,2.4]],'G:ti');
+    h+=paMuaTop(6.6,'G:ti');
+    return paSvg(h,['ti'],'Analog for stone models');
+  }
+  h+=paTurned([[0,1.6],[0.4,2.0],[7.0,2.0],[7.05,1.75],[7.6,1.75],[7.65,2.0],[8.3,2.0],[8.35,1.75],[8.9,1.75],[8.95,2.0],[9.6,2.0],[9.9,2.4]],'G:ti');
+  h+='<rect x="'+paX(1.15).toFixed(1)+'" y="'+paY(5.6).toFixed(1)+'" width="'+(0.85*PA_PX).toFixed(1)+'" height="'+(5*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.35)"/>';
+  h+=paMuaTop(9.9,'G:ti');
+  return paSvg(h,['ti'],'Digital analog for printed models');
+}
+function paArtScrew(kind,dark){
+  var h='',f=dark?'G:dark':'G:ti';paFit(0,4.8);
+  if(kind==='flat'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.3],[3.6,1.3],[3.7,1.1]],f)+paHole(3.7,0.6);return paSvg(h,['ti','dark'],'Flat seat screw')}
+  if(kind==='ball'){h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.7],[2.6,1.05],[3.2,1.15],[3.8,0.95],[4.1,0.55]],f)+paHole(4.1,0.45);return paSvg(h,['ti','dark'],'Angled access screw, rounded head')}
+  h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[3.2,0.55],[3.25,1.0],[4.7,1.0],[4.8,0.85]],f)+paHole(4.8,0.55);
+  return paSvg(h,['ti','dark'],'Prosthetic screw');
+}
+function paArtHealcap(){paFit(0,3.5);var h=paTurned([[0,2.45],[0.3,2.55],[3.2,1.95],[3.5,1.7]],'G:ti')+paHole(3.5,0.8);return paSvg(h,['ti'],'Healing cap')}
+function paArtTempcyl(){
+  paFit(0,10.3);
+  var st=[[0,2.45],[0.4,2.5],[0.45,2.0]],y;for(y=1.2;y<9.5;y+=0.9){st.push([y,2.0]);st.push([y+0.15,1.75]);st.push([y+0.45,1.75]);st.push([y+0.6,2.0])}st.push([10.3,2.0]);st.push([10.3,1.5]);
+  return paSvg(paTurned(st,'G:ti')+paHole(10.3,0.9),['ti'],'Temporary cylinder');
+}
+/* Implant-level ti-base: connection below the platform, collar of the given height, then the chimney. */
+function paArtTibaseImp(collar,eng,col,chim){
+  collar=Math.max(0.3,collar||1);chim=chim||5;var c=col||'tig',h='',top=collar+chim;paFit(-1.4,top);
+  if(eng){h+=paTurned([[-1.4,1.05],[-0.05,1.05]],'G:'+c);var d='';[-0.45,0,0.45].forEach(function(x){d+='M'+paX(x).toFixed(1)+' '+paY(-1.4).toFixed(1)+' V'+paY(-0.05).toFixed(1)+' '});h+='<path d="'+d+'" stroke="rgba(40,44,48,.5)" stroke-width=".7"/>'}
+  else h+=paTurned([[-1.2,0.8],[-0.05,1.15]],'G:'+c);
+  h+=paTurned([[-0.05,1.6],[0,1.75],[collar,2.4],[collar+0.25,2.3],[collar+0.3,1.78],[top,1.78],[top,1.55]],'G:'+c);
+  h+=paHole(top,0.9);
+  return paSvg(h,[c],'Ti-base, '+(eng?'engaging':'non-engaging')+', '+collar+' mm collar');
+}
+/* Implant analog: flat implant platform on top with the connection opening. */
+function paArtAnalogImp(kind){
+  var h='',st;paFit(0,kind==='stone'?9:12);
+  if(kind==='stone'){st=[[0,1.9],[0.5,2.4],[1.3,2.6],[1.8,2.2],[2.6,2.6],[3.4,2.2],[4.2,2.6],[5.0,2.2],[5.8,2.6],[6.6,2.2],[7.4,2.6],[8.6,2.4],[9,2.2]]}
+  else{st=[[0,1.6],[0.4,2.05],[8.4,2.05],[8.45,1.8],[9.0,1.8],[9.05,2.05],[9.7,2.05],[9.75,1.8],[10.3,1.8],[10.35,2.05],[11.6,2.05],[12,2.2]]}
+  h+=paTurned(st,'G:ti');
+  if(kind!=='stone')h+='<rect x="'+paX(1.2).toFixed(1)+'" y="'+paY(7).toFixed(1)+'" width="'+(0.8*PA_PX).toFixed(1)+'" height="'+(6*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.35)"/>';
+  var y=st[st.length-1][0];h+=paHole(y,1.25);
+  return paSvg(h,['ti'],kind==='stone'?'Implant analog for stone models':'Digital implant analog');
+}
+function paArtScrewK(kind,dark){
+  var f=dark?'G:dark':'G:ti',h='';
+  if(kind==='abut'){paFit(0,6.4);h+=paThread(0,3.4,0.8,f);h+=paTurned([[3.4,0.65],[5.0,0.65],[5.05,1.05],[6.3,1.05],[6.4,0.9]],f)+paHole(6.4,0.55);return paSvg(h,['ti','dark'],'Abutment screw')}
+  if(kind==='long'){paFit(0,7.4);h+=paThread(0,2.4,0.7,f);h+=paTurned([[2.4,0.55],[5.8,0.55],[5.85,1.0],[7.3,1.0],[7.4,0.85]],f)+paHole(7.4,0.55);return paSvg(h,['ti','dark'],'Long prosthetic screw')}
+  if(kind==='flat'||kind==='ball')return paArtScrew(kind,dark);
+  return paArtScrew('pros',dark);
+}
+/* Scan body that is not DESS: titanium base with a PEEK body and one flat face. */
+function paArtScanbody(mu){
+  paFit(mu?0:-1.2,10.5);var h='';
+  if(!mu)h+=paTurned([[-1.2,0.9],[-0.05,1.15]],'G:ti');
+  h+=paTurned([[0,2.3],[0.8,2.3],[0.85,2.0],[10.5,2.0],[10.5,1.6]],'G:peek');
+  h+='<rect x="'+paX(0.55).toFixed(1)+'" y="'+paY(10.1).toFixed(1)+'" width="'+(1.45*PA_PX).toFixed(1)+'" height="'+(6.8*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.55)" stroke="rgba(90,84,74,.5)" stroke-width=".6"/>';
+  h+=paTurned([[0,2.3],[0.8,2.3]],'G:ti');
+  return paSvg(h,['ti','peek'],'Scan body, flat face for the scanner');
+}
+function paArtAttach(){paFit(0,4.2);var h=paTurned([[0,2.3],[1.1,2.3],[1.2,1.4],[2.2,1.4],[2.3,1.95],[3.9,1.95],[4.2,1.7]],'G:gold')+paHole(4.2,1.0);return paSvg(h,['gold'],'Attachment on the multi-unit')}
+function paArtTempcylMua(){return paArtTempcyl()}
+/* Pick the picture for a part. Returns '' when there is no drawing for it. */
+function partArt(p){
+  var t=p.type,mu=p.level==='mua',pn=p.pn||'',gold=p.maker==='dess'&&/DESS 3[67]\./.test(pn);
+  if(t==='mua'){var md=muaDims(p);return paArtMua(md[0],md[1]||2)}
+  if(t==='tibase'){
+    if(mu){var ch=/15\.007\/8/.test(pn)?8:6;return paArtTibase(ch,gold?'gold':'tig')}
+    var cm=(p.k||'').match(/^tb-[en]-([\d.]+)/);return paArtTibaseImp(cm?+cm[1]:1,!isNonEngP(p),gold?'gold':'tig')
+  }
+  if(t==='analog'){var k=akind(p)==='s'?'stone':'digital';return mu?paArtAnalog(k):paArtAnalogImp(k)}
+  if(t==='screw'){
+    var sk=p.k||'',dark=/19\.306|Badger/i.test(pn+' '+(p.v||''));
+    if(sk==='sc-a')return paArtScrewK('abut');
+    if(sk==='sc-fa'||sk==='sc-ell')return paArtScrewK('flat');
+    if(sk==='sc-pa'||sk==='sc-bdg')return paArtScrewK('ball',dark);
+    if(sk==='sc-018')return paArtScrewK('long');
+    return paArtScrewK('pros');
+  }
+  if(t==='scanbody')return paArtScanbody(mu);
+  if(t==='healcap')return paArtHealcap();
+  if(t==='tempcyl')return paArtTempcyl();
+  if(t==='attach')return paArtAttach();
+  return '';
+}
+
 /* ---------- Three-view drawings (typical shapes, not exact) ---------- */
 /* Connection index shapes. 'sure' = checked against the maker's own description. 'approx' = the general shape is right, the exact profile is not. */
 var CONN={'astra-os':'chex','astra-ev':'onepos','str-tl':'oct','str-blt':'cross','str-blx':'star6','uris-omni':'generic','nobel-cc':'chex','bsb-max':'chex','nobel-tcc':'trilobe','nobel-bm':'exhex','zv-certain':'hex','zv-tsv':'hex','bh-ti':'hex','bh-con':'generic','id-legacy':'hex','id-inter':'chex','neo-gm':'chex','noris-ih':'hex','hio-et':'chex','xive':'hex'};
@@ -869,10 +1011,11 @@ function viewsHTML(p){
   var o=viewText(p);
   function v(title,inner,vb,label){return '<figure class="view"><figcaption>'+title+'</figcaption><svg viewBox="'+vb+'" role="img" aria-label="'+esc(title+': '+label)+'">'+inner+'</svg><p>'+esc(label)+'</p></figure>'}
   if(p.sbHead==='io')return sbExactHTML(p,o,v);
-  var h='<section class="views-wrap"><h3>How to tell it apart</h3><div class="views">'+v('Side',sideView(p),'0 0 120 140',o.side)+v('Top',topView(p),'0 0 120 120',o.top)+v('Bottom',bottomView(p),'0 0 120 120',o.bottom)+'</div>';
+  var art=partArt(p),side=art?'<figure class="view"><figcaption>Side</figcaption>'+art+'<p>'+esc(o.side)+'</p></figure>':v('Side',sideView(p),'0 0 120 140',o.side);
+  var h='<section class="views-wrap"><h3>How to tell it apart</h3><div class="views">'+side+v('Top',topView(p),'0 0 120 120',o.top)+v('Bottom',bottomView(p),'0 0 120 120',o.bottom)+'</div>';
   h+='<ul class="keys">'+o.keys.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>';
   var sure=p.level!=='mua'&&CONN_SURE[p.sys],cn=CONN_NAME[connOf(p)];
-  h+='<p class="small muted" style="margin:6px 0 0">'+(p.level==='mua'?'Multi-unit level: the seat is round with no index on every brand. ':(sure?'Index shape checked against the maker\u2019s description: '+esc(cn)+'. ':'Index shape not confirmed for this system. '))+'Body proportions are typical, not traced from this part. Highlighted lines show what sets it apart. The part number is the final check.</p>';
+  h+='<p class="small muted" style="margin:6px 0 0">'+(p.level==='mua'?'Multi-unit level: the seat is round with no index on every brand. ':(sure?'Index shape checked against the maker\u2019s description: '+esc(cn)+'. ':'Index shape not confirmed for this system. '))+''+(partArt(p)?'Side picture: drawn by Claude from catalog sizes. Close to the real part, not exact. Top and Bottom: sketches of the connection. ':'Body proportions are typical, not traced from this part. ')+'Highlighted lines show what sets it apart. The part number is the final check.</p>';
   if(UI.role==='lead'||isMaya())h+='<p class="small" style="margin:6px 0 0">'+(p.drawFlag?'<span class="pill p-low">Drawing flagged: '+esc(p.drawFlag)+'</span> <button class="link" data-act="draw-unflag" data-v="'+p.id+'">Clear</button>':'<button class="link" data-act="draw-flag" data-v="'+p.id+'">This drawing is wrong</button>')+'</p>';
   h+='</section>';
   return h;
@@ -2189,6 +2332,7 @@ document.addEventListener('keydown',function(e){
 });
 
 load();render();aiBoot();
+window.renewArt=function(){var out={n:S.parts.length,empty:0,err:[],kinds:{}};S.parts.forEach(function(x){try{var a=partArt(x);if(!a)out.empty++;var key=x.type+'|'+x.level+'|'+(x.k||'')+'|'+(x.maker==='dess'?'dess':'oem');if(!out.kinds[key])out.kinds[key]={id:x.id,name:x.pn+' '+(x.v||''),svg:a}}catch(e){out.err.push(x.id+': '+e.message)}});return out};
 window.renewBench=function(){benchSeed();return S.tests.map(function(t){var r=benchRun(t);return {t:t.t,pass:r.pass,diffs:r.diffs,got:r.got}})};
 })();
 </script>
