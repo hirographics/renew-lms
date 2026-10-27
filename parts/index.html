@@ -2388,6 +2388,7 @@ document.addEventListener('keydown',function(e){
 });
 
 load();render();aiBoot();
+window.renewCatalog=function(){return S.parts.map(function(x){var a=x.sbHead==='io'?'SBIO':partArt(x);var md=x.type==='mua'?muaDims(x):null;return {id:x.id,type:x.type,level:x.level,maker:x.maker,name:partName(x),pn:x.pn,real:!!x.real,fit:ctx(x),bin:x.bin||'',stocked:!!x.stocked,art:a,k:x.k||'',sys:x.sys,plat:x.plat,ang:md?md[0]:null,gh:md?md[1]:null,eng:!isNonEngP(x),ak:akind(x),D:x.level==='mua'?null:platMM(x),sbHead:x.sbHead||''}})};
 window.renewArt=function(){var out={n:S.parts.length,empty:0,err:[],kinds:{}};S.parts.forEach(function(x){try{var a=partArt(x);if(!a)out.empty++;var key=x.type+'|'+x.level+'|'+(x.k||'')+'|'+(x.maker==='dess'?'dess':'oem');if(!out.kinds[key])out.kinds[key]={id:x.id,name:x.pn+' '+(x.v||''),svg:a}}catch(e){out.err.push(x.id+': '+e.message)}});return out};
 window.renewBench=function(){benchSeed();return S.tests.map(function(t){var r=benchRun(t);return {t:t.t,pass:r.pass,diffs:r.diffs,got:r.got}})};
 })();
