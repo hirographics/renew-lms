@@ -1697,12 +1697,13 @@ function setLines(){
   if(F.restore==='bar'){var sd=SYS_SCREW[F.sys];return [an,(sd?fitScrew(sd.bar,F.sys,F.plat):null)||nit].filter(Boolean)}
   if(F.restore==='direct')return [an,nit].filter(Boolean);
   if(F.restore==='final')return [an,findPart(F.sys,F.plat,'tb-n'),nit].filter(Boolean);
-  return [an,findPart(F.sys,F.plat,'tc'),fitScrew('sc-bdg',F.sys,F.plat)].filter(Boolean);
+  /* Prototype is printed straight onto the multi-unit. Badger is only used direct to MUA (per Richard, Oct 27) */
+  return [an,fitScrew('sc-bdg',F.sys,F.plat)].filter(Boolean);
 }
 function viewSet(){
   var h='<h2>Full set for '+F.n+' implants</h2><p class="ctx" style="margin-bottom:14px">'+esc(brandById(F.brand).name.replace(/ \(.*\)$/,'')+' '+sysById(F.sys).name+', '+F.plat)+'</p>';
   h+='<div class="row" style="margin-bottom:12px"><div class="field">Implants<span class="stepper"><button data-act="n" data-v="-1" aria-label="Fewer">\u2212</button><output>'+F.n+'</output><button data-act="n" data-v="1" aria-label="More">+</button></span></div>';
-  h+='<div class="field">Restoration<span class="seg"><button data-act="restore" data-v="final" aria-pressed="'+(F.restore==='final')+'">Final, ti-base</button><button data-act="restore" data-v="direct" aria-pressed="'+(F.restore==='direct')+'">Final, direct</button><button data-act="restore" data-v="bar" aria-pressed="'+(F.restore==='bar')+'">Bar</button><button data-act="restore" data-v="proto" aria-pressed="'+(F.restore==='proto')+'">Prototype</button></span></div>';
+  h+='<div class="field">Restoration<span class="seg"><button data-act="restore" data-v="final" aria-pressed="'+(F.restore==='final')+'">Final, ti-base</button><button data-act="restore" data-v="direct" aria-pressed="'+(F.restore==='direct')+'">Final, direct</button><button data-act="restore" data-v="bar" aria-pressed="'+(F.restore==='bar')+'">Bar</button><button data-act="restore" data-v="proto" aria-pressed="'+(F.restore==='proto')+'">Prototype, direct</button></span></div>';
   h+='<div class="field">Model<span class="seg"><button data-act="analog" data-v="an-d" aria-pressed="'+(F.analog==='an-d')+'">Printed</button><button data-act="analog" data-v="an-s" aria-pressed="'+(F.analog==='an-s')+'">Stone</button></span></div></div>';
   h+='<div class="list">';
   setLines().forEach(function(p){
@@ -2377,7 +2378,7 @@ function rxSetParts(r){
   var st=UI.rx.step;if(st!=='proto'&&st!=='final')return null;
   if(r.needAttach&&r.attach){var ls=[findPart(r.sys,r.plat,'an-d')||findPart(r.sys,r.plat,'an')];if(r.attach==='tibase')ls.push(findPart(r.sys,r.plat,'tb-n'));if(r.scr&&r.scr.part)ls.push(r.scr.part);return ls.filter(Boolean)}
   var an=findPart(r.sys,r.plat,'an-d')||findPart(r.sys,r.plat,'an');
-  if(st==='proto')return [an,findPart(r.sys,r.plat,'tc'),fitScrew('sc-bdg',r.sys,r.plat)].filter(Boolean);
+  if(st==='proto')return [an,fitScrew('sc-bdg',r.sys,r.plat)].filter(Boolean); /* prototype is direct to MUA; temp cylinders are for conversions */
   return [an,findPart(r.sys,r.plat,'tb-n'),fitScrew('sc-p',r.sys,r.plat)].filter(Boolean);
 }
 function lev(a,b){var m=a.length,n=b.length,d=[];for(var i=0;i<=m;i++){d[i]=[i]}for(var j=1;j<=n;j++)d[0][j]=j;for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
