@@ -1723,6 +1723,8 @@ function stockFiltered(){
   var q=UI.stockQ.trim().toLowerCase();
   return S.parts.filter(function(p){
     if(UI.stockBrand!=='all'&&(UI.stockBrand==='dess'?p.maker!=='dess':p.brand!==UI.stockBrand))return false;
+    if(UI.stockType&&UI.stockType!=='all'&&p.type!==UI.stockType)return false;
+    if(UI.stockSys&&UI.stockSys!=='all'&&p.sys!==UI.stockSys)return false;
     var st=status(p).k;
     if(UI.stockStatus==='stocked'&&!p.stocked)return false;
     if(UI.stockStatus==='low'&&!(st==='low'||st==='out'))return false;
@@ -1747,10 +1749,19 @@ function stockListHTML(){
   if(!rows.length)return '<div class="empty">No parts match. Clear the search or pick another filter.</div>';
   return '<p class="small muted" style="margin:0 0 6px">'+rows.length+' parts</p><div class="list">'+rows.slice(0,200).map(stockRow).join('')+'</div>';
 }
+/* Part type and system filters for Stock. The system list follows the brand pick */
+function stockTypeSysHTML(){
+  var types=['analog','mua','tibase','screw','scanbody','tempcyl','healcap','attach'];
+  var h='<span id="stock-ts" style="display:contents"><select id="stock-type" aria-label="Part type"><option value="all">All part types</option>'+types.map(function(k){return '<option value="'+k+'"'+(UI.stockType===k?' selected':'')+'>'+esc(TYPE_LABEL[k])+'s</option>'}).join('')+'</select>';
+  var b=UI.stockBrand,sys=SYSTEMS.filter(function(x){return b==='all'||b==='dess'||x.brand===b});
+  h+='<select id="stock-sys" aria-label="Fits system"><option value="all">All systems</option>'+sys.map(function(x){var bn=brandById(x.brand).name.replace(/ \(.*\)$/,''),sn=x.name.replace(/ \(.*\)$/,'');return '<option value="'+x.id+'"'+(UI.stockSys===x.id?' selected':'')+'>'+esc((sn.toLowerCase().indexOf(bn.split(' ')[0].toLowerCase())===0?sn:bn+' '+sn)+(x.level==='mua'?' (multi-unit level)':''))+'</option>'}).join('')+'</select></span>';
+  return h;
+}
 function viewStock(){
   var h='<header class="vh"><h1>Stock</h1><p class="lede">Every part, where it lives, and how many we have. Cabinets A and B hold analogs, cabinet C holds screws. Other stocked parts have no drawer yet.</p></header>';
   h+='<div class="filters"><input id="stock-q" type="text" placeholder="Search by name, bin, part number, or exocad name" value="'+esc(UI.stockQ)+'" aria-label="Search parts">';
   h+='<select id="stock-brand" aria-label="Brand"><option value="all">All brands</option>'+BRANDS.map(function(b){return '<option value="'+b.id+'"'+(UI.stockBrand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select>';
+  h+=stockTypeSysHTML();
   var opts=[['stocked','Parts we stock'],['low','Low or out'],['out','Out of stock'],['ask','Ask first (Maya or Kent)'],['none','Parts we don\u2019t stock'],['all','Everything in the catalog']];
   h+='<select id="stock-status" aria-label="Show">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(UI.stockStatus===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
   h+='<section class="card" id="stock-list">'+stockListHTML()+'</section>';
@@ -3121,7 +3132,9 @@ document.addEventListener('change',function(e){
   if(t.id==='rx-ex'&&t.value!==''){loadExample(+t.value);return}
   if(t.id==='rx-photo'){UI.rx.photo=t.files&&t.files[0]?t.files[0]:null;render();return}
   if(t.id==='rx-doc'){UI.rx.doctor=t.value;if(UI.rx.read)setTimeout(renderKeepFocus,0);return}
-  if(t.id==='stock-brand'){UI.stockBrand=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
+  if(t.id==='stock-brand'){UI.stockBrand=t.value;var bs=UI.stockSys&&UI.stockSys!=='all'?sysById(UI.stockSys):null;if(bs&&t.value!=='all'&&t.value!=='dess'&&bs.brand!==t.value)UI.stockSys='all';var sw=document.getElementById('stock-ts');if(sw)sw.outerHTML=stockTypeSysHTML();document.getElementById('stock-list').innerHTML=stockListHTML()}
+  if(t.id==='stock-type'){UI.stockType=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
+  if(t.id==='stock-sys'){UI.stockSys=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
   if(t.id==='stock-status'){UI.stockStatus=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
   if(t.id==='rep-range'){UI.repRange=t.value;render()}
   if(t.id==='rep-brand'){UI.repBrand=t.value;UI.repPart='all';render()}
