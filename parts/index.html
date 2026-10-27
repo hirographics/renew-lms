@@ -718,7 +718,7 @@ function paSvg(inner,cols,label){
   var id='pa'+(++PA_SEQ),defs='',k;cols=cols||['ti'];
   for(k=0;k<cols.length;k++)defs+=paGrad(id+cols[k],PA_COL[cols[k]]);
   inner=inner.replace(/url\(#G:([a-z]+)\)/g,function(m,c){return 'url(#'+id+c+')'});
-  return '<svg viewBox="0 0 '+PA_W+' '+PA_H+'" role="img" aria-label="'+(label||'')+'"><defs>'+defs+'</defs>'+inner+paScale()+'</svg>';
+  return '<svg viewBox="0 0 '+PA_W+' '+PA_H+'" role="img" aria-label="'+(label||'')+'"><defs>'+defs+'</defs>'+inner+paScale()+(PA_PX>12?'<text x="6" y="13" font-size="9" font-weight="700" fill="#b06a00">2\u00d7 size</text>':'')+'</svg>';
 }
 /* Multi-unit cone top, sitting on a shoulder at height y. 4.8 mm across the shoulder. */
 function paMuaTop(y,fill){
@@ -885,6 +885,30 @@ function partArt(p){
   if(t==='attach')return paArtAttach();
   return '';
 }
+/* ---- v3 (Oct 27): DESS multi-unit screws, from the DESS Multi-Unit catalog pictures of 19.006, 19.055, 19.110 and 19.306.
+   Flat-top cylinder head straight on the thread, no neck. Head about 1.6 times the thread width. Head and thread about the same length. ---- */
+PA_COL.gun=['#34383d','#a7adb3','#565b61','#868c92','#2a2e32'];
+function paArtCap(col,label){
+  paFit(0,3.9);var f='G:'+col,h='';
+  h+=paThread(0,1.85,0.7,f,0.36);
+  h+=paTurned([[1.85,1.12],[3.72,1.12],[3.85,1.0]],f);
+  h+=paHole(3.85,0.6,0.9);
+  return paSvg(h,[col],label||'Multi-unit screw');
+}
+var PA_partArt2=partArt;
+partArt=function(p){
+  var pn=p.pn||'';
+  if(p.type==='screw'&&p.maker==='dess'&&/DESS 19\.(006|306|055|065|110|041|098|206|231|031)/.test(pn)){
+    var col=/19\.306/.test(pn)?'gun':(/19\.2\d\d/.test(pn)?'dark':'ti');
+    return paArtCap(col,(/19\.306/.test(pn)?'Torx screw for ANGLEBase':'Multi-unit screw')+', '+pn);
+  }
+  return PA_partArt2(p);
+};
+
+/* Screws are small. Draw them at twice the size; the 5 mm bar and the "2x size" tag change with them. */
+function paBig(fn){var o=PA_PX;PA_PX=o*2;try{return fn()}finally{PA_PX=o}}
+var PA_partArt3=partArt;
+partArt=function(p){if(p.type==='screw')return paBig(function(){return PA_partArt3(p)});return PA_partArt3(p)};
 
 /* ---------- Three-view drawings (typical shapes, not exact) ---------- */
 /* Connection index shapes. 'sure' = checked against the maker's own description. 'approx' = the general shape is right, the exact profile is not. */
