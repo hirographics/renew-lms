@@ -1243,6 +1243,13 @@ function paArtScrew306(){var Hh=1.46,y=1.85;paFit(0,y+Hh);var f='G:gun';
   return paSvg(h,['gun'],'Torx screw for ANGLEBase, DESS 19.306')}
 var PA_partArt6c=partArt;
 partArt=function(p){if(p.type==='screw'&&/DESS 19\.306/.test(p.pn||''))return paBig(paArtScrew306);return PA_partArt6c(p)};
+/* Badger (Smart Mouth Technologies): purple, cone-shaped head that is widest where it seats. From Richard's description, Oct 27. Sizes are a best guess. */
+PA_COL.purple=['#3f2763','#d2bdf2','#6f4fa3','#a98ddb','#35205a'];
+function paArtBadger(){var Hh=1.6,y=2.0;paFit(0,y+Hh);var f='G:purple';
+  var h=paThread(0,y,0.7,f,0.36)+paSmooth([[y,0.7],[y+0.02,1.15],[y+0.2,1.15],[y+Hh-0.12,0.78],[y+Hh,0.68]],f)+paEdge(y+0.2,1.15)+paHole(y+Hh,0.55,0.9);
+  return paSvg(h,['purple'],'Badger screw')}
+var PA_partArtBdg=partArt;
+partArt=function(p){if(p.type==='screw'&&p.k==='sc-bdg')return paBig(paArtBadger);return PA_partArtBdg(p)};
 /* v6d: last review fixes */
 PA_COL.tig=['#5f646a','#a2a6ab','#7c8086','#92969b','#565a60'];
 function paFlat(y0,y1,r){return '<rect x="'+paX(r*0.55).toFixed(1)+'" y="'+paY(y1).toFixed(1)+'" width="'+(r*0.42*PA_PX).toFixed(1)+'" height="'+((y1-y0)*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.45)" stroke="none"/>'}
@@ -1431,7 +1438,7 @@ function viewText(p){
     o.bottom='Thread tip';
     o.keys.push(mu?'Short screw. Holds the restoration to the multi-unit abutment.':'Long screw. Holds a ti-base or abutment to the implant.');
     if(k==='sc-pa')o.keys.push('Made for angled access. It needs the angled driver.');
-    if(k==='sc-bdg')o.keys.push('One screw for straight or angled access. Multi-unit level only. Use the angled Badger driver for angled channels.');
+    if(k==='sc-bdg'){o.keys.push('One screw for straight or angled access. Multi-unit level only. Use the angled Badger driver for angled channels.');o.keys.push('Purple, with a cone-shaped head that is widest where it seats. The side picture follows that description; the sizes are a best guess, not measured.')}
     o.keys.push(dd?'Use the '+DRV[dd].t+' driver.':'Driver not entered yet. Check the catalog before you torque it.');
   } else if(t==='mua'){
     var md=muaDims(p),NE=isNonEngP(p);
@@ -2713,6 +2720,7 @@ function stkMats(){
     gold:new T.MeshStandardMaterial({color:0xc9a53a,metalness:0.55,roughness:0.3}),
     lime:new T.MeshStandardMaterial({color:0xc4cc66,metalness:0.1,roughness:0.6}),
     gun:new T.MeshStandardMaterial({color:0x6a6e74,metalness:0.4,roughness:0.38}),
+    purple:new T.MeshStandardMaterial({color:0x7a4fb8,metalness:0.45,roughness:0.36,side:T.DoubleSide}),
     dark:new T.MeshStandardMaterial({color:0x34373c,metalness:0.35,roughness:0.42}),
     peek:new T.MeshStandardMaterial({color:0xeee8dc,metalness:0,roughness:0.7}),
     implant:new T.MeshStandardMaterial({color:0x8e949b,metalness:0.45,roughness:0.48})
@@ -2776,12 +2784,13 @@ function stkTop(p,D){
   stkAnchor(g,0);return g;
 }
 function stkScrew(p){
-  var g=stkGroup(),M=STK.mats,pn=p.pn||'',k=p.k||'',v=(p.v||'')+' '+pn,mat=/19\.306/.test(pn)?M.gun:(/19\.2\d\d|Badger/i.test(v)?M.dark:M.ti);
+  var g=stkGroup(),M=STK.mats,pn=p.pn||'',k=p.k||'',v=(p.v||'')+' '+pn,mat=/19\.306/.test(pn)?M.gun:(k==='sc-bdg'?M.purple:(/19\.2\d\d/i.test(v)?M.dark:M.ti));
   var pts;
   if(k==='sc-a')pts=stkThread(0,3.4,0.8).concat([[3.4,0.65],[5.0,0.65],[5.05,1.05],[6.3,1.05],[6.4,0.9],[6.4,0.5]]);
   else if(/19\.069/.test(pn))pts=stkThread(0,2.2,0.74,0.3).concat([[2.2,0.64],[2.5,0.64],[2.5,1.25],[2.75,1.25],[3.75,1.08],[4.1,0.98],[4.3,0.86],[4.45,0.7],[4.45,0.45]]);
   else if(/19\.098/.test(pn))pts=stkThread(0,1.55,0.7,0.3).concat([[1.55,0.6],[1.8,0.6],[2.45,1.08],[3.05,1.08],[3.28,0.93],[3.4,0.68],[3.4,0.45]]);
   else if(/19\.306/.test(pn))pts=stkThread(0,1.85,0.7,0.36).concat([[1.85,1.12],[2.03,1.12],[3.15,0.92],[3.31,0.78],[3.31,0.45]]);
+  else if(k==='sc-bdg')pts=stkThread(0,2.0,0.7,0.36).concat([[2.0,0.7],[2.02,1.15],[2.2,1.15],[3.48,0.78],[3.6,0.68],[3.6,0.45]]); /* cone head, wide at the seat (Richard, Oct 27) */
   else if(/Badger/i.test(v)||k==='sc-pa'||k==='sc-pb')pts=stkThread(0,2.0,0.7,0.36).concat([[2.0,0.7],[2.2,1.05],[2.8,1.15],[3.4,0.95],[3.7,0.55],[3.7,0.4]]);
   else pts=stkThread(0,2.14,0.765,0.36).concat([[2.14,1.12],[3.5,1.12],[3.65,1.02],[3.72,0.87],[3.72,0.45]]);
   g.add(stkLathe(pts,mat));return g;
