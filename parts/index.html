@@ -2906,6 +2906,9 @@ function stkLoop(){
   var el=STK.r.domElement,w=el.clientWidth,h=el.clientHeight;if(w&&h&&(el.width!==Math.floor(w*STK.r.getPixelRatio())||el.height!==Math.floor(h*STK.r.getPixelRatio()))){STK.r.setSize(w,h,false);STK.cam.aspect=w/h;STK.cam.updateProjectionMatrix();STK.camSet=false;stkFrame(true)} /* three.js floors the canvas size: compare the same way, or this fires every frame on 150% screens */
   var dt=Math.max(0,Math.min(0.05,(now-(STK.last||now))/1000));STK.last=now;
   STK.stack.rotation.y+=dt*0.3;
+  /* the whole stack gives under the new part, then springs back: a quick dip, one small rebound, settled in about half a second */
+  var bo=0;if(STK.bump){var tb=(now-STK.bump.t)/1000;if(tb>1.2)STK.bump=null;else bo=-STK.bump.a*Math.exp(-tb*6.5)*Math.sin(tb*Math.PI*2*2.1)}
+  STK.stack.position.y=bo;if(STK.shadow)STK.shadow.scale.setScalar(1+bo*0.12);
   /* camera glides to the next layer */
   var kc=STK_RM?1:1-Math.exp(-dt*4.5);STK.cam.position.lerp(STK.camTo,kc);STK.look.lerp(STK.lookTo,kc);STK.cam.lookAt(STK.look);
   /* row: a critically damped spring, like an iOS picker */
@@ -2939,7 +2942,7 @@ function stkLoop(){
       if(d.screw&&!STK_RM){var turns=(1-uu)*Math.PI*4;Q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),turns));var tk=Math.floor(uu*8);if(tk>d.ticks){d.ticks=tk;stkSnd('ratchet')}}
       d.g.quaternion.copy(Q);d.g.scale.setScalar(d.s0*1.04+(1-d.s0*1.04)*ex);
     }else{
-      if(!d.hit){d.hit=true;stkSnd('seat');try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}d.g.traverse(function(o){if(o.material&&o.material.clone)o.material=o.material.clone()})}
+      if(!d.hit){d.hit=true;stkSnd('seat');if(!STK_RM)STK.bump={t:now,a:d.screw?0.6:1.1};try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}d.g.traverse(function(o){if(o.material&&o.material.clone)o.material=o.material.clone()})}
       var v=S?Math.min(1,(t-L-F)/S):1;d.g.position.copy(to);d.g.position.y-=0.13*Math.sin(Math.PI*v)*(1-v); /* it seats, then settles a hair */
       d.g.quaternion.copy(sock.quat);d.g.scale.setScalar(1);stkPulse(d.g,Math.max(0,1-(t-L-F)/(S+H))*(STK_RM?0:1));
       if(t>=L+F+S+H){STK.dropping=null;STK.built='';stkPlaced(d.it);return}
