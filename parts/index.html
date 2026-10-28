@@ -1243,10 +1243,12 @@ function paArtScrew306(){var Hh=1.46,y=1.85;paFit(0,y+Hh);var f='G:gun';
   return paSvg(h,['gun'],'Torx screw for ANGLEBase, DESS 19.306')}
 var PA_partArt6c=partArt;
 partArt=function(p){if(p.type==='screw'&&/DESS 19\.306/.test(p.pn||''))return paBig(paArtScrew306);return PA_partArt6c(p)};
-/* Badger (Smart Mouth Technologies): purple, cone-shaped head that is widest where it seats. From Richard's description, Oct 27. Sizes are a best guess. */
+/* Badger (Smart Mouth Technologies, SM-001): purple anodized. */
 PA_COL.purple=['#3f2763','#d2bdf2','#6f4fa3','#a98ddb','#35205a'];
-function paArtBadger(){var Hh=1.6,y=2.0;paFit(0,y+Hh);var f='G:purple';
-  var h=paThread(0,y,0.7,f,0.36)+paSmooth([[y,0.7],[y+0.02,1.15],[y+0.2,1.15],[y+Hh-0.12,0.78],[y+Hh,0.68]],f)+paEdge(y+0.2,1.15)+paHole(y+Hh,0.55,0.9);
+/* Traced from the maker's product picture (Oct 27): M1.4 thread, straight neck, concave flare, round head with a hex socket. About 5 mm long. */
+var BDG_PROF=[[2.0,0.72],[3.1,0.72],[3.35,0.75],[3.55,0.81],[3.72,0.9],[3.84,1.0],[3.92,1.1],[3.97,1.12],[4.92,1.12],[5.0,1.05]];
+function paArtBadger(){paFit(0,5.0);var f='G:purple';
+  var h=paThread(0,2.0,0.7,f,0.3)+paSmooth(BDG_PROF,f)+paEdge(3.97,1.12)+paHole(5.0,0.62,0.95);
   return paSvg(h,['purple'],'Badger screw')}
 var PA_partArtBdg=partArt;
 partArt=function(p){if(p.type==='screw'&&p.k==='sc-bdg')return paBig(paArtBadger);return PA_partArtBdg(p)};
@@ -1438,7 +1440,7 @@ function viewText(p){
     o.bottom='Thread tip';
     o.keys.push(mu?'Short screw. Holds the restoration to the multi-unit abutment.':'Long screw. Holds a ti-base or abutment to the implant.');
     if(k==='sc-pa')o.keys.push('Made for angled access. It needs the angled driver.');
-    if(k==='sc-bdg'){o.keys.push('One screw for straight or angled access. Multi-unit level only. Use the angled Badger driver for angled channels.');o.keys.push('Purple, with a cone-shaped head that is widest where it seats. The side picture follows that description; the sizes are a best guess, not measured.')}
+    if(k==='sc-bdg'){o.keys.push('One screw for straight or angled access. Multi-unit level only. Use the angled Badger driver for angled channels.');o.keys.push('Purple. Round head with a hex socket on top, a curved flare down to a straight neck, then an M1.4 thread. About 5 mm long.');o.keys.push('Side picture traced from the maker\u2019s product photo (Smart Mouth SM-001). Proportions from the photo, not measured.')}
     o.keys.push(dd?'Use the '+DRV[dd].t+' driver.':'Driver not entered yet. Check the catalog before you torque it.');
   } else if(t==='mua'){
     var md=muaDims(p),NE=isNonEngP(p);
@@ -2790,7 +2792,7 @@ function stkScrew(p){
   else if(/19\.069/.test(pn))pts=stkThread(0,2.2,0.74,0.3).concat([[2.2,0.64],[2.5,0.64],[2.5,1.25],[2.75,1.25],[3.75,1.08],[4.1,0.98],[4.3,0.86],[4.45,0.7],[4.45,0.45]]);
   else if(/19\.098/.test(pn))pts=stkThread(0,1.55,0.7,0.3).concat([[1.55,0.6],[1.8,0.6],[2.45,1.08],[3.05,1.08],[3.28,0.93],[3.4,0.68],[3.4,0.45]]);
   else if(/19\.306/.test(pn))pts=stkThread(0,1.85,0.7,0.36).concat([[1.85,1.12],[2.03,1.12],[3.15,0.92],[3.31,0.78],[3.31,0.45]]);
-  else if(k==='sc-bdg')pts=stkThread(0,2.0,0.7,0.36).concat([[2.0,0.7],[2.02,1.15],[2.2,1.15],[3.48,0.78],[3.6,0.68],[3.6,0.45]]); /* cone head, wide at the seat (Richard, Oct 27) */
+  else if(k==='sc-bdg')pts=stkThread(0,2.0,0.7,0.3).concat([[2.0,0.72],[3.1,0.72],[3.35,0.75],[3.55,0.81],[3.72,0.9],[3.84,1.0],[3.92,1.1],[3.97,1.12],[4.92,1.12],[5.0,1.05],[5.0,0.62],[4.1,0.62]]); /* traced from the maker's picture */
   else if(/Badger/i.test(v)||k==='sc-pa'||k==='sc-pb')pts=stkThread(0,2.0,0.7,0.36).concat([[2.0,0.7],[2.2,1.05],[2.8,1.15],[3.4,0.95],[3.7,0.55],[3.7,0.4]]);
   else pts=stkThread(0,2.14,0.765,0.36).concat([[2.14,1.12],[3.5,1.12],[3.65,1.02],[3.72,0.87],[3.72,0.45]]);
   g.add(stkLathe(pts,mat));return g;
@@ -2854,7 +2856,8 @@ function stkSync(){
 function stkFrame(){
   var box=new THREE.Box3().setFromObject(STK.stack),size=new THREE.Vector3();box.getSize(size);
   var sock=STK.socket,top=sock?sock.pos.y:box.max.y;STK.rowY=top+(stkState().step==='screw'?11:9.5);
-  var h=Math.max(STK.rowY+7-box.min.y,18),mid=(box.min.y+STK.rowY+5)/2;
+  var sx=stkState().step==='screw'?3:0; /* taller screws like the Badger need more room above the row */
+  var h=Math.max(STK.rowY+7+sx-box.min.y,18),mid=(box.min.y+STK.rowY+5+sx)/2;
   var el=STK.r.domElement,asp=(el.clientWidth||600)/(el.clientHeight||420);
   var dist=(h/2)/Math.tan(16*Math.PI/180)*Math.max(1,1.15/asp)*1.12;
   STK.cam.position.set(0,mid+dist*0.18,dist);STK.cam.lookAt(0,mid,0);
