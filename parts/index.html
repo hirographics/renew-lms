@@ -68,7 +68,7 @@ button,input,select{font:inherit;color:inherit}
 .content{padding:26px 28px 80px;max-width:1080px}
 
 @media (max-width:900px){
-  .shell{grid-template-columns:1fr}
+  .shell{grid-template-columns:minmax(0,1fr)}.shell>*{min-width:0}
   .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px;gap:10px}
   .nav{flex-direction:row;overflow-x:auto;gap:4px;padding-bottom:2px}
   .nav button{white-space:nowrap;gap:8px}
@@ -258,6 +258,8 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 .num{font-family:var(--cond);font-weight:700;font-size:22px;line-height:1}
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
 .filters input{flex:1 1 220px}
+.filters select{min-width:0;max-width:100%}
+.li .chip.ref{white-space:normal;max-width:min(220px,40vw)}
 
 /* Status strip */
 .strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -2719,8 +2721,8 @@ function viewBench(){
 
 /* ---------- Shell ---------- */
 /* Techs see three things. Everything else is switched on in Settings (Oct 28 2026). Settings live in this browser and survive a data reset. */
-var NAV=[['find','Find a part'],['patient','Patient'],['stock','Stock']];
-var TOOLS=[['stack','Build the stack','See parts stack up in 3D'],['rx','Read an Rx','Type what the doctor wrote, get the parts'],['requests','Requests','Ask-first parts, returns, special orders'],['orders','Order list','One order on order day'],['receive','Receive stock','Check a box against the order'],['dash','Dashboard','Stock at a glance'],['reports','Reports','Usage by part and month'],['start','Start here','Role home pages'],['bench','Test bench','Leadership'],['labels','Drawer labels','Leadership']];
+var NAV=[['find','Find a part'],['rx','Read an Rx'],['patient','Patient'],['stock','Stock']];
+var TOOLS=[['stack','Build the stack','See parts stack up in 3D'],['requests','Requests','Ask-first parts, returns, special orders'],['orders','Order list','One order on order day'],['receive','Receive stock','Check a box against the order'],['dash','Dashboard','Stock at a glance'],['reports','Reports','Usage by part and month'],['start','Start here','Role home pages'],['bench','Test bench','Leadership'],['labels','Drawer labels','Leadership']];
 var ROLE_TOOLS={maya:['requests','orders','receive','start'],lead:['dash','reports','bench','labels','start']};
 var SETTINGS=(function(){try{return JSON.parse(localStorage.getItem('renew-parts-settings'))||{}}catch(e){return {}}})();
 function saveSettings(){try{localStorage.setItem('renew-parts-settings',JSON.stringify(SETTINGS))}catch(e){}}
