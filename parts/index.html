@@ -2881,7 +2881,7 @@ function stkInit(){
   requestAnimationFrame(stkLoop);
 }
 function stkStep(dir){if(!STK)return;stkAudio(true);STK.target=Math.max(0,Math.min(STK.items.length-1,Math.round(STK.target)+dir));STK.moved=true;STK.lastMove=performance.now()+250;stkInfo()}
-function stkFrame(){
+function stkFrame(resized){
   var box=new THREE.Box3().setFromObject(STK.stack),size=new THREE.Vector3();box.getSize(size);
   var step=stkState().step,sock=STK.socket,top=sock?sock.pos.y:box.max.y;STK.rowY=top+(step==='screw'?11:9.5);
   /* room above the row for the tallest part in it (at its focused size) */
@@ -2892,7 +2892,7 @@ function stkFrame(){
   STK.camTo.set(0,mid+dist*0.18,dist);STK.lookTo.set(0,mid,0);
   if(!STK.camSet||STK_RM){STK.cam.position.copy(STK.camTo);STK.look.copy(STK.lookTo);STK.cam.lookAt(STK.look);STK.camSet=true}
   STK.shadow.position.y=box.min.y-0.35;
-  var now=performance.now();STK.items.forEach(function(g,i){g.userData.born=STK_RM?0:now+i*45;g.userData.sc=0;g.userData.rot=i*0.9});
+  if(!resized){var now=performance.now();STK.items.forEach(function(g,i){g.userData.born=STK_RM?0:now+i*45;g.userData.sc=0;g.userData.rot=i*0.9})}
 }
 function stkDrop(){
   if(!STK||STK.dropping||!STK.items.length)return;stkAudio(true);
@@ -2903,7 +2903,7 @@ function stkPulse(g,k){g.traverse(function(o){if(o.material&&o.material.emissive
 function stkLoop(){
   requestAnimationFrame(stkLoop);var now=performance.now(); /* one clock for every timer in the 3D view */
   if(!STK||!STK.r.domElement.isConnected)return;
-  var el=STK.r.domElement,w=el.clientWidth,h=el.clientHeight;if(w&&h&&(el.width!==Math.round(w*STK.r.getPixelRatio())||el.height!==Math.round(h*STK.r.getPixelRatio()))){STK.r.setSize(w,h,false);STK.cam.aspect=w/h;STK.cam.updateProjectionMatrix();STK.camSet=false;stkFrame()}
+  var el=STK.r.domElement,w=el.clientWidth,h=el.clientHeight;if(w&&h&&(el.width!==Math.floor(w*STK.r.getPixelRatio())||el.height!==Math.floor(h*STK.r.getPixelRatio()))){STK.r.setSize(w,h,false);STK.cam.aspect=w/h;STK.cam.updateProjectionMatrix();STK.camSet=false;stkFrame(true)} /* three.js floors the canvas size: compare the same way, or this fires every frame on 150% screens */
   var dt=Math.max(0,Math.min(0.05,(now-(STK.last||now))/1000));STK.last=now;
   STK.stack.rotation.y+=dt*0.3;
   /* camera glides to the next layer */
