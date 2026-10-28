@@ -322,7 +322,7 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 <script>
 (function(){
 'use strict';
-var STORE='renew-parts-demo-v17';
+var STORE='renew-parts-demo-v18';
 var ORDER_DAY=3; // Wednesday
 var TODAY=new Date(); TODAY.setHours(12,0,0,0);
 
@@ -456,9 +456,9 @@ function roundPack(q,pack){pack=pack||1;return Math.ceil(q/pack)*pack}
    Standard screw for regular ti-bases; Torx screw for ANGLEBase (36.xxx / 37.xxx). One part per part number: a screw that fits several platforms lists them in p.fits. */
 var DESS_ABUT_SCREW={'nobel-cc':{'3.0':'19.068',NP:'19.027',RP:'19.030',WP:'19.030'},'nobel-tcc':{NP:'19.004',RP:'19.005',WP:'19.005','6.0':'19.005'},'nobel-bm':{RP:'19.028'},
   'zv-certain':{'3.4':'19.011','4.1':'19.011','5.0':'19.011'},'zv-tsv':{'3.5':'19.042','4.5':'19.042','5.7':'19.042'},'astra-os':{NP:'19.015',RP:'19.016',WP:'19.017'},
-  'bh-ti':{'3.0':'19.043','3.5':'19.043','4.5':'19.043','5.7':'19.043'},'str-tl':{NNC:'19.070',RN:'19.026',WN:'19.026'},'str-blt':{NC:'19.032',RC:'19.033'},'str-blx':{'RB/WB':'19.054'},'neo-gm':{GM:'19.051'}};
+  'bh-ti':{'3.0':'19.043','3.5':'19.043','4.5':'19.043','5.7':'19.043'},'str-tl':{NNC:'19.070',RN:'19.026',WN:'19.026'},'str-blt':{NC:'19.032',RC:'19.033'},'str-blx':{'RB/WB':'19.054'},'neo-gm':{GM:'19.575'}};
 var DESS_ANG_SCREW={'nobel-cc':{'3.0':'19.468',NP:'19.441',RP:'19.442'},'nobel-tcc':{NP:'19.404',RP:'19.405',WP:'19.405'},'zv-certain':{'3.4':'19.438','4.1':'19.438','5.0':'19.438'},
-  'zv-tsv':{'3.5':'19.417','4.5':'19.417','5.7':'19.417'},'astra-os':{RP:'19.441',WP:'19.425'},'str-tl':{NNC:'19.441',RN:'19.446',WN:'19.446'},'str-blt':{NC:'19.443',RC:'19.443'},'str-blx':{'RB/WB':'19.441'}};
+  'zv-tsv':{'3.5':'19.417','4.5':'19.417','5.7':'19.417'},'astra-os':{RP:'19.441',WP:'19.425'},'str-tl':{NNC:'19.441',RN:'19.446',WN:'19.446'},'str-blt':{NC:'19.443',RC:'19.443'},'str-blx':{'RB/WB':'19.441'},'neo-gm':{GM:'19.444'}};
 function fitsAt(p,sys,plat){return (p.sys===sys&&p.plat===plat)||!!(p.fits&&p.fits.some(function(f){return f[0]===sys&&f[1]===plat}))}
 function buildSeed(){
   var rng=mulberry32(4417);
@@ -703,6 +703,37 @@ function exoHTML(p){
   return h+'</ul></section>';
 }
 /* ---------- Part helpers ---------- */
+/* Tightening torque for screws. Source: DESS 2026 catalog, "Clinical screws, recommended torque" table (pages 115 to 121),
+   and the DESS USA product pages. Some screws fit several implants at different torques: each entry says where. */
+var TQ_CAT='DESS catalog 2026, clinical screws torque table',TQ_WEB='DESS USA product page';
+var SCREW_TQ={
+ 'DESS 19.006':[[15]],'DESS 19.055':[[15,'','DESS Multi-unit catalog']],'DESS 19.110':[[15]],'DESS 19.306':[[15]],'DESS 19.018':[[15]],'DESS 19.041':[[15]],'DESS 19.098':[[15]],
+ 'DESS 19.069':[[15,'',TQ_WEB]],
+ 'DESS 19.068':[[15]],'DESS 19.027':[[35]],'DESS 19.030':[[35]],'DESS 19.004':[[35]],'DESS 19.005':[[35]],'DESS 19.028':[[35]],'DESS 19.011':[[20]],'DESS 19.042':[[30]],
+ 'DESS 19.015':[[15]],'DESS 19.016':[[20]],'DESS 19.017':[[25]],'DESS 19.043':[[30]],'DESS 19.070':[[35]],'DESS 19.026':[[35]],'DESS 19.032':[[35]],'DESS 19.033':[[35]],'DESS 19.054':[[35]],
+ 'DESS 19.575':[[20]],'DESS 19.444':[[20,'Neodent Grand Morse ANGLEBase']],
+ 'DESS 19.442':[[35]],'DESS 19.404':[[35]],'DESS 19.405':[[35]],'DESS 19.438':[[20]],'DESS 19.417':[[30]],'DESS 19.425':[[25]],'DESS 19.446':[[35]],'DESS 19.443':[[35]],
+ 'DESS 19.441':[[35,'NobelActive NP ANGLEBase'],[20,'Astra Tech OsseoSpeed RP ANGLEBase'],[35,'Straumann BLX ANGLEBase']]
+};
+var SCREW_TQ_NOTE={
+ 'DESS 19.069':'The DESS Multi-unit catalog lists 20 Ncm for "screws for superstructures". The product page says 15 Ncm. Check the instructions in the box.',
+ 'DESS 19.441':'Not listed for Straumann Tissue Level NNC. Check the instructions in the box.',
+ 'DESS 19.468':'This is the DESS ELLIPTIBase screw. The DESS torque table does not list it. Check the instructions in the box.',
+ 'Vortex':'Voxel Dental lists a maximum of 15 Ncm for the 1.8 mm Vortex direct to MUA screw, with the Vortex T5 ball driver.',
+ 'Rosen':'The seller listing says "up to 20N" and "by hand only". The unit is not clear. Check the instructions in the box.'
+};
+var SCREW_TQ_MAX={'Vortex':15};
+/* "35 Ncm" or the list of torques by implant; '' when the screw has no known value */
+function torqueText(p){
+  if(!p||p.type!=='screw')return null;
+  var t=SCREW_TQ[tqKey(p)];
+  if(t&&t.length===1)return t[0][0]+' Ncm'+(t[0][1]?' ('+t[0][1]+')':'');
+  if(t)return t.map(function(x){return x[0]+' Ncm on '+x[1]}).join('; ');
+  if(SCREW_TQ_MAX[tqKey(p)])return 'Maximum '+SCREW_TQ_MAX[tqKey(p)]+' Ncm';
+  return '';
+}
+function tqKey(p){return String(p.pn||'').replace(/-P\d+$/,'')} /* a 10-pack has the same torque as the single */
+function torqueSrc(p){var t=SCREW_TQ[tqKey(p)];if(t)return (t[0][2]||TQ_CAT);if(SCREW_TQ_MAX[tqKey(p)]||SCREW_TQ_NOTE[tqKey(p)])return 'Maker or seller listing';return ''}
 function partName(p){var L=TYPE_LABEL[p.type];if(!p.v)return L;return p.v.toLowerCase().indexOf(L.toLowerCase())===0?p.v:L+': '+p.v} /* no "Analog: Analog" */
 function vName(p){return p.v||TYPE_LABEL[p.type]}
 var ICONS={
@@ -1793,7 +1824,7 @@ function stockFiltered(){
   });
 }
 function stockRow(p){
-  return '<div class="li click" data-act="open" data-v="'+p.id+'"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb"><b>'+esc(pnLabel(p))+'</b></div></div><div class="rt">'+(p.stocked?'<span><span class="num">'+p.onHand+'</span> <span class="small muted">min '+p.min+'</span></span>':'')+'<span>'+pill(p)+onOrderPill(p)+'</span></div></div>';
+  return '<div class="li click" data-act="open" data-v="'+p.id+'"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb"><b>'+esc(pnLabel(p))+'</b>'+(torqueText(p)?' · Torque '+esc(torqueText(p)):'')+'</div></div><div class="rt">'+(p.stocked?'<span><span class="num">'+p.onHand+'</span> <span class="small muted">min '+p.min+'</span></span>':'')+'<span>'+pill(p)+onOrderPill(p)+'</span></div></div>';
 }
 function stockListHTML(){
   var rows=stockFiltered();
@@ -2090,7 +2121,7 @@ function viewDrawer(){
   h+='<div style="margin-bottom:12px">'+locHTML(p)+' '+pill(p)+'</div><h2>'+esc(partName(p))+'</h2><p class="ctx">'+esc(ctx(p))+'</p>';
   h+='<dl class="kv"><dt>'+(p.real?'Part #':'Sample #')+'</dt><dd>'+esc(p.pn)+'</dd><dt>Made by</dt><dd>'+esc(brandById(p.maker).name)+'</dd><dt>Location</dt><dd>'+esc(locText(p))+'</dd>'+(p.note?'<dt>Note</dt><dd>'+esc(p.note)+'</dd>':'')+(driverFor(p)!==undefined?'<dt>Driver</dt><dd>'+(driverFor(p)?esc(DRV[driverFor(p)].t):'Not entered yet')+'</dd>':'');
   if(p.stocked)h+='<dt>On hand</dt><dd>'+p.onHand+'</dd><dt>Minimum</dt><dd>'+p.min+'</dd>';
-  h+='<dt>Pack</dt><dd>'+(p.pack>1?'Packs of '+p.pack:'Single')+'</dd><dt>Price</dt><dd>'+money(p.cost)+' each'+(p.real&&(p.k==='sc-pa'||p.k==='tb-ang'||p.k==='sc-fa'||p.k==='an-d')?' (from your sheet)':' (sample)')+'</dd></dl>';
+  h+=(p.type==='screw'?'<dt>Torque</dt><dd>'+(torqueText(p)?esc(torqueText(p))+'<div class="small muted" style="font-weight:400">Source: '+esc(torqueSrc(p))+'</div>':(/^SMP-/.test(p.pn)?'Sample part: no real torque':'Not found yet. Check the instructions in the box.'))+(SCREW_TQ_NOTE[tqKey(p)]?'<div class="small" style="font-weight:400;color:var(--low)">'+esc(SCREW_TQ_NOTE[tqKey(p)])+'</div>':'')+'</dd>':'')+'<dt>Pack</dt><dd>'+(p.pack>1?'Packs of '+p.pack:'Single')+'</dd><dt>Price</dt><dd>'+money(p.cost)+' each'+(p.real&&(p.k==='sc-pa'||p.k==='tb-ang'||p.k==='sc-fa'||p.k==='an-d')?' (from your sheet)':' (sample)')+'</dd></dl>';
   if(partLink(p))h+='<p>'+partLink(p)+'</p>';
   if(isMaya())h+='<div class="row" style="margin-bottom:16px"><label class="field" style="flex:1 1 260px">Product page link<input type="text" id="d-url" value="'+esc(p.url||'')+'" placeholder="Paste the supplier page for this part"></label><button class="btn sm ghost" data-act="save-url" data-v="'+p.id+'">Save link</button></div>';
   if(p.stocked&&isMaya())h+='<div class="row" style="margin-bottom:16px"><label class="field">Count on shelf<input id="d-on" type="number" min="0" value="'+p.onHand+'" style="width:110px"></label><label class="field">Minimum<input id="d-min" type="number" min="0" value="'+p.min+'" style="width:110px"></label><button class="btn sm" data-act="save-counts" data-v="'+p.id+'">Save</button></div>';
@@ -3030,7 +3061,7 @@ function stkInfo(){
   if(!g){box.innerHTML='';return}var it=g.userData.it,p=it.p;
   if(!p){box.innerHTML='<b>'+esc(it.label)+'</b><div class="small muted">'+esc(it.sub||'')+'</div>';return}
   var ex=exoFor(p)[0];
-  box.innerHTML='<b>'+esc(partName(p))+'</b>'+(it.rec?' <span class="pill p-ok">Lab default</span>':'')+'<div class="small">'+esc(pnLabel(p))+' · '+(p.stocked?esc(locText(p))+' · '+p.onHand+' on hand':'Not stocked: goes on the order list')+'</div>'+(ex?'<div class="small muted">exocad: '+esc(ex.n)+'</div>':'')+'<div class="small muted">'+(i+1)+' of '+STK.items.length+'</div>';
+  box.innerHTML='<b>'+esc(partName(p))+'</b>'+(it.rec?' <span class="pill p-ok">Lab default</span>':'')+'<div class="small">'+esc(pnLabel(p))+' · '+(p.stocked?esc(locText(p))+' · '+p.onHand+' on hand':'Not stocked: goes on the order list')+'</div>'+(torqueText(p)?'<div class="small"><b>Torque '+esc(torqueText(p))+'</b></div>':'')+(ex?'<div class="small muted">exocad: '+esc(ex.n)+'</div>':'')+'<div class="small muted">'+(i+1)+' of '+STK.items.length+'</div>';
 }
 function stkMount(){
   var host=document.getElementById('stk-stage');if(!host)return;
