@@ -322,7 +322,7 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 <script>
 (function(){
 'use strict';
-var STORE='renew-parts-demo-v18';
+var STORE='renew-parts-demo-v20';
 var ORDER_DAY=3; // Wednesday
 var TODAY=new Date(); TODAY.setHours(12,0,0,0);
 
@@ -457,9 +457,10 @@ function roundPack(q,pack){pack=pack||1;return Math.ceil(q/pack)*pack}
 var DESS_ABUT_SCREW={'nobel-cc':{'3.0':'19.068',NP:'19.027',RP:'19.030',WP:'19.030'},'nobel-tcc':{NP:'19.004',RP:'19.005',WP:'19.005','6.0':'19.005'},'nobel-bm':{RP:'19.028'},
   'zv-certain':{'3.4':'19.011','4.1':'19.011','5.0':'19.011'},'zv-tsv':{'3.5':'19.042','4.5':'19.042','5.7':'19.042'},'astra-os':{NP:'19.015',RP:'19.016',WP:'19.017'},
   'bh-ti':{'3.0':'19.043','3.5':'19.043','4.5':'19.043','5.7':'19.043'},'str-tl':{NNC:'19.070',RN:'19.026',WN:'19.026'},'str-blt':{NC:'19.032',RC:'19.033'},'str-blx':{'RB/WB':'19.054'},'neo-gm':{GM:'19.575'}};
-var DESS_ANG_SCREW={'nobel-cc':{'3.0':'19.468',NP:'19.441',RP:'19.442'},'nobel-tcc':{NP:'19.404',RP:'19.405',WP:'19.405'},'zv-certain':{'3.4':'19.438','4.1':'19.438','5.0':'19.438'},
-  'zv-tsv':{'3.5':'19.417','4.5':'19.417','5.7':'19.417'},'astra-os':{RP:'19.441',WP:'19.425'},'str-tl':{NNC:'19.441',RN:'19.446',WN:'19.446'},'str-blt':{NC:'19.443',RC:'19.443'},'str-blx':{'RB/WB':'19.441'},'neo-gm':{GM:'19.444'}};
+var DESS_ANG_SCREW={'nobel-cc':{NP:'19.441',RP:'19.442'},'nobel-tcc':{NP:'19.404',RP:'19.405',WP:'19.405'},'zv-certain':{'3.4':'19.438','4.1':'19.438','5.0':'19.438'},
+  'zv-tsv':{'3.5':'19.417','4.5':'19.417','5.7':'19.417'},'astra-os':{RP:'19.441',WP:'19.425'},'str-tl':{RN:'19.446',WN:'19.446'},'str-blt':{NC:'19.443',RC:'19.443'},'str-blx':{'RB/WB':'19.441'},'neo-gm':{GM:'19.444'}};
 function fitsAt(p,sys,plat){return (p.sys===sys&&p.plat===plat)||!!(p.fits&&p.fits.some(function(f){return f[0]===sys&&f[1]===plat}))}
+var HIDE_SAMPLES=true;
 function buildSeed(){
   var rng=mulberry32(4417);
   var parts=[], idx=0, byKey={};
@@ -511,7 +512,7 @@ function buildSeed(){
   addReal({k:'sc-fa',type:'screw',v:'Full Arch screw, flat seat, angled access',pn:'DESS 19.069',url:'https://www.dess-usa.com/flat-seat-screw-multiunit-rp-19-069',urlNote:'Claude found this link. Check it once.',min:12,cost:10,drv:'tb06'});
   addReal({k:'sc-rosen',type:'screw',maker:'rosen',v:'Rosen screw, direct to multi-unit',pn:'Rosen',min:0,cost:8});
   addReal({k:'sc-vortex',type:'screw',maker:'vortex',v:'Vortex screw',pn:'Vortex',url:'https://www.ladentalimplantlab.com/products/vortex-screw',min:12,cost:8});
-  addReal({k:'sc-str',type:'screw',brand:'straumann',sys:'str-sra',plat:'Standard',v:'Straumann multi-unit screw',pn:'DESS 19.041',url:RL+'final-screw-for-straumann-multiunit-45-3-3-4-1-4-8-nc-rc-19-041/',min:12,cost:6});
+  addReal({k:'sc-str',type:'screw',brand:'straumann',sys:'str-sra',plat:'Standard',v:'Straumann multi-unit screw',note:'DESS says 19.041 fits the Straumann Bone Level Multi-Base abutment and the Tissue Level converter, not the SRA. The SRA screw is 19.098 (DESS product pages, Oct 28 2026).',pn:'DESS 19.041',url:RL+'final-screw-for-straumann-multiunit-45-3-3-4-1-4-8-nc-rc-19-041/',min:12,cost:6});
   // import the DESS catalog
   var CC={analog:9,tibase:32,mua:60,screw:8,healcap:12,attach:25};
   DESS_CAT.forEach(function(row){
@@ -599,7 +600,7 @@ function buildSeed(){
   put('C7',scr('nobel-mua','Regular','sc-p'),C_NOTE);
   put('C8',scr('nobel-mua','Regular','sc-h050'),'Drawer label says Hex .050 with no number. 19.110 comes from the workbook (open question 8).');
   put('C9',scr('nobel-mua','Regular','sc-h048'),C_NOTE);put('C10',scr('nobel-mua','Regular','sc-pa'),C_NOTE);
-  put('C11',scr('str-sra','Standard','sc-str'),'Drawer label says 19.105, the workbook link says 19.041 (open question 9).');
+  put('C11',scr('str-sra','Standard','sc-str'),'Drawer label says 19.105, the workbook link says 19.041 (open question 9). DESS says both are Straumann Multi-Base screws, not SRA screws. The SRA screw is 19.098.');
   put('C12',scr('nobel-mua','Regular','sc-vortex'),C_NOTE);
   put('C13',newPart({sys:'nobel-mua',plat:'Regular',k:'sc-mist',type:'screw',maker:'mist',v:'MIST bar screw (Nobel)'}),'Supplier and part number are open question 10.');
   put('C14',newPart({sys:'astra-uni',plat:'Standard',k:'sc-018',type:'screw',maker:'dess',v:'DESS long screw for Astra UniAbutment',pn:'DESS 19.018',real:true,drv:'h127'}),C_NOTE);
@@ -669,6 +670,12 @@ function buildSeed(){
     'nobel mua':{brand:'nobel',level:'mua',sys:'nobel-mua',ref:'Badger screw',screw:'badger',by:'Prosthodontist (red ink on an Rx)',d:iso(addDays(TODAY,-30))},
     'zimvie tsx47b10':{brand:'zimvie',level:'implant',sys:'zv-tsv',plat:'4.5',by:'Lab note (blue ink on an Rx)',d:iso(addDays(TODAY,-12))}
   };
+  /* No made-up parts: hide every placeholder ("SMP-" number) and any sample record that points at one (Oct 28 2026). Set HIDE_SAMPLES=false to bring them back. */
+  if(HIDE_SAMPLES){
+    var gone={};parts=parts.filter(function(p){if(/^SMP-/.test(p.pn||'')){gone[p.id]=1;return false}return true});
+    function keep(x){return !(gone[x.p]||gone[x.partId]||gone[x.from]||gone[x.to])}
+    pulls=pulls.filter(keep);returns=returns.filter(keep);retired=retired.filter(keep);changes=changes.filter(keep);requests=requests.filter(keep);lines=lines.filter(keep);
+  }
   return {v:1,returns:returns,retired:retired,changes:changes,parts:parts,pulls:pulls,requests:requests,lines:lines,draftQty:{},draftRemoved:{},seq:100,pairings:pairings,suppliers:{}};
 }
 
@@ -717,7 +724,6 @@ var SCREW_TQ={
 };
 var SCREW_TQ_NOTE={
  'DESS 19.069':'The DESS Multi-unit catalog lists 20 Ncm for "screws for superstructures". The product page says 15 Ncm. Check the instructions in the box.',
- 'DESS 19.441':'Not listed for Straumann Tissue Level NNC. Check the instructions in the box.',
  'DESS 19.468':'This is the DESS ELLIPTIBase screw. The DESS torque table does not list it. Check the instructions in the box.',
  'Vortex':'Voxel Dental lists a maximum of 15 Ncm for the 1.8 mm Vortex direct to MUA screw, with the Vortex T5 ball driver.',
  'Rosen':'The seller listing says "up to 20N" and "by hand only". The unit is not clear. Check the instructions in the box.'
@@ -1558,7 +1564,7 @@ function onOrderPill(p){var q=onOrder(p.id);return q?' <span class="pill p-acc">
 function ctx(p){var base=ctx0(p);if(!p.fits||p.fits.length<2)return base;
   var same=p.fits.filter(function(f){return f[0]===p.sys&&f[1]!==p.plat}).map(function(f){return f[1]}),other=p.fits.filter(function(f){return f[0]!==p.sys}).map(function(f){var s=sysById(f[0]),bn=brandById(s.brand).name.replace(/ \(.*\)$/,''),sn=s.name.replace(/ \(.*\)$/,'');return (sn.toLowerCase().indexOf(bn.split(' ')[0].toLowerCase())===0?sn:bn+' '+sn)+' '+f[1]});
   return base+(same.length?' and '+same.join(' and '):'')+(other.length?'. Also fits '+other.join(', '):'')}
-function ctx0(p){if(isFam(p))return 'DESS, fits the multi-unit RP top (Nobel, 3i Low Profile, and others)';var s=sysById(p.sys),bn=brandById(p.brand).name.replace(/ \(.*\)$/,''),sn=s.name.replace(/ \(.*\)$/,''),fit=(sn.toLowerCase().indexOf(bn.split(' ')[0].toLowerCase())===0?sn:bn+' '+sn)+', '+p.plat+(p.level==='mua'?' (multi-unit level)':'');return p.maker!==p.brand?brandById(p.maker).name+', fits '+fit:fit}
+function ctx0(p){if(isFam(p))return 'DESS, fits the 4.8 mm multi-unit top (Nobel, 3i Low Profile, BioHorizons, Hiossen, Neodent Mini Conical, Astra EV Multibase, Blue Sky Bio, Noris)';var s=sysById(p.sys),bn=brandById(p.brand).name.replace(/ \(.*\)$/,''),sn=s.name.replace(/ \(.*\)$/,''),fit=(sn.toLowerCase().indexOf(bn.split(' ')[0].toLowerCase())===0?sn:bn+' '+sn)+', '+p.plat+(p.level==='mua'?' (multi-unit level)':'');return p.maker!==p.brand?brandById(p.maker).name+', fits '+fit:fit}
 function pnLabel(p){if(/^not /i.test(p.pn||''))return 'No part number yet ('+p.pn.charAt(0).toLowerCase()+p.pn.slice(1)+')';return (p.real?'Part # ':(/^SMP-/.test(p.pn)?'Sample # ':'Part: '))+p.pn}
 function makerChip(p){return p.maker==='dess'?'<span class="pill p-dess">DESS</span>':'<span class="pill p-none">'+esc(brandById(p.maker).name.replace(/ \(.*\)$/,''))+'</span>'}
 function status(p){
@@ -1584,6 +1590,8 @@ function drawerMap(bin){
   return '<div class="dm"><div class="dm-t">'+esc(cab.name)+'</div><div class="dm-g" style="grid-template-columns:repeat('+cab.cols+',1fr)">'+cells+'</div></div>';
 }
 function locText(p){if(!p.stocked)return 'not stocked';if(p.loc==='tbd')return 'no drawer yet';if(p.loc==='bin')return 'drawer '+p.bin;return p.loc==='kent'?"Kent's office":"Maya's cabinet"}
+/* a system shows in pick lists only when it has at least one real part */
+function sysHasParts(sys,plat){var s=sysById(sys);if(!s)return false;return (plat?[plat]:s.plats).some(function(pl){return partsFor(sys,pl).length>0})}
 function partsFor(sys,plat){return S.parts.filter(function(p){return fitsAt(p,sys,plat)||(famDess(sys)&&isFam(p)&&p.type!=='screw')})}
 function lastOrderReq(p,patient){var hit=null;S.requests.forEach(function(r){if(r.kind==='order'&&r.partId===p.id&&r.patient===String(patient||'')&&r.status!=='declined')hit=r});return hit}
 function activeOrderReq(p,patient){var r=lastOrderReq(p,patient);return r&&(r.status==='requested'||r.status==='ordered')?r:null}
@@ -1708,17 +1716,18 @@ function viewFind(){
     body+=stepHead(F.level==='mua'?'Which brand of multi-unit abutment?':'Which implant brand?','brand');
     if(F.level==='mua')body+='<p class="small muted" style="margin-top:-6px">The multi-unit brand can differ from the implant brand.</p>';
     body+='<div class="tiles">';
-    BRANDS.forEach(function(b){var ss=SYSTEMS.filter(function(s){return s.brand===b.id&&s.level===F.level});if(!ss.length)return;body+=tile('brand',b.id,b.name,ss.map(function(s){return s.name}).join(', '))});
+    var noParts=[];BRANDS.forEach(function(b){var all=SYSTEMS.filter(function(s){return s.brand===b.id&&s.level===F.level}),ss=all.filter(function(s){return sysHasParts(s.id)});if(!all.length)return;if(!ss.length){noParts.push(b.name.replace(/ \(.*\)$/,''));return}body+=tile('brand',b.id,b.name,ss.map(function(s){return s.name}).join(', '))});
     body+='</div>';
+    if(noParts.length)body+='<p class="small muted" style="margin-top:10px">No confirmed parts yet for '+esc(noParts.join(', '))+'. Real part numbers are being added. Until then, ask Maya\u2019s team.</p>';
   } else if(F.step==='system'){
     body+=stepHead('Which system?','system');
     body+='<div class="tiles">';
-    SYSTEMS.filter(function(s){return s.brand===F.brand&&s.level===F.level}).forEach(function(s){var n=S.parts.filter(function(p){return p.sys===s.id&&p.stocked}).length;body+=tile('system',s.id,s.name,s.note||'',n?'<span class="pill p-ok">'+n+' parts stocked</span>':'<span class="pill p-none">Not stocked</span>')});
+    SYSTEMS.filter(function(s){return s.brand===F.brand&&s.level===F.level&&sysHasParts(s.id)}).forEach(function(s){var n=S.parts.filter(function(p){return p.sys===s.id&&p.stocked}).length;body+=tile('system',s.id,s.name,s.note||'',n?'<span class="pill p-ok">'+n+' parts stocked</span>':'<span class="pill p-none">Not stocked</span>')});
     body+='</div>';
   } else if(F.step==='plat'){
     body+=stepHead('Which platform?','plat');
     body+='<div class="tiles">';
-    sysById(F.sys).plats.forEach(function(pl){var n=partsFor(F.sys,pl).filter(function(p){return p.stocked}).length;body+=tile('plat',pl,pl,'',n?'<span class="pill p-ok">'+n+' parts stocked</span>':'<span class="pill p-none">Not stocked</span>')});
+    sysById(F.sys).plats.filter(function(pl){return partsFor(F.sys,pl).length}).forEach(function(pl){var n=partsFor(F.sys,pl).filter(function(p){return p.stocked}).length;body+=tile('plat',pl,pl,'',n?'<span class="pill p-ok">'+n+' parts stocked</span>':'<span class="pill p-none">Not stocked</span>')});
     body+='</div>';
   } else if(F.step==='type'){
     body+=stepHead('Which part?');
@@ -2179,8 +2188,9 @@ function docMatches(name){
 function prefScrewKey(t){t=(t||'').toLowerCase();if(/badger/.test(t))return 'sc-bdg';if(/full arch/.test(t))return 'sc-fa';if(/unigrip/.test(t))return 'sc-p';if(/hex 3i|\.048/.test(t))return 'sc-h048';if(/\.050/.test(t))return 'sc-h050';if(/rosen/.test(t))return 'sc-rosen';if(/prh/.test(t))return 'sc-sinprh';if(/powerball/.test(t))return 'sc-pb';if(/19\.018/.test(t))return 'sc-018';if(/vortex/.test(t))return 'sc-vortex';return null}
 
 /* Screw fit rules. DESS lists its multi-unit RP screws (19.006 and others) as fitting the 4.8 mm multi-unit top of these systems. */
-var RP_TOP={'nobel-mua':1,'zv-lpa':1,'bsb-mua':1,'bh-mua':1,'hio-mua':1,'neo-mini':1,'noris-mua':1};
-var SRA_EXTRA={'sc-fa':1}; /* DESS lists 19.069 as also fitting the 4.6 mm SRA top */
+/* Multi-unit tops that take the DESS 4.8 mm multi-unit parts. Source: DESS USA product pages for 15.007 and 19.110, "compatible with the following top (4.8 mm) of Multiunit Abutments" (checked Oct 28 2026). */
+var RP_TOP={'nobel-mua':1,'zv-lpa':1,'bsb-mua':1,'bh-mua':1,'hio-mua':1,'neo-mini':1,'noris-mua':1,'astra-mb':1};
+var SRA_EXTRA={}; /* Oct 28: removed 19.069 on SRA. DESS lists 19.069 for the 4.8 mm multi-unit top only; no DESS source puts it on the 4.6 mm SRA */
 var SYS_SCREW={'str-sra':{bar:'sc-sra',why:'Straumann SRA bars use the Straumann bar screw, 19.098.'}};
 var ATTACH_LABEL={tibase:'Ti-base',direct:'Direct to MUA',bar:'Bar'};
 var PREF_MAKER={'sc-p':'dess'}; /* "DESS Unigrip" means DESS 19.006, not any straight screw */
@@ -2747,6 +2757,7 @@ function stkCands(layer){
     if(mua){var m2=stkMuaSys(mua);if(!m2)return [];
       list=S.parts.filter(function(p){return p.type==='screw'&&((p.sys===m2[0]&&p.plat===m2[1])||(RP_TOP[m2[0]]&&p.sys==='nobel-mua'&&p.plat==='Regular'))&&!/P10|-P\d/.test(p.pn)});
       var seen={};list=list.filter(function(p){var k=p.pn;if(seen[k])return false;seen[k]=1;return true});
+      if(m2[0]==='str-sra')list=list.filter(function(p){return p.pn!=='DESS 19.041'}); /* 19.041 is the Multi-Base screw, not SRA */
       var want;
       if(top){
         /* Screws for frames printed or milled straight onto the multi-unit (Badger, Rosen, MIST...) do not go in a ti-base or temp cylinder */
@@ -3078,9 +3089,9 @@ function viewStack(){
   var s=stkState(),h='<header class="vh"><h1>Build the stack</h1><p class="lede">Pick the implant. Then the parts that fit hover above it. Swipe through them and stop on one: it clicks into place. Layer by layer, down to the screw.</p></header>';
   if(s.step==='pick'||!s.sys){
     h+='<div class="card"><div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end">';
-    h+='<label class="field">Brand<select id="stk-brand"><option value="">Pick a brand</option>'+BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id&&x.level==='implant'&&(!s.dess||stkHasD(x.id))})}).map(function(b){return '<option value="'+b.id+'"'+(s.brand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select></label>';
-    if(s.brand)h+='<label class="field">Implant system<select id="stk-sys"><option value="">Pick a system</option>'+SYSTEMS.filter(function(x){return x.brand===s.brand&&x.level==='implant'&&(!s.dess||stkHasD(x.id))}).map(function(x){return '<option value="'+x.id+'"'+(s.sys===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>';
-    if(s.sys)h+='<label class="field">Platform<select id="stk-plat"><option value="">Pick a platform</option>'+sysById(s.sys).plats.filter(function(pl){return !s.dess||stkHasD(s.sys,pl)}).map(function(pl){return '<option'+(s.plat===pl?' selected':'')+'>'+esc(pl)+'</option>'}).join('')+'</select></label>';
+    h+='<label class="field">Brand<select id="stk-brand"><option value="">Pick a brand</option>'+BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id&&x.level==='implant'&&sysHasParts(x.id)&&(!s.dess||stkHasD(x.id))})}).map(function(b){return '<option value="'+b.id+'"'+(s.brand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select></label>';
+    if(s.brand)h+='<label class="field">Implant system<select id="stk-sys"><option value="">Pick a system</option>'+SYSTEMS.filter(function(x){return x.brand===s.brand&&x.level==='implant'&&sysHasParts(x.id)&&(!s.dess||stkHasD(x.id))}).map(function(x){return '<option value="'+x.id+'"'+(s.sys===x.id?' selected':'')+'>'+esc(x.name)+'</option>'}).join('')+'</select></label>';
+    if(s.sys)h+='<label class="field">Platform<select id="stk-plat"><option value="">Pick a platform</option>'+sysById(s.sys).plats.filter(function(pl){return partsFor(s.sys,pl).length&&(!s.dess||stkHasD(s.sys,pl))}).map(function(pl){return '<option'+(s.plat===pl?' selected':'')+'>'+esc(pl)+'</option>'}).join('')+'</select></label>';
     h+='<div class="field">Case<span class="seg">'+['final','proto'].map(function(m){return '<button data-act="stk-mode" data-v="'+m+'"'+(s.mode===m?' aria-pressed="true"':'')+'>'+(m==='final'?'Final':'Prototype')+'</button>'}).join('')+'</span></div>';
     h+='<div class="field">Parts<span class="seg"><button data-act="stk-dess" data-v="0" aria-pressed="'+!s.dess+'">All makers</button><button data-act="stk-dess" data-v="1" aria-pressed="'+!!s.dess+'">DESS only</button></span></div>';
     h+='<button class="btn" data-act="stk-start"'+(s.sys&&s.plat?'':' disabled')+'>Show the implant</button></div></div>';
