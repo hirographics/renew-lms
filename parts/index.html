@@ -2900,11 +2900,11 @@ function stkDrop(){
   STK.dropping={g:g,it:it,t:performance.now(),from:g.position.clone(),fromQ:g.quaternion.clone(),s0:g.scale.x,screw:stkState().step==='screw',ticks:0,hit:false};
 }
 function stkPulse(g,k){g.traverse(function(o){if(o.material&&o.material.emissive){o.material.emissive.setRGB(0.16*k,0.22*k,0.32*k)}})}
-function stkLoop(now){
-  requestAnimationFrame(stkLoop);
+function stkLoop(){
+  requestAnimationFrame(stkLoop);var now=performance.now(); /* one clock for every timer in the 3D view */
   if(!STK||!STK.r.domElement.isConnected)return;
   var el=STK.r.domElement,w=el.clientWidth,h=el.clientHeight;if(w&&h&&(el.width!==Math.round(w*STK.r.getPixelRatio())||el.height!==Math.round(h*STK.r.getPixelRatio()))){STK.r.setSize(w,h,false);STK.cam.aspect=w/h;STK.cam.updateProjectionMatrix();STK.camSet=false;stkFrame()}
-  var dt=Math.min(0.05,(now-(STK.last||now))/1000);STK.last=now;
+  var dt=Math.max(0,Math.min(0.05,(now-(STK.last||now))/1000));STK.last=now;
   STK.stack.rotation.y+=dt*0.3;
   /* camera glides to the next layer */
   var kc=STK_RM?1:1-Math.exp(-dt*4.5);STK.cam.position.lerp(STK.camTo,kc);STK.look.lerp(STK.lookTo,kc);STK.cam.lookAt(STK.look);
