@@ -305,6 +305,9 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 .stk-layer{position:absolute;left:12px;top:10px;font-size:13px;background:var(--surface,#fff);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
 .stk-nav{position:absolute;top:22%;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface,#fff);font-size:26px;line-height:1;cursor:pointer}
 .stk-nav.l{left:10px}.stk-nav.r{right:10px}
+.set-btn{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--ink);font-weight:600;cursor:pointer;text-decoration:none!important;font-size:14px!important}
+.set-btn:hover{background:var(--surface2)}
+@media (max-width:900px){.side-foot{display:block!important;padding:0}}
 .stk-mute{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface,#fff);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;transition:transform .15s}
 .stk-mute:active{transform:scale(.92)}.stk-mute[aria-pressed="true"]{color:var(--out)}
 .stk-nav{transition:transform .15s}.stk-nav:active{transform:scale(.92)}
@@ -685,7 +688,7 @@ function load(){
   try{var raw=localStorage.getItem(STORE);if(raw){var o=JSON.parse(raw);if(o&&o.v===1&&o.parts){S=o}}}catch(e){}
   if(!S)S=buildSeed();
   S.returns=S.returns||[];S.retired=S.retired||[];S.changes=S.changes||[];S.tests=S.tests||[];
-  UI={chg:{pt:'',sel:null,q:1,reason:null,newId:null,none:false,search:'',done:null},retAsk:null,rx:{final:'none',text:'',arch:{},step:'none',patient:'',doctor:'',ov:{},read:false,ex:null},view:'start',role:'tech',stockQ:'',stockBrand:'all',stockStatus:'stocked',rqTab:'pull',repRange:'12m',repBrand:'all',repPart:'all',drawer:null,help:null};
+  UI={chg:{pt:'',sel:null,q:1,reason:null,newId:null,none:false,search:'',done:null},retAsk:null,rx:{final:'none',text:'',arch:{},step:'none',patient:'',doctor:'',ov:{},read:false,ex:null},view:'find',role:'tech',stockQ:'',stockBrand:'all',stockStatus:'stocked',rqTab:'pull',repRange:'12m',repBrand:'all',repPart:'all',drawer:null,help:null};
   try{var u=localStorage.getItem(STORE+'-ui');if(u){var uo=JSON.parse(u);UI.role=uo.role||UI.role;UI.view=uo.view||UI.view}}catch(e){}
 }
 function save(){
@@ -1709,6 +1712,7 @@ function viewFind(){
     body+='<div class="row"><input id="pt" class="big" type="text" inputmode="numeric" autocomplete="off" placeholder="Patient number" value="'+esc(F.patient)+'" aria-label="Patient number"><button class="btn" data-act="pt-next">Continue</button></div>';
     body+='<p class="small muted" style="margin:10px 0 0">Every pull is logged to a patient number. <button class="link" data-act="pt-skip">Just looking up a part</button></p>';
     body+='<div id="pt-history">'+patientHistory(F.patient)+'</div>';
+    body+='<div style="margin-top:22px"><b>Or search for a part</b><div class="row" style="margin-top:6px"><input id="find-q" type="search" autocomplete="off" placeholder="Part number, name, or exocad name" value="'+esc(UI.findQ||'')+'" style="flex:1 1 320px" aria-label="Search for a part"></div><div id="find-res" style="margin-top:8px">'+findSearchHTML()+'</div></div>';
   } else if(F.step==='level'){
     body+=stepHead('What does this case restore on?','level');
     body+='<div class="tiles">'+tile('level','mua','Multi-unit abutments','Most full-arch cases.')+tile('level','implant','Directly on the implant','Single teeth, some bridges, and the multi-unit abutment itself.')+'</div>';
@@ -1835,6 +1839,10 @@ function stockFiltered(){
 function stockRow(p){
   return '<div class="li click" data-act="open" data-v="'+p.id+'"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb"><b>'+esc(pnLabel(p))+'</b>'+(torqueText(p)?' · Torque '+esc(torqueText(p)):'')+'</div></div><div class="rt">'+(p.stocked?'<span><span class="num">'+p.onHand+'</span> <span class="small muted">min '+p.min+'</span></span>':'')+'<span>'+pill(p)+onOrderPill(p)+'</span></div></div>';
 }
+/* Find a part: quick search by part number (with or without dots), name, or exocad name */
+function findSearchHTML(){var q=(UI.findQ||'').trim().toLowerCase();if(q.length<2)return '';var qz=q.replace(/[\s.\-\/]/g,'');
+  var r=S.parts.filter(function(p){var hay=(partName(p)+' '+ctx(p)+' '+p.pn+' '+(p.bin||'')+' '+exoFor(p).map(function(e){return e.n}).join(' ')).toLowerCase(),pz=String(p.pn||'').toLowerCase().replace(/[\s.\-\/]/g,'');return hay.indexOf(q)>=0||(qz.length>=3&&pz.indexOf(qz)>=0)});
+  if(!r.length)return '<div class="empty">No parts match.</div>';return '<p class="small muted" style="margin:0 0 4px">'+r.length+' parts'+(r.length>15?', first 15 shown':'')+'</p><div class="list card" style="padding:4px 14px">'+r.slice(0,15).map(stockRow).join('')+'</div>'}
 function stockListHTML(){
   var rows=stockFiltered();
   if(!rows.length)return '<div class="empty">No parts match. Clear the search or pick another filter.</div>';
@@ -2052,13 +2060,14 @@ function chgScrewHint(){
 }
 function viewChange(){
   var c=UI.chg;
-  var h='<header class="vh"><h1>Change parts</h1><p class="lede">When design needs a different part. Return what was pulled, then pull or order the new part. Returned parts go to Maya\u2019s team to check back in.</p></header>';
+  var h='<header class="vh"><h1>Patient</h1><p class="lede">Type a patient number to see every part pulled for them. Pull more, or return or swap a part. Returned parts go to Maya\u2019s team to check back in.</p></header>';
   h+='<section class="card"><div class="row" style="align-items:flex-end"><label class="field">Patient number<input id="chg-pt" inputmode="numeric" value="'+esc(c.pt)+'" placeholder="e.g. 10482" style="width:180px"></label><button class="btn" data-act="chg-pt">Show parts</button></div>';
   if(c.done)h+='<div class="note ok" style="margin-top:14px">'+esc(c.done)+'</div>';
   if(c.pt&&c.pt.length>=4){
     var pp=patientParts(c.pt);
     h+='<h3 style="margin-top:18px">Parts pulled for patient '+esc(c.pt)+'</h3>';
-    h+=pp.length?'<div class="list">'+pp.map(function(x){var on=c.sel===x.p.id;return '<div class="li'+(on?' sel':'')+'"><span>'+locHTML(x.p)+'</span><div><div class="nm">'+icI(x.p)+esc(partName(x.p))+'</div><div class="sb">'+esc(ctx(x.p))+'</div><div class="sb">'+x.q+' pulled, last on '+fmtDate(x.d)+'</div></div><div class="rt"><button class="btn sm'+(on?'':' ghost')+'" data-act="chg-sel" data-v="'+x.p.id+'">'+(on?'Changing':'Change')+'</button></div></div>'}).join('')+'</div>':'<div class="empty">No parts pulled for patient '+esc(c.pt)+' that have not been returned.</div>';
+    h+='<div class="row" style="margin:4px 0 10px"><button class="btn sm" data-act="pt-more" data-v="'+esc(c.pt)+'">Pull more parts for '+esc(c.pt)+'</button></div>';
+    h+=pp.length?'<div class="list">'+pp.map(function(x){var on=c.sel===x.p.id;return '<div class="li'+(on?' sel':'')+'"><span>'+locHTML(x.p)+'</span><div><div class="nm">'+icI(x.p)+esc(partName(x.p))+'</div><div class="sb">'+esc(ctx(x.p))+'</div><div class="sb">'+x.q+' pulled, last on '+fmtDate(x.d)+'</div></div><div class="rt"><button class="btn sm'+(on?'':' ghost')+'" data-act="chg-sel" data-v="'+x.p.id+'">'+(on?'Selected':'Return or swap')+'</button></div></div>'}).join('')+'</div>':'<div class="empty">No parts pulled for patient '+esc(c.pt)+' that have not been returned.</div>';
   }
   h+='</section>';
   if(c.sel){
@@ -2500,7 +2509,6 @@ function rxCard(it,idx){
   var r=rxResolve(it,idx),h='<section class="card rx-item">';
   h+='<div class="rx-top"><p class="rx-raw">\u201c'+esc(it.raw)+'\u201d</p>'+(r.missing.length?'<span class="pill p-low">'+r.missing.length+(r.missing.length===1?' question':' questions')+'</span>':'<span class="pill p-ok">Ready</span>')+'</div>';
   var c=[];function chip(l,v,cls){c.push('<span class="chip'+(cls?' '+cls:'')+'"><span>'+esc(l)+'</span>'+esc(v)+'</span>')}
-  if(it.arch)chip('Arch',it.arch);
   if(it.sites.length)chip('Teeth',it.sites.join(', '));
   if(r.qty)chip('Quantity',String(r.qty));
   if(r.brand)chip('Brand',brandName(r.brand));
@@ -2571,7 +2579,7 @@ function viewRx(){
   if(UI.role==='maya')h+='<p class="small muted" style="margin:-6px 0 12px">Techs usually do this step. You can still read an Rx to check a request.</p>';
   h+='<section class="card"><div class="row" style="justify-content:space-between;margin-bottom:12px"><label class="field">Patient number<input id="rx-pt" type="text" inputmode="numeric" autocomplete="off" value="'+esc(X.patient)+'" style="width:180px"></label>';
   h+='<label class="field">Doctor<input id="rx-doc" type="text" list="doclist" autocomplete="off" value="'+esc(X.doctor||'')+'" placeholder="Name on the Rx" style="width:220px"><datalist id="doclist">'+DOCS.map(function(d){return '<option value="'+esc(d.n)+'">'}).join('')+'</datalist></label><label class="field" style="flex:1 1 260px">Load an example Rx<select id="rx-ex"><option value="">Pick one of '+RX_EXAMPLES.length+' examples</option>'+RX_EXAMPLES.map(function(e,i){return '<option value="'+i+'"'+(X.ex===i?' selected':'')+'>'+(i+1)+'. '+esc(e.t)+'</option>'}).join('')+'</select></label></div>';
-  h+='<div class="row" style="margin-bottom:12px;gap:18px"><div class="field">Arch<span class="seg"><button data-act="rx-arch" data-v="max" aria-pressed="'+!!X.arch.max+'">Maxilla</button><button data-act="rx-arch" data-v="man" aria-pressed="'+!!X.arch.man+'">Mandible</button></span></div>';
+  h+='<div class="row" style="margin-bottom:12px;gap:18px">';
   h+='<div class="field">Step on the form<span class="seg">'+RX_STEPS.map(function(s){return '<button data-act="rx-step" data-v="'+s[0]+'" aria-pressed="'+(X.step===s[0])+'">'+s[1]+'</button>'}).join('')+'</span></div><div class="field">Final will be<span class="seg">'+[['mono','Monolithic'],['sleeve','Sleeve'],['none','Not marked']].map(function(s){return '<button data-act="rx-final" data-v="'+s[0]+'" aria-pressed="'+(X.final===s[0])+'">'+s[1]+'</button>'}).join('')+'</span></div></div>';
   h+='<label class="field">Implant box, as written<textarea id="rx-text" rows="4" placeholder="6,7 - Astra EV Uni Abutments\n11 - Nobel MUA">'+esc(X.text)+'</textarea></label>';
   if(AI.limits&&AI.limits.images)h+='<div class="row" style="margin-top:10px;align-items:center"><label class="field" style="margin:0">Or a photo of the Rx<input id="rx-photo" type="file" accept="'+esc((AI.limits.images.mediaTypes||['image/*']).join(','))+'" capture="environment"></label>'+(X.photo?'<span class="pill p-acc">Photo attached: '+esc(X.photo.name||'photo')+'</span><button class="link" data-act="rx-photo-clear">Remove</button>':'<span class="small muted">Claude reads the implant box from the photo. Typed text is optional then.</span>')+'</div>';
@@ -2673,7 +2681,22 @@ function viewBench(){
 }
 
 /* ---------- Shell ---------- */
-var NAV=[['start','Start here'],['find','Find a part'],['stack','Build the stack'],['rx','Read an Rx'],['change','Change parts'],['stock','Stock'],['requests','Requests'],['orders','Order list'],['receive','Receive stock'],['dash','Dashboard'],['reports','Reports'],['bench','Test bench'],['labels','Drawer labels']];
+/* Techs see three things. Everything else is switched on in Settings (Oct 28 2026). Settings live in this browser and survive a data reset. */
+var NAV=[['find','Find a part'],['patient','Patient'],['stock','Stock']];
+var TOOLS=[['stack','Build the stack','See parts stack up in 3D'],['rx','Read an Rx','Type what the doctor wrote, get the parts'],['requests','Requests','Ask-first parts, returns, special orders'],['orders','Order list','One order on order day'],['receive','Receive stock','Check a box against the order'],['dash','Dashboard','Stock at a glance'],['reports','Reports','Usage by part and month'],['start','Start here','Role home pages'],['bench','Test bench','Leadership'],['labels','Drawer labels','Leadership']];
+var ROLE_TOOLS={maya:['requests','orders','receive','start'],lead:['dash','reports','bench','labels','start']};
+var SETTINGS=(function(){try{return JSON.parse(localStorage.getItem('renew-parts-settings'))||{}}catch(e){return {}}})();
+function saveSettings(){try{localStorage.setItem('renew-parts-settings',JSON.stringify(SETTINGS))}catch(e){}}
+function viewAllowed(v){return NAV.some(function(n){return n[0]===v})||(SETTINGS[v]&&!(LEAD_ONLY[v]&&UI.role!=='lead'))}
+function viewSettings(){
+  var h='<div class="scrim" data-act="set-close"><aside class="drawer" role="dialog" aria-modal="true" aria-label="Settings" data-stop="1"><button class="btn sm ghost x" data-act="set-close">Close</button><h2>Settings</h2>';
+  h+='<p class="small muted" style="margin-top:0">Techs only need Find a part, Patient and Stock. Turn on more here. These switches stay on in this browser.</p>';
+  h+='<h3 style="margin-top:18px">View as</h3><span class="seg">'+['tech','maya','lead'].map(function(r){return '<button data-act="role" data-v="'+r+'" aria-pressed="'+(UI.role===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</span>';
+  h+='<p class="small muted">Picking Maya\u2019s team or Leadership also turns on their tools.</p>';
+  h+='<h3 style="margin-top:18px">Tools</h3><div class="list">'+TOOLS.map(function(t){var lock=LEAD_ONLY[t[0]]&&UI.role!=='lead';return '<label class="li" style="grid-template-columns:auto minmax(0,1fr);cursor:pointer"><input type="checkbox" data-set="'+t[0]+'"'+(SETTINGS[t[0]]?' checked':'')+(lock?' disabled':'')+' style="width:20px;height:20px"><div><div class="nm">'+esc(t[1])+'</div><div class="sb">'+esc(lock?'Leadership view only':t[2])+'</div></div></label>'}).join('')+'</div>';
+  h+='<h3 style="margin-top:18px">Data</h3><p class="small muted" style="margin:0 0 8px">Prototype. Changes save in this browser only. The DESS catalog is real; counts and history are sample data.</p><button class="btn sm ghost" data-act="reset">Reset sample data</button>';
+  return h+'</aside></div>';
+}
 var LEAD_ONLY={bench:1,labels:1};
 function badgeFor(v){
   if(v==='requests')return S.requests.filter(function(r){return r.status==='requested'||r.status==='open'}).length+S.returns.filter(function(x){return x.status==='waiting'}).length;
@@ -2682,13 +2705,15 @@ function badgeFor(v){
   return 0;
 }
 function render(){
-  var views={stack:viewStack,start:viewStart,bench:viewBench,labels:viewLabels,change:viewChange,rx:viewRx,find:viewFind,stock:viewStock,requests:viewRequests,orders:viewOrders,receive:viewReceive,dash:viewDash,reports:viewReports};
+  var views={stack:viewStack,start:viewStart,bench:viewBench,labels:viewLabels,change:viewChange,patient:viewChange,rx:viewRx,find:viewFind,stock:viewStock,requests:viewRequests,orders:viewOrders,receive:viewReceive,dash:viewDash,reports:viewReports};
   var h='<div class="shell"><aside class="side"><div class="mark"><span class="glyph">A1</span><div><b>Renew Parts</b><small>Implant parts inventory</small></div></div><nav class="nav" aria-label="Main">';
-  NAV.forEach(function(n){if(LEAD_ONLY[n[0]]&&UI.role!=='lead')return;var b=badgeFor(n[0]);h+='<button data-act="nav" data-v="'+n[0]+'"'+(UI.view===n[0]?' aria-current="page"':'')+'><span>'+n[1]+'</span>'+(b?'<span class="badge">'+b+'</span>':'')+'</button>'});
-  h+='</nav><div class="side-foot">Prototype. Changes save in this browser only.<br><button data-act="reset">Reset sample data</button></div></aside>';
-  h+='<div><div class="top"><span class="sample">Real: your DESS catalog (311 parts), links, and doctor screw preferences. Sample: genuine-brand parts, counts, and prices.</span><div class="roles"><span>Viewing as</span><span class="seg">'+['tech','maya','lead'].map(function(r){return '<button data-act="role" data-v="'+r+'" aria-pressed="'+(UI.role===r)+'">'+ROLE_NAME[r]+'</button>'}).join('')+'</span></div></div>';
+  if(!viewAllowed(UI.view)&&UI.view!=='change')UI.view='find';
+  NAV.concat(TOOLS.filter(function(t){return SETTINGS[t[0]]&&!(LEAD_ONLY[t[0]]&&UI.role!=='lead')})).forEach(function(n){var b=badgeFor(n[0]);h+='<button data-act="nav" data-v="'+n[0]+'"'+(UI.view===n[0]||(n[0]==='patient'&&UI.view==='change')?' aria-current="page"':'')+'><span>'+n[1]+'</span>'+(b?'<span class="badge">'+b+'</span>':'')+'</button>'});
+  h+='</nav><div class="side-foot"><button class="set-btn" data-act="set-open" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>'+(UI.role!=='tech'?'<div class="small muted" style="margin-top:6px">Viewing as '+esc(ROLE_NAME[UI.role])+'</div>':'')+'</div></aside>';
+  h+='<div>';
   h+='<main class="content" id="main">'+views[UI.view]()+'</main></div></div>';
   if(UI.drawer)h+=viewDrawer();
+  if(UI.settings)h+=viewSettings();
   document.getElementById('app').innerHTML=h;
   if(UI.view==='stack')stkMount();
 }
@@ -3127,7 +3152,10 @@ function stkDoneHTML(){
 /* ---------- Events ---------- */
 var A={
   nav:function(v){go(v)},
-  role:function(v){UI.role=v;UI.view='start';UI.drawer=null;UI.help=null;save();render()},
+  role:function(v){UI.role=v;(ROLE_TOOLS[v]||[]).forEach(function(k){SETTINGS[k]=true});saveSettings();UI.view=v==='tech'?'find':'start';UI.drawer=null;UI.help=null;save();render()},
+  'set-open':function(){UI.settings=true;render()},
+  'pt-more':function(v){F=newFinder(v);F.step='level';UI.chg.sel=null;go('find')},
+  'set-close':function(){UI.settings=false;render()},
   reset:function(){if(confirm('Reset all sample data? Your demo changes will be lost.')){S=buildSeed();F=newFinder();save();render();toast('Sample data reset.')}},
   'pt-next':function(){var el=document.getElementById('pt');F.patient=(el?el.value:'').replace(/\D/g,'');if(!F.patient){toast('Enter a patient number, or pick "Just looking up a part."');return}F.step='level';render()},
   'pt-skip':function(){F.patient='';F.step='level';render()},
@@ -3292,7 +3320,7 @@ function receive(ids,partialQty){
 }
 document.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;
-  if(el.dataset.act==='close-drawer'&&e.target.closest('[data-stop]')&&!e.target.closest('.x'))return;
+  if((el.dataset.act==='close-drawer'||el.dataset.act==='set-close')&&e.target.closest('[data-stop]')&&!e.target.closest('.x'))return;
   var fn=A[el.dataset.act];if(fn)fn(el.dataset.v,el,e);
 });
 document.addEventListener('input',function(e){
@@ -3304,10 +3332,12 @@ document.addEventListener('input',function(e){
   if(t.id==='rx-pt'){var pv=t.value.replace(/\D/g,'').slice(0,8);if(pv!==t.value)t.value=pv;UI.rx.patient=pv}
   if(t.id==='pt2'){var v2=t.value.replace(/\D/g,'').slice(0,8);if(v2!==t.value)t.value=v2}
   if(t.id==='stock-q'){UI.stockQ=t.value;document.getElementById('stock-list').innerHTML=stockListHTML()}
+  if(t.id==='find-q'){UI.findQ=t.value;var fr=document.getElementById('find-res');if(fr)fr.innerHTML=findSearchHTML()}
 });
 /* Redraw without losing what the user is typing (a redraw used to drop the cursor out of the implant box). */
 function renderKeepFocus(){var a=document.activeElement,id=a&&a.id,val=a&&a.value,ss=a&&a.selectionStart;if(id==='rx-text')UI.rx.text=val;render();var n=id&&document.getElementById(id);if(n&&n!==a){n.focus();try{n.setSelectionRange(ss,ss)}catch(err){}}}
 document.addEventListener('change',function(e){
+  if(e.target.dataset&&e.target.dataset.set){SETTINGS[e.target.dataset.set]=e.target.checked;saveSettings();render();return}
   var t=e.target;
   if(t.id==='stk-brand'){var s1=stkState();s1.brand=t.value||null;s1.sys=null;s1.plat=null;save();render();return}
   if(t.id==='stk-sys'){var s2=stkState();s2.sys=t.value||null;s2.plat=s2.sys&&sysById(s2.sys).plats.length===1?sysById(s2.sys).plats[0]:null;save();render();return}
