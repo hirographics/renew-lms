@@ -319,6 +319,58 @@ textarea{border:1px solid var(--line);background:var(--surface);border-radius:9p
 .stk-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
 .stk-chips .sep{color:var(--muted)}
 .stk-list{margin-top:6px}.stk-list .tiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+
+/* Nov 5 2026: tabs, Tech and Admin views, Education, Drawer layout */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;display:inline-flex;gap:8px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--ink)}
+.nav-sec{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:12px 10px 4px}
+.mode-tag{display:inline-block;background:var(--label);color:var(--label-ink);font-weight:700;font-size:12px;border-radius:6px;padding:3px 8px;margin-bottom:8px}
+.side-foot .link,.side-foot button.link{display:block;margin:4px 0}
+.pin-in{width:9ch;font-size:28px;letter-spacing:.3em;text-align:center}
+.lede-s{color:var(--muted);max-width:70ch;margin:0 0 16px}
+.learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:14px}
+.lcard{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.lc-art{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.pthumb.big{width:100px;height:140px;margin:0;padding:6px;border-radius:10px}
+.aka{font-size:13px;color:var(--muted);margin:-4px 0 10px}
+.ldl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;margin:0 0 12px;font-size:14px}
+.ldl dt{font-weight:700;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}
+.ldl dd{margin:0}
+.tblw{overflow-x:auto}
+.ltbl{border-collapse:collapse;width:100%;font-size:14px}
+.ltbl th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line);padding:6px 8px}
+.ltbl td{border-bottom:1px solid var(--line);padding:8px;vertical-align:top}
+section.card+section.card{margin-top:12px}
+.chipbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer;color:var(--ink)}
+.chipbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.drill h3{font-size:20px;margin:10px 0 14px;max-width:60ch}
+.drill-art{margin-top:10px}
+.drill-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:8px}
+.dopt{text-align:left;border:1.5px solid var(--line);background:var(--surface2);border-radius:10px;padding:12px 14px;font-weight:600;font-size:15px;cursor:pointer;color:var(--ink)}
+.dopt:hover:not([disabled]){border-color:var(--accent)}
+.dopt.right{border-color:var(--ok);background:var(--ok-soft)}
+.dopt.wrong{border-color:var(--out);background:var(--out-soft)}
+.dopt[disabled]{cursor:default}
+.drill-why{margin:14px 0;max-width:65ch}
+.lay-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,360px);gap:16px;align-items:start}
+.lay-wrap:not(:has(.lay-panel)){grid-template-columns:minmax(0,1fr)}
+.lay-cabs{display:flex;flex-direction:column;gap:14px;min-width:0}
+.lay-grid{display:grid;gap:6px}
+.lay-c{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:64px;text-align:left;border:1.5px solid var(--line);background:var(--surface2);border-radius:8px;padding:6px 8px;cursor:pointer;color:var(--ink);overflow:hidden;min-width:0}
+.lay-c b{font-size:15px}
+.lay-c span{font-size:11.5px;line-height:1.25;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;word-break:break-word}
+.lay-c.empty{background:var(--surface);border-style:dashed}
+.lay-c.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.lay-panel{position:sticky;top:16px;display:flex;flex-direction:column;gap:10px}
+.lay-panel h4{margin:8px 0 0;font-size:14px}
+.lbl-prev{max-width:240px}
+.stepper.sm button{width:30px;height:30px;font-size:16px}.stepper.sm output{min-width:30px;font-size:15px}
+#print-area{display:none}
+@media (max-width:900px){.lay-wrap{grid-template-columns:minmax(0,1fr)}.lay-panel{position:static}.nav-sec{display:none}.side-foot{display:block}}
+@media (max-width:560px){.lcard{grid-template-columns:1fr}.lc-art{flex-direction:row}}
+@media print{body.printing #app,body.printing .toast{display:none!important}body.printing #print-area{display:block}#print-area .labels{display:grid;grid-template-columns:repeat(4,1fr);gap:6mm}#print-area .lbl{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -702,11 +754,12 @@ function load(){
   if(!S)S=buildSeed();
   S.returns=S.returns||[];S.retired=S.retired||[];S.changes=S.changes||[];S.tests=S.tests||[];
   UI={chg:{pt:'',sel:null,q:1,reason:null,newId:null,none:false,search:'',done:null},retAsk:null,rx:{kind:'arch',final:'none',text:'',arch:{},step:'none',patient:'',doctor:'',ov:{},read:false,ex:null},view:'find',role:'tech',stockQ:'',stockBrand:'all',stockStatus:'stocked',rqTab:'pull',repRange:'12m',repBrand:'all',repPart:'all',drawer:null,help:null};
-  try{var u=localStorage.getItem(STORE+'-ui');if(u){var uo=JSON.parse(u);UI.role=uo.role||UI.role;UI.view=uo.view||UI.view}}catch(e){}
+  try{var u=localStorage.getItem(STORE+'-ui');if(u){var uo=JSON.parse(u);UI.view=uo.view||UI.view;UI.findMode=uo.findMode||null}}catch(e){}
+  UI.role=ADMIN?'lead':'tech';
 }
 function save(){
   try{localStorage.setItem(STORE,JSON.stringify(S))}catch(e){}
-  try{localStorage.setItem(STORE+'-ui',JSON.stringify({role:UI.role,view:UI.view}))}catch(e){}
+  try{localStorage.setItem(STORE+'-ui',JSON.stringify({view:UI.view,findMode:UI.findMode||null}))}catch(e){}
 }
 function partById(id){for(var i=0;i<S.parts.length;i++){if(S.parts[i].id===id)return S.parts[i]}return null}
 function nextId(prefix){S.seq++;return prefix+S.seq}
@@ -1604,7 +1657,7 @@ function isAsk(p){return p.loc==='maya'||p.loc==='kent'}
 /* Cabinet layouts: drawers numbered left to right, top row first. Cabinet C row count is open question 7. */
 var CABS={A:{name:'Analog cabinet A (left)',cols:4,rows:4},B:{name:'Analog cabinet B (right)',cols:4,rows:4},C:{name:'Screw cabinet C',cols:6,rows:5}};
 function drawerMap(bin){
-  if(!bin)return '';var m=String(bin).match(/^([ABC])(\d+)$/);if(!m)return '';var cab=CABS[m[1]],n=+m[2],cells='';
+  if(!bin)return '';var m=String(bin).match(/^([A-Z])(\d+)$/);if(!m)return '';var cab=cabs()[m[1]],n=+m[2],cells='';if(!cab)return '';
   for(var i=1;i<=cab.cols*cab.rows;i++){var p=S.parts.filter(function(x){return x.bin===m[1]+i})[0];cells+='<span class="dm-c'+(i===n?' on':'')+(p?'':' dm-empty')+'" title="'+esc(m[1]+i+(p?': '+vName(p):''))+'">'+(i===n?m[1]+i:'')+'</span>'}
   return '<div class="dm"><div class="dm-t">'+esc(cab.name)+'</div><div class="dm-g" style="grid-template-columns:repeat('+cab.cols+',1fr)">'+cells+'</div></div>';
 }
@@ -1938,12 +1991,8 @@ function stockTypeSysHTML(){
   return h;
 }
 function viewStock(){
-  var h='<header class="vh"><h1>Stock</h1><p class="lede">Every part, where it lives, and how many we have. Cabinets A and B hold analogs, cabinet C holds screws. Other stocked parts have no drawer yet.</p></header>';
-  h+='<div class="filters"><input id="stock-q" type="text" placeholder="Search by name, bin, part number, or exocad name" value="'+esc(UI.stockQ)+'" aria-label="Search parts">';
-  h+='<select id="stock-brand" aria-label="Brand"><option value="all">All brands</option>'+BRANDS.map(function(b){return '<option value="'+b.id+'"'+(UI.stockBrand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select>';
-  h+=stockTypeSysHTML();
-  var opts=[['stocked','Parts we stock'],['low','Low or out'],['out','Out of stock'],['ask','Ask first (Maya or Kent)'],['none','Parts we don\u2019t stock'],['all','Everything in the catalog']];
-  h+='<select id="stock-status" aria-label="Show">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(UI.stockStatus===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
+  var h='<header class="vh"><h1>Stock levels</h1><p class="lede">Every part, where it lives, and how many we have. Cabinets A and B hold analogs, cabinet C holds screws. Other stocked parts have no drawer yet.</p></header>';
+  h+=stockFiltersHTML();
   h+='<section class="card" id="stock-list">'+stockListHTML()+'</section>';
   return h;
 }
@@ -2141,7 +2190,7 @@ function chgScrewHint(){
 }
 function viewChange(){
   var c=UI.chg;
-  var h='<header class="vh"><h1>Patient</h1><p class="lede">Type a patient number to see every part pulled for them. Pull more, or return or swap a part. Returned parts go to Maya\u2019s team to check back in.</p></header>';
+  var h='<header class="vh"><h1>Patients</h1><p class="lede">Type a patient number to see every part pulled for them. Pull more, or return or swap a part. Returned parts go to Maya\u2019s team to check back in.</p></header>';
   h+='<section class="card"><div class="row" style="align-items:flex-end"><label class="field">Patient number<input id="chg-pt" inputmode="numeric" value="'+esc(c.pt)+'" placeholder="e.g. 10482" style="width:180px"></label><button class="btn" data-act="chg-pt">Show parts</button></div>';
   if(c.done)h+='<div class="note ok" style="margin-top:14px">'+esc(c.done)+'</div>';
   if(c.pt&&c.pt.length>=4){
@@ -2797,13 +2846,286 @@ function viewBench(){
 }
 
 /* ---------- Shell ---------- */
-/* Techs see three things. Everything else is switched on in Settings (Oct 28 2026). Settings live in this browser and survive a data reset. */
-var NAV=[['find','Find a part'],['rx','Read an Rx'],['patient','Patient'],['stock','Stock']];
-var TOOLS=[['stack','Build the stack','See parts stack up in 3D'],['requests','Requests','Ask-first parts, returns, special orders'],['orders','Order list','One order on order day'],['receive','Receive stock','Check a box against the order'],['dash','Dashboard','Stock at a glance'],['reports','Reports','Usage by part and month'],['start','Start here','Role home pages'],['bench','Test bench','Leadership'],['labels','Drawer labels','Leadership']];
-var ROLE_TOOLS={maya:['requests','orders','receive','start'],lead:['dash','reports','bench','labels','start']};
-var SETTINGS=(function(){try{return JSON.parse(localStorage.getItem('renew-parts-settings'))||{}}catch(e){return {}}})();
-function saveSettings(){try{localStorage.setItem('renew-parts-settings',JSON.stringify(SETTINGS))}catch(e){}}
-function viewAllowed(v){return NAV.some(function(n){return n[0]===v})||(SETTINGS[v]&&!(LEAD_ONLY[v]&&UI.role!=='lead'))}
+/* Oct 28 2026 Settings switches replaced on Nov 5 2026 by Tech and Admin views. TOOLS and SETTINGS stay for old saved data only. */
+var NAV=[['find','Find a part'],['patient','Patients'],['learn','Education']];
+var TOOLS=[];var ROLE_TOOLS={};var SETTINGS={};function saveSettings(){}
+/* ---------- Views (Nov 5 2026, per Richard) ----------
+   Tech view: Find a part, Patients, Education.
+   Admin view (4-digit PIN): the same three, plus Stock, Reports and Drawer layout.
+   The PIN keeps techs out of stock screens. It is not real security: anyone with the browser's developer tools can get past it. */
+var TECH_NAV=[['find','Find a part'],['patient','Patients'],['learn','Education']];
+var ADMIN_NAV=[['stockhub','Stock'],['reports','Reports'],['layout','Drawer layout']];
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}
+var ADMIN=lsGet('renew-parts-admin')==='1';
+function setAdmin(on){ADMIN=!!on;lsSet('renew-parts-admin',on?'1':null);UI.role=on?'lead':'tech'}
+/* old view names still work: they open the new home of that screen */
+var LEGACY={rx:'find',stack:'learn',stock:'stockhub',requests:'stockhub',orders:'stockhub',receive:'stockhub',dash:'stockhub',bench:'reports',labels:'layout',start:'find'};
+function normView(v){
+  if(v==='rx')UI.findMode='rx';
+  if(v==='stack')UI.learnTab='stack';
+  if(v==='stock'||v==='dash')UI.stockTab='stock';
+  if(v==='requests'||v==='orders'||v==='receive')UI.stockTab=v;
+  if(v==='bench')UI.repTab='checks';
+  return LEGACY[v]||v;
+}
+function viewAllowed(v){
+  if(v==='change')return true;
+  if(TECH_NAV.some(function(n){return n[0]===v}))return true;
+  return ADMIN&&ADMIN_NAV.some(function(n){return n[0]===v});
+}
+function stripHead(h){return h.replace(/^\s*<header class="vh">[\s\S]*?<\/header>/,'')}
+function tabsHTML(list,cur,act,label){
+  return '<div class="tabs" role="tablist" aria-label="'+esc(label)+'">'+list.map(function(t){var b=t[2]||0;return '<button role="tab" data-act="'+act+'" data-v="'+t[0]+'" aria-selected="'+(cur===t[0])+'">'+esc(t[1])+(b?'<span class="badge">'+b+'</span>':'')+'</button>'}).join('')+'</div>';
+}
+
+/* ---------- PIN ---------- */
+function pinHTML(){
+  var P=UI.pin,has=!!lsGet('renew-parts-pin'),setting=P.mode==='set'||!has;
+  var h='<div class="scrim" data-act="pin-close"><aside class="drawer pin" role="dialog" aria-modal="true" aria-label="Admin view" data-stop="1"><button class="btn sm ghost x" data-act="pin-close">Close</button>';
+  h+='<h2>'+(setting?(has?'Change the admin PIN':'Set an admin PIN'):'Admin view')+'</h2>';
+  h+='<p class="small muted" style="margin-top:0">'+(setting?'Pick 4 digits. Admins type it to open Stock, Reports and Drawer layout on this computer.':'Type the 4-digit admin PIN.')+'</p>';
+  h+='<input id="pin-in" class="big pin-in" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]*" aria-label="PIN">';
+  if(P.err)h+='<p class="small" style="color:var(--out);margin:8px 0 0">'+esc(P.err)+'</p>';
+  h+='<div class="row" style="margin-top:14px"><button class="btn" data-act="pin-go">'+(setting?'Save PIN':'Open admin view')+'</button></div>';
+  if(!setting)h+='<p class="small muted" style="margin-top:14px">Forgot the PIN? Clear this site’s data in the browser settings. That also resets the sample data.</p>';
+  return h+'</aside></div>';
+}
+function pinSubmit(){
+  var el=document.getElementById('pin-in'),v=(el&&el.value||'').replace(/\D/g,'');
+  if(v.length!==4){UI.pin.err='The PIN is 4 digits.';render();focusPin();return}
+  var has=lsGet('renew-parts-pin');
+  if(UI.pin.mode==='set'||!has){lsSet('renew-parts-pin',v);UI.pin=null;setAdmin(true);save();render();toast('PIN saved. Admin view is on.');return}
+  if(v!==has){UI.pin.err='That PIN is not right.';render();focusPin();return}
+  UI.pin=null;setAdmin(true);save();render();toast('Admin view is on.');
+}
+function focusPin(){setTimeout(function(){var el=document.getElementById('pin-in');if(el)el.focus()},0)}
+
+/* ---------- Find a part: guided, from an Rx, or browse ---------- */
+var FIND_MODES=[['guided','Guided'],['rx','From an Rx'],['browse','Browse all parts']];
+var FIND_LEDE={guided:'Answer a few questions. You get the drawer, or the part goes on the order list.',rx:'Type what the doctor wrote in the implant box. The app suggests the parts and asks only what is missing.',browse:'Every part we have information on, stocked or not. Search, or filter by brand, type and system.'};
+function viewFindHub(){
+  var m=UI.findMode||'guided';
+  var h='<header class="vh"><h1>Find a part</h1><p class="lede">'+esc(FIND_LEDE[m])+'</p></header>'+tabsHTML(FIND_MODES,m,'find-mode','How to find it');
+  if(m==='rx')h+=stripHead(viewRx());
+  else if(m==='browse')h+=viewBrowse();
+  else h+=stripHead(viewFind());
+  return h;
+}
+function stockFiltersHTML(){
+  var h='<div class="filters"><input id="stock-q" type="text" placeholder="Search by name, drawer, part number, or exocad name" value="'+esc(UI.stockQ)+'" aria-label="Search parts">';
+  h+='<select id="stock-brand" aria-label="Brand"><option value="all">All brands</option>'+BRANDS.map(function(b){return '<option value="'+b.id+'"'+(UI.stockBrand===b.id?' selected':'')+'>'+esc(b.name)+'</option>'}).join('')+'</select>';
+  h+=stockTypeSysHTML();
+  var opts=[['all','Every part we have info on'],['stocked','Parts we stock'],['low','Low or out'],['out','Out of stock'],['ask','Ask first (Maya or Kent)'],['none','Parts we don’t stock']];
+  h+='<select id="stock-status" aria-label="Show">'+opts.map(function(o){return '<option value="'+o[0]+'"'+(UI.stockStatus===o[0]?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></div>';
+  return h;
+}
+function viewBrowse(){
+  if(!UI.browsed){UI.browsed=true;UI.stockStatus='all'}
+  return stockFiltersHTML()+'<section class="card" id="stock-list">'+stockListHTML()+'</section>';
+}
+
+/* ---------- Admin: Stock, Reports ---------- */
+function stockBadges(){return {requests:badgeFor('requests'),orders:badgeFor('orders'),receive:badgeFor('receive')}}
+function viewStockHub(){
+  var t=UI.stockTab||'stock',b=stockBadges();
+  var h=tabsHTML([['stock','Stock levels'],['requests','Requests',b.requests],['orders','Order list',b.orders],['receive','Receive stock',b.receive]],t,'stock-tab','Stock sections');
+  return h+({stock:viewStock,requests:viewRequests,orders:viewOrders,receive:viewReceive}[t]||viewStock)();
+}
+function viewReportsHub(){
+  var t=UI.repTab||'usage';
+  return tabsHTML([['usage','Usage'],['checks','Checks']],t,'rep-tab','Report sections')+(t==='checks'?viewBench():viewReports());
+}
+
+/* ---------- Education ---------- */
+var LEARN_TABS=[['types','Part types'],['systems','Systems and platforms'],['screws','Screws and drivers'],['stack','Build the stack'],['drill','Names drill']];
+/* What each part is and does. Plain words for new techs. */
+var PT_INFO={
+  analog:{aka:'Implant analog, lab analog, replica',what:'A metal copy of the top of the implant or the multi-unit. It sits in the model where the implant is in the mouth.',why:'The lab builds and fits the restoration on the analog, as if it were on the patient. The connection must match the real one exactly.',tell:'Digital analogs press into a printed model and often lock with a small screw. Stone analogs have grooves or flats that grip the stone.',fits:'The same system and platform as the implant, or the same multi-unit top.'},
+  tibase:{aka:'Titanium base, interface, link abutment',what:'A short titanium cylinder. The zirconia or PMMA crown, bridge or arch is bonded onto it.',why:'It gives a metal-to-metal fit on the implant or multi-unit, so the restoration seats the same way every time.',tell:'Engaging ti-bases have a shaped bottom that locks into the implant so a single crown cannot turn. Non-engaging ti-bases have a round bottom so a bridge can seat on several implants. ANGLEBase ti-bases are gold colored and let the screw go in at an angle.',fits:'One system and platform, or one multi-unit top. It comes with its own screw.'},
+  screw:{aka:'Prosthetic screw, abutment screw, final screw',what:'The screw that holds the restoration, ti-base or abutment to the implant or the multi-unit.',why:'It keeps the restoration in place. It must be tightened to the right torque: too loose and it backs out, too tight and it can break.',tell:'Look at the head drive (Unigrip, hex, Torx) and the length. Screws into the implant use higher torque (often 20 to 35 Ncm). Screws into a multi-unit use lower torque (often 15 Ncm).',fits:'One implant platform or one multi-unit top. The driver must match the head.'},
+  scanbody:{aka:'Scan abutment, scan flag',what:'A marker screwed onto the implant or multi-unit while the mouth or model is scanned.',why:'The design software matches its known shape to find exactly where the implant is and which way it points.',tell:'Each scan body belongs to one system. Design must pick the same scan body in the software library.',fits:'One system and platform, or one multi-unit top.'},
+  mua:{aka:'MUA, multi-unit, multi-unit abutment',what:'A short abutment screwed into the implant. Every implant in the arch then ends in the same flat top.',why:'It fixes angles between implants (straight, 17 degree, 30 degree) and sets the height above the gum. Most full-arch cases are built on multi-units.',tell:'Read the angle and the collar height (the height of the part that passes through the gum).',fits:'The implant system and platform at the bottom. The multi-unit top at the top, often the shared 4.8 mm Nobel-style top.'},
+  tempcyl:{aka:'Temp cylinder, temporary abutment',what:'A titanium or plastic cylinder for a temporary restoration.',why:'At Renew it is used only for conversion dentures, where a denture is turned into a fixed temporary.',tell:'Taller and simpler than a ti-base, often with retention grooves for acrylic.',fits:'One multi-unit top or implant platform.'},
+  healcap:{aka:'Healing cap, healing abutment, protective cap',what:'A cap that covers the implant or multi-unit while the gum heals or between visits.',why:'It keeps gum and debris out of the connection and shapes the tissue.',tell:'No hole for a restoration. Often a smooth dome.',fits:'One implant platform or one multi-unit top.'},
+  attach:{aka:'Locator-type attachment, DESSLoc',what:'A small snap fitting for a removable overdenture.',why:'The patient snaps the denture on and takes it off. The attachment holds it.',tell:'A short abutment with a ring or groove that a cap in the denture clicks onto.',fits:'One implant platform or one multi-unit top.'}
+};
+var PT_EX={analog:'DESS 14.007',tibase:'DESS 15.007',screw:'DESS 19.006',healcap:'DESS 20.100',attach:'DESS 88.007'};
+function ptExample(type){
+  var ex=PT_EX[type]&&S.parts.filter(function(p){return p.pn===PT_EX[type]})[0];if(ex)return ex;
+  var c=S.parts.filter(function(p){return p.type===type&&p.real&&p.maker==='dess'&&!/-P\d+$/.test(p.pn)&&!p.disc});
+  c.sort(function(a,b){return (b.stocked-a.stocked)||((a.level==='mua')?-1:0)});
+  return c[0]||S.parts.filter(function(p){return p.type===type&&!/^SMP-/.test(p.pn)})[0]||null;
+}
+function bigArt(p){var a=null;try{a=partArt(p)}catch(e){}return a?'<span class="pthumb big" aria-hidden="true">'+a+'</span>':icon(p.type,64,'')}
+function learnTypes(){
+  var h='<p class="lede-s">The kinds of parts in the lab. Learn what each one is, what it does, and how to tell it apart.</p><div class="learn-grid">';
+  TYPE_ORDER.forEach(function(t){
+    var I=PT_INFO[t];if(!I)return;var ex=ptExample(t),n=S.parts.filter(function(p){return p.type===t&&!/^SMP-/.test(p.pn)}).length;
+    h+='<article class="lcard" id="lt-'+t+'"><div class="lc-art">'+(ex?bigArt(ex):'')+(ex?'<span class="small muted">'+esc(ex.pn)+'</span>':'')+'</div><div class="lc-body"><h3>'+esc(TYPE_LABEL[t])+'</h3><p class="aka">Also called: '+esc(I.aka)+'</p>';
+    h+='<dl class="ldl"><dt>What it is</dt><dd>'+esc(I.what)+'</dd><dt>What it does</dt><dd>'+esc(I.why)+'</dd><dt>How to tell</dt><dd>'+esc(I.tell)+'</dd><dt>Fits with</dt><dd>'+esc(I.fits)+'</dd></dl>';
+    var pl=TYPE_LABEL[t].toLowerCase();pl=n===1?pl:(/y$/.test(pl)?pl.slice(0,-1)+'ies':pl+'s');
+    h+=(n?'<button class="btn sm ghost" data-act="learn-browse" data-v="'+t+'">See all '+n+' '+esc(pl)+'</button>':'<p class="small muted" style="margin:0">No confirmed parts in the app yet.</p>')+'</div></article>';
+  });
+  return h+'</div>';
+}
+function learnSystems(){
+  var h='<p class="lede-s">A <b>system</b> is an implant line from one maker, like NobelActive. A <b>platform</b> is the size of the connection on top of the implant. The platform is not always the implant diameter: a 4.3 mm NobelActive implant has the RP platform.</p>';
+  h+='<section class="card"><h3>Multi-units that share one top</h3><p class="small muted" style="margin-top:0">These multi-unit abutments all end in the same 4.8 mm top. The same DESS ti-base, analog and screws fit all of them. Source: DESS USA product pages for 15.007 and 19.110.</p><div class="chips">'+SYSTEMS.filter(function(s){return RP_TOP[s.id]}).map(function(s){return '<span class="chip">'+esc(brandName(s.brand)+' '+s.name)+'</span>'}).join('')+'</div>';
+  h+='<p class="small" style="margin:10px 0 0"><b>Not in this group:</b> Straumann SRA, Straumann Multi-Base, and Astra Tech Uni Abutment EV. Each has its own parts.</p></section>';
+  BRANDS.forEach(function(b){
+    var ss=SYSTEMS.filter(function(s){return s.brand===b.id&&sysHasParts(s.id)});if(!ss.length)return;
+    h+='<section class="card"><h3>'+esc(b.name)+'</h3><div class="tblw"><table class="ltbl"><thead><tr><th>System</th><th>Level</th><th>Platforms</th><th>Implant size to platform</th></tr></thead><tbody>';
+    ss.forEach(function(s){var dp=DIAM_PLAT[s.id],map=dp?Object.keys(dp).map(function(d){return d+' mm → '+dp[d]}).join(', '):'';
+      h+='<tr><td><b>'+esc(s.name)+'</b>'+(s.note?'<div class="small muted">'+esc(s.note)+'</div>':'')+'</td><td>'+(s.level==='mua'?'Multi-unit':'Implant')+'</td><td>'+esc(s.plats.join(', '))+'</td><td class="small">'+esc(map||(s.level==='mua'?(RP_TOP[s.id]?'Shared 4.8 mm top':'Own top'):'Read from the label'))+'</td></tr>'});
+    h+='</tbody></table></div></section>';
+  });
+  return h;
+}
+function screwRows(level){
+  var seen={};
+  return S.parts.filter(function(p){return p.type==='screw'&&!/^SMP-/.test(p.pn)&&!/-P\d+$/.test(p.pn)&&(level==='mua'?p.level==='mua':p.level!=='mua')}).filter(function(p){if(seen[p.pn])return false;seen[p.pn]=1;return true})
+    .sort(function(a,b){return a.pn<b.pn?-1:1});
+}
+function learnScrews(){
+  var h='<p class="lede-s">Every screw has a head that one driver fits, and a torque in Ncm (newton centimeters). Torque is how hard to tighten it. Use a torque wrench, not your hand.</p>';
+  h+='<section class="card"><h3>Drivers</h3><div class="tblw"><table class="ltbl"><thead><tr><th>Driver</th><th>Used on</th></tr></thead><tbody>';
+  Object.keys(DRV).forEach(function(k){var use=S.parts.filter(function(p){return p.type==='screw'&&!/^SMP-/.test(p.pn)&&driverFor(p)===k});var pn={};use.forEach(function(p){pn[p.pn.replace(/^DESS /,'')]=1});var l=Object.keys(pn);if(!l.length)return;
+    h+='<tr><td><b>'+esc(DRV[k].t)+'</b></td><td class="small">'+esc(l.slice(0,10).join(', ')+(l.length>10?' and '+(l.length-10)+' more':''))+'</td></tr>'});
+  h+='</tbody></table></div></section>';
+  [['mua','Screws into a multi-unit'],['implant','Screws into the implant']].forEach(function(g){
+    h+='<section class="card"><h3>'+g[1]+'</h3><div class="tblw"><table class="ltbl"><thead><tr><th>Screw</th><th>Fits</th><th>Torque</th><th>Driver</th></tr></thead><tbody>';
+    screwRows(g[0]).forEach(function(p){var d=driverFor(p);h+='<tr><td><b>'+esc(p.pn)+'</b><div class="small muted">'+esc(vName(p))+'</div></td><td class="small">'+esc(ctx(p).replace(/^[^,]*, fits /,''))+'</td><td class="small">'+esc(torqueText(p)||'Not found yet')+'</td><td class="small">'+esc(d&&DRV[d]?DRV[d].t:'Not confirmed')+'</td></tr>'});
+    h+='</tbody></table></div></section>';
+  });
+  return h;
+}
+/* Names drill: questions built from the app's own checked data */
+var DRILL_TOPICS=[['types','Part types'],['systems','Systems and platforms'],['screws','Screws and drivers']];
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function pickOpts(right,pool,n){var o=[right];shuffle(pool.filter(function(x){return x!==right})).forEach(function(x){if(o.length<n&&o.indexOf(x)<0)o.push(x)});return shuffle(o)}
+function drillQuestions(topics){
+  var q=[];
+  if(topics.indexOf('types')>=0){
+    var types=TYPE_ORDER.filter(function(t){return PT_INFO[t]});
+    types.forEach(function(t){var ex=ptExample(t),labels=types.map(function(x){return TYPE_LABEL[x]});
+      if(ex)q.push({art:ex,q:'What is this part?',a:TYPE_LABEL[t],opts:pickOpts(TYPE_LABEL[t],labels,4),why:PT_INFO[t].what});
+      q.push({q:'Which part is this? “'+PT_INFO[t].why+'”',a:TYPE_LABEL[t],opts:pickOpts(TYPE_LABEL[t],labels,4),why:TYPE_LABEL[t]+': '+PT_INFO[t].what});
+      q.push({q:'“'+PT_INFO[t].aka.split(',')[0]+'” is another name for which part?',a:TYPE_LABEL[t],opts:pickOpts(TYPE_LABEL[t],labels,4),why:TYPE_LABEL[t]+' is also called: '+PT_INFO[t].aka+'.'});
+    });
+    q.push({q:'A single crown on the implant needs which ti-base?',a:'Engaging',opts:['Engaging','Non-engaging','ANGLEBase only','No ti-base'],why:'An engaging ti-base locks into the implant, so a single crown cannot turn.'});
+    q.push({q:'A bridge on several implants needs which ti-base?',a:'Non-engaging',opts:['Engaging','Non-engaging','A healing cap','A scan body'],why:'A non-engaging ti-base has a round bottom, so the bridge can seat on implants that point in different directions.'});
+  }
+  if(topics.indexOf('systems')>=0){
+    Object.keys(DIAM_PLAT).forEach(function(sid){var s=sysById(sid);if(!s)return;var dp=DIAM_PLAT[sid];Object.keys(dp).forEach(function(d){
+      q.push({q:'A '+d+' mm '+brandName(s.brand)+' '+s.name+' implant uses which platform?',a:dp[d],opts:pickOpts(dp[d],s.plats.slice(),4),why:'The platform is the size of the connection, not always the implant diameter.'})})});
+    var shared=SYSTEMS.filter(function(s){return RP_TOP[s.id]}).map(function(s){return brandName(s.brand)+' '+s.name});
+    ['str-sra','astra-mb','str-mb'].forEach(function(id){var s=sysById(id);if(!s)return;var nm=brandName(s.brand)+' '+s.name;
+      q.push({q:'Which multi-unit does NOT share the 4.8 mm Nobel-style top?',a:nm,opts:pickOpts(nm,shared.concat([]),4).map(function(x){return x}),why:nm+' has its own parts and screw.'})});
+  }
+  if(topics.indexOf('screws')>=0){
+    var sc=S.parts.filter(function(p){return p.type==='screw'&&p.real&&/^DESS /.test(p.pn)&&!/-P\d+$/.test(p.pn)});
+    var seen={};sc=sc.filter(function(p){if(seen[p.pn])return false;seen[p.pn]=1;return true});
+    var drvNames=Object.keys(DRV).map(function(k){return DRV[k].t});
+    sc.forEach(function(p){
+      var d=driverFor(p);if(d&&DRV[d])q.push({q:'Which driver fits '+p.pn+' ('+vName(p)+')?',a:DRV[d].t,opts:pickOpts(DRV[d].t,drvNames,4),why:p.pn+' takes the '+DRV[d].t+' driver.'});
+      var tq=SCREW_TQ[tqKey(p)];if(tq&&tq.length===1){var a=tq[0][0]+' Ncm';q.push({q:'What torque for '+p.pn+' ('+ctx(p).replace(/^[^,]*, fits /,'')+')?',a:a,opts:pickOpts(a,['10 Ncm','15 Ncm','20 Ncm','25 Ncm','30 Ncm','35 Ncm'],4),why:'DESS lists '+a+' for '+p.pn+'.'})}
+    });
+    q.push({q:'Ti-base 15.007 (Uni Grip drive) takes which screw?',a:'DESS 19.006',opts:['DESS 19.006','DESS 19.055','DESS 19.110','DESS 19.306'],why:'From the DESS multi-unit catalog.'});
+    q.push({q:'An ANGLEBase ti-base on a multi-unit takes which screw?',a:'DESS 19.306',opts:['DESS 19.006','DESS 19.306','DESS 19.069','DESS 19.058'],why:'19.306 is the angled screw for ANGLEBase. It is never used direct to MUA.'});
+    q.push({q:'Astra Tech Uni Abutment EV takes which screw?',a:'DESS 19.058',opts:['DESS 19.006','DESS 19.058','DESS 19.018','Badger'],why:'Uni Abutment EV does not share the Nobel top. Its screw is 19.058, 15 Ncm.'});
+  }
+  return shuffle(q).slice(0,10);
+}
+function learnDrill(){
+  var D=UI.drill||(UI.drill={topics:['types','systems','screws'],qs:null,i:0,pick:null,score:0});
+  var h='<p class="lede-s">Ten quick questions, built from the parts in this app. Pick the topics, then start.</p><div class="row" style="gap:8px;margin-bottom:12px">'+DRILL_TOPICS.map(function(t){var on=D.topics.indexOf(t[0])>=0;return '<button class="chipbtn" data-act="drill-topic" data-v="'+t[0]+'" aria-pressed="'+on+'">'+esc(t[1])+'</button>'}).join('')+'<button class="btn sm" data-act="drill-start">'+(D.qs?'New set':'Start')+'</button></div>';
+  if(!D.qs)return h+'<section class="card"><div class="empty">Press Start for 10 questions.</div></section>';
+  if(D.i>=D.qs.length)return h+'<section class="card drill"><h3>Done: '+D.score+' of '+D.qs.length+' right</h3><p>'+(D.score>=8?'Strong. Try another set to see new questions.':'Read the part pages, then try a new set.')+'</p><button class="btn" data-act="drill-start">New set</button></section>';
+  var Q=D.qs[D.i];
+  h+='<section class="card drill"><div class="small muted">Question '+(D.i+1)+' of '+D.qs.length+' · '+D.score+' right so far</div>'+(Q.art?'<div class="drill-art">'+bigArt(Q.art)+'</div>':'')+'<h3>'+esc(Q.q)+'</h3><div class="drill-opts">';
+  Q.opts.forEach(function(o){var cls='';if(D.pick!=null){if(o===Q.a)cls=' right';else if(o===D.pick)cls=' wrong'}h+='<button class="dopt'+cls+'" data-act="drill-pick" data-v="'+esc(o)+'"'+(D.pick!=null?' disabled':'')+'>'+esc(o)+'</button>'});
+  h+='</div>';
+  if(D.pick!=null)h+='<p class="drill-why"><b>'+(D.pick===Q.a?'Right.':'Not quite. The answer is '+esc(Q.a)+'.')+'</b> '+esc(Q.why)+'</p><button class="btn" data-act="drill-next">'+(D.i+1<D.qs.length?'Next':'See score')+'</button>';
+  return h+'</section>';
+}
+function viewLearn(){
+  var t=UI.learnTab||'types';
+  var h='<header class="vh"><h1>Education</h1><p class="lede">Learn the parts: their names, what they look like, what they do, and what fits with what.</p></header>'+tabsHTML(LEARN_TABS,t,'learn-tab','Education sections');
+  if(t==='stack')return h+stripHead(viewStack());
+  return h+({types:learnTypes,systems:learnSystems,screws:learnScrews,drill:learnDrill}[t]||learnTypes)();
+}
+
+/* ---------- Drawer layout (admin) ---------- */
+function cabs(){if(!S.cabs)S.cabs=JSON.parse(JSON.stringify(CABS));return S.cabs}
+function layName(p){var v=vName(p);if(v===TYPE_LABEL[p.type]){var s=sysById(p.sys);return v+', '+(s?s.name.replace(/ \(.*\)$/,'')+' '+p.plat:'')}return v}
+function binParts(bin){return S.parts.filter(function(p){return p.bin===bin})}
+function labelHTML(bin){
+  var all=binParts(bin);if(!all.length)return '<div class="lbl"><div class="lb-a">'+esc(bin)+'</div><div class="lb-n">Empty</div><div class="lb-s"></div></div>';
+  var p=all[0],nm=all.length>1?all.map(vName).join(' / '):vName(p);
+  return '<div class="lbl"><div class="lb-a">'+esc(bin)+'</div><div class="lb-n">'+esc(nm.toLowerCase().indexOf(TYPE_LABEL[p.type].toLowerCase())>=0?nm:TYPE_LABEL[p.type]+': '+nm)+'</div><div class="lb-s">'+esc(ctx(p))+(p.real?' · '+esc(all.map(function(x){return x.pn}).join(', ')):'')+'</div></div>';
+}
+function usedBins(cab){var out=[];S.parts.forEach(function(p){var m=p.bin&&String(p.bin).match(/^([A-Z])(\d+)$/);if(m&&m[1]===cab&&out.indexOf(+m[2])<0)out.push(+m[2])});return out}
+function printLabels(bins){
+  var pa=document.getElementById('print-area');if(!pa){pa=document.createElement('div');pa.id='print-area';document.body.appendChild(pa)}
+  pa.innerHTML='<div class="labels">'+bins.map(labelHTML).join('')+'</div>';
+  document.body.classList.add('printing');
+  var done=function(){document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);
+  try{window.print()}catch(e){}
+  setTimeout(done,1500);
+  toast((bins.length===1?'Printing the label for '+bins[0]+'.':'Printing '+bins.length+' labels.')+' If no print window opens, use the lab site. The Claude preview cannot print.');
+}
+function viewLayout(){
+  var C=cabs(),L=UI.lay||{},h='<header class="vh"><h1>Drawer layout</h1><p class="lede">The cabinets as they stand in the lab. Tap a drawer to see what is in it, move a part into it, or print its label. Change a cabinet here when the real drawers change.</p></header>';
+  h+='<div class="row" style="margin-bottom:14px;gap:8px"><button class="btn" data-act="lay-print-all">Print all labels</button><button class="btn ghost" data-act="lay-add-cab">Add a cabinet</button><span class="small muted">Labels print 4 across on letter paper.</span></div>';
+  h+='<div class="lay-wrap"><div class="lay-cabs">';
+  Object.keys(C).sort().forEach(function(k){
+    var c=C[k],n=c.cols*c.rows,cells='';
+    for(var i=1;i<=n;i++){var id=k+i,ps=binParts(id),sel=L.bin===id;cells+='<button class="lay-c'+(ps.length?'':' empty')+(sel?' on':'')+'" data-act="lay-pick" data-v="'+id+'" aria-pressed="'+sel+'"><b>'+id+'</b><span>'+esc(ps.length?ps.map(layName).join(' / '):'Empty')+'</span></button>'}
+    var orphan=usedBins(k).filter(function(x){return x>n});
+    h+='<section class="card lay-cab"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">'+(UI.layRename===k?'<span class="row" style="gap:6px;align-items:center"><b>'+esc(k)+'</b><input id="lay-name" type="text" value="'+esc(c.name)+'" aria-label="Cabinet name" style="width:220px"><button class="btn sm" data-act="lay-rename-save" data-v="'+k+'">Save</button><button class="btn sm ghost" data-act="lay-rename-cancel">Cancel</button></span>':'<h3 style="margin:0">'+esc(k)+' · '+esc(c.name)+'</h3>')+'<span class="row" style="gap:6px"><button class="btn sm ghost" data-act="lay-rename" data-v="'+k+'">Rename</button><button class="btn sm ghost" data-act="lay-print-cab" data-v="'+k+'">Print '+esc(k)+' labels</button></span></div>';
+    h+='<div class="row small" style="gap:14px;margin-bottom:8px;align-items:center"><span>Columns <span class="stepper sm"><button data-act="lay-size" data-v="'+k+'|cols|-1" aria-label="Fewer columns">−</button><output>'+c.cols+'</output><button data-act="lay-size" data-v="'+k+'|cols|1" aria-label="More columns">+</button></span></span><span>Rows <span class="stepper sm"><button data-act="lay-size" data-v="'+k+'|rows|-1" aria-label="Fewer rows">−</button><output>'+c.rows+'</output><button data-act="lay-size" data-v="'+k+'|rows|1" aria-label="More rows">+</button></span></span><span class="muted">'+n+' drawers, numbered left to right, top to bottom</span>'+(usedBins(k).length?'':' <button class="link" data-act="lay-del-cab" data-v="'+k+'">Remove cabinet</button>')+'</div>';
+    if(orphan.length)h+='<div class="note low" style="margin:0 0 8px">Parts are still in drawers past the end: '+orphan.map(function(x){return k+x}).join(', ')+'. Move them before you make the cabinet smaller.</div>';
+    h+='<div class="lay-grid" style="grid-template-columns:repeat('+c.cols+',minmax(0,1fr))">'+cells+'</div></section>';
+  });
+  h+='</div>';
+  if(L.bin){
+    var ps=binParts(L.bin);
+    h+='<aside class="card lay-panel"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Drawer '+esc(L.bin)+'</h3><button class="btn sm ghost" data-act="lay-close">Close</button></div>';
+    h+='<div class="lbl lbl-prev">'+labelHTML(L.bin).replace(/^<div class="lbl">|<\/div>$/g,'')+'</div><button class="btn sm" data-act="lay-print-one" data-v="'+L.bin+'">Print this label</button>';
+    h+='<h4>In this drawer</h4>'+(ps.length?'<div class="list">'+ps.map(function(p){return '<div class="li"><span>'+icI(p)+'</span><div><div class="nm">'+esc(partName(p))+'</div><div class="sb">'+esc(p.pn)+' · '+esc(ctx(p))+'</div></div><div class="rt"><button class="btn sm ghost" data-act="lay-out" data-v="'+p.id+'">Take out</button></div></div>'}).join('')+'</div>':'<p class="small muted">Empty.</p>');
+    h+='<h4>Put a part in this drawer</h4><input id="lay-q" type="search" autocomplete="off" placeholder="Part number or name" value="'+esc(L.q||'')+'" aria-label="Find a part to put in this drawer"><div id="lay-res">'+layResHTML()+'</div>';
+    h+='</aside>';
+  }
+  return h+'</div>';
+}
+function layResHTML(){
+  var L=UI.lay||{},q=(L.q||'').trim().toLowerCase().replace(/^dess\s*/,'');if(q.length<2)return '<p class="small muted">Type at least 2 characters.</p>';
+  var hits=S.parts.filter(function(p){return !/^SMP-/.test(p.pn)&&((p.pn||'').toLowerCase().indexOf(q)>=0||vName(p).toLowerCase().indexOf(q)>=0||partName(p).toLowerCase().indexOf(q)>=0)}).slice(0,8);
+  if(!hits.length)return '<p class="small muted">No part matches.</p>';
+  return '<div class="list">'+hits.map(function(p){return '<div class="li"><span>'+icI(p)+'</span><div><div class="nm">'+esc(partName(p))+'</div><div class="sb">'+esc(p.pn)+' · '+esc(p.bin?'now in '+p.bin:locText(p))+'</div></div><div class="rt"><button class="btn sm" data-act="lay-put" data-v="'+p.id+'">Put here</button></div></div>'}).join('')+'</div>';
+}
+var LAY_ACT={
+  'lay-pick':function(v){UI.lay={bin:v,q:''};render()},
+  'lay-close':function(){UI.lay=null;render()},
+  'lay-print-one':function(v){printLabels([v])},
+  'lay-print-cab':function(v){var c=cabs()[v],b=[];for(var i=1;i<=c.cols*c.rows;i++)if(binParts(v+i).length)b.push(v+i);if(!b.length){toast('No filled drawers in cabinet '+v+'.');return}printLabels(b)},
+  'lay-print-all':function(){var b=[];Object.keys(cabs()).sort().forEach(function(k){var c=cabs()[k];for(var i=1;i<=c.cols*c.rows;i++)if(binParts(k+i).length)b.push(k+i)});printLabels(b)},
+  'lay-put':function(v){var p=partById(v),to=UI.lay&&UI.lay.bin;if(!p||!to)return;var from=p.bin;p.bin=to;p.loc='bin';if(!p.stocked){p.stocked=true;p.min=p.min||0}save();UI.lay.q='';render();toast(partName(p)+(from&&from!==to?' moved from '+from+' to '+to+'.':' is now in '+to+'.'))},
+  'lay-out':function(v){var p=partById(v);if(!p)return;var from=p.bin;p.bin=null;p.loc='tbd';save();render();toast(partName(p)+' taken out of '+from+'. It has no drawer now.')},
+  'lay-size':function(v){var a=v.split('|'),c=cabs()[a[0]],k=a[1],d=+a[2],nv=Math.max(1,Math.min(12,c[k]+d)),nn=(k==='cols'?nv*c.rows:c.cols*nv),used=usedBins(a[0]).filter(function(x){return x>nn});
+    if(used.length){toast('Move the parts out of '+used.map(function(x){return a[0]+x}).join(', ')+' first.');return}
+    /* drawers are numbered left to right, top to bottom, so changing the column count renumbers filled drawers: refuse when that would move a part */
+    if(k==='cols'&&usedBins(a[0]).length&&nv!==c.cols){toast('Changing the columns would renumber the filled drawers. Take the parts out first, or add rows instead.');return}
+    c[k]=nv;save();render()},
+  'lay-add-cab':function(){var C=cabs(),k='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(function(x){return !C[x]})[0];if(!k)return;C[k]={name:'New cabinet',cols:4,rows:4};save();render();toast('Cabinet '+k+' added. Set its columns and rows to match the real one.')},
+  'lay-del-cab':function(v){if(usedBins(v).length){toast('Take the parts out first.');return}delete cabs()[v];if(UI.lay&&UI.lay.bin&&UI.lay.bin.charAt(0)===v)UI.lay=null;save();render();toast('Cabinet '+v+' removed.')},
+  'lay-rename':function(v){UI.layRename=v;render();setTimeout(function(){var el=document.getElementById('lay-name');if(el){el.focus();el.select()}},0)},
+  'lay-rename-save':function(v){var el=document.getElementById('lay-name');if(el&&el.value.trim()){cabs()[v].name=el.value.trim();save()}UI.layRename=null;render()},
+  'lay-rename-cancel':function(){UI.layRename=null;render()}
+};
+
 function viewSettings(){
   var h='<div class="scrim" data-act="set-close"><aside class="drawer" role="dialog" aria-modal="true" aria-label="Settings" data-stop="1"><button class="btn sm ghost x" data-act="set-close">Close</button><h2>Settings</h2>';
   h+='<p class="small muted" style="margin-top:0">Techs only need Find a part, Patient and Stock. Turn on more here. These switches stay on in this browser.</p>';
@@ -2821,21 +3143,25 @@ function badgeFor(v){
   return 0;
 }
 function render(){
-  var views={stack:viewStack,start:viewStart,bench:viewBench,labels:viewLabels,change:viewChange,patient:viewChange,rx:viewRx,find:viewFind,stock:viewStock,requests:viewRequests,orders:viewOrders,receive:viewReceive,dash:viewDash,reports:viewReports};
+  UI.role=ADMIN?'lead':'tech';UI.view=normView(UI.view);
+  var views={change:viewChange,patient:viewChange,find:viewFindHub,learn:viewLearn,stockhub:viewStockHub,reports:viewReportsHub,layout:viewLayout};
   var h='<div class="shell"><aside class="side"><div class="mark"><span class="glyph">A1</span><div><b>Renew Parts</b><small>Implant parts inventory</small></div></div><nav class="nav" aria-label="Main">';
   if(!viewAllowed(UI.view)&&UI.view!=='change')UI.view='find';
-  NAV.concat(TOOLS.filter(function(t){return SETTINGS[t[0]]&&!(LEAD_ONLY[t[0]]&&UI.role!=='lead')})).forEach(function(n){var b=badgeFor(n[0]);h+='<button data-act="nav" data-v="'+n[0]+'"'+(UI.view===n[0]||(n[0]==='patient'&&UI.view==='change')?' aria-current="page"':'')+'><span>'+n[1]+'</span>'+(b?'<span class="badge">'+b+'</span>':'')+'</button>'});
-  h+='</nav><div class="side-foot"><button class="set-btn" data-act="set-open" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Settings</span></button>'+(UI.role!=='tech'?'<div class="small muted" style="margin-top:6px">Viewing as '+esc(ROLE_NAME[UI.role])+'</div>':'')+'</div></aside>';
+  var navl=TECH_NAV.concat(ADMIN?ADMIN_NAV:[]);
+  if(ADMIN)h+='<div class="nav-sec">Lab</div>';
+  navl.forEach(function(n,ix){if(ADMIN&&ix===TECH_NAV.length)h+='<div class="nav-sec">Admin</div>';var b=n[0]==='stockhub'?(badgeFor('requests')+badgeFor('orders')+badgeFor('receive')):0;h+='<button data-act="nav" data-v="'+n[0]+'"'+(UI.view===n[0]||(n[0]==='patient'&&UI.view==='change')?' aria-current="page"':'')+'><span>'+n[1]+'</span>'+(b?'<span class="badge">'+b+'</span>':'')+'</button>'});
+  h+='</nav><div class="side-foot">'+(ADMIN?'<span class="mode-tag">Admin view</span><button class="link" data-act="admin-off">Back to tech view</button><button class="link" data-act="pin-change">Change PIN</button><button class="link" data-act="reset">Reset sample data</button>':'<button class="set-btn" data-act="pin-open"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin view</span></button>')+'</div></aside>';
   h+='<div>';
   h+='<main class="content" id="main">'+views[UI.view]()+'</main></div></div>';
   if(UI.drawer)h+=viewDrawer();
-  if(UI.settings)h+=viewSettings();
+  if(UI.pin)h+=pinHTML();
   document.getElementById('app').innerHTML=h;
-  if(UI.view==='stack')stkMount();
+  if(UI.view==='learn'&&UI.learnTab==='stack')stkMount();
+  if(UI.pin)focusPin();
 }
 var tTimer;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tTimer);tTimer=setTimeout(function(){t.classList.remove('on')},3600)}
-function go(view){UI.view=view;UI.help=null;save();render();window.scrollTo(0,0)}
+function go(view){UI.view=normView(view);UI.help=null;save();render();window.scrollTo(0,0)}
 function needPatient(){
   var el=document.getElementById('pt2');
   if(el){var v=el.value.replace(/\D/g,'');if(v)F.patient=v}
@@ -3267,8 +3593,22 @@ function stkDoneHTML(){
 
 /* ---------- Events ---------- */
 var A={
-  nav:function(v){go(v)},
-  role:function(v){UI.role=v;(ROLE_TOOLS[v]||[]).forEach(function(k){SETTINGS[k]=true});saveSettings();UI.view=v==='tech'?'find':'start';UI.drawer=null;UI.help=null;save();render()},
+  nav:function(v){if(v==='find'&&UI.view==='find')UI.findMode='guided';go(v)},
+  'find-mode':function(v){UI.findMode=v;save();render()},
+  'stock-tab':function(v){UI.stockTab=v;render()},
+  'rep-tab':function(v){UI.repTab=v;render()},
+  'learn-tab':function(v){if(STK&&UI.learnTab==='stack'&&v!=='stack'&&typeof stkUnmount==='function')stkUnmount();UI.learnTab=v;render();window.scrollTo(0,0)},
+  'learn-browse':function(v){UI.findMode='browse';UI.browsed=true;UI.stockStatus='all';UI.stockType=v;UI.stockBrand='all';UI.stockSys='all';UI.stockQ='';go('find')},
+  'drill-topic':function(v){var D=UI.drill,i=D.topics.indexOf(v);if(i>=0){if(D.topics.length>1)D.topics.splice(i,1)}else D.topics.push(v);render()},
+  'drill-start':function(){var D=UI.drill;D.qs=drillQuestions(D.topics);D.i=0;D.pick=null;D.score=0;render()},
+  'drill-pick':function(v){var D=UI.drill;if(D.pick!=null)return;D.pick=v;if(v===D.qs[D.i].a)D.score++;render()},
+  'drill-next':function(){var D=UI.drill;D.i++;D.pick=null;render()},
+  'pin-open':function(){UI.pin={mode:lsGet('renew-parts-pin')?'enter':'set'};render()},
+  'pin-change':function(){UI.pin={mode:'set'};render()},
+  'pin-close':function(){UI.pin=null;render()},
+  'pin-go':function(){pinSubmit()},
+  'admin-off':function(){setAdmin(false);UI.lay=null;go(viewAllowed(UI.view)?UI.view:'find');toast('Back to tech view.')},
+  role:function(v){setAdmin(v!=='tech');UI.drawer=null;UI.help=null;save();render()},
   'set-open':function(){UI.settings=true;render()},
   'pt-more':function(v){F=newFinder(v);F.step='level';UI.chg.sel=null;go('find')},
   'set-close':function(){UI.settings=false;render()},
@@ -3441,13 +3781,14 @@ function receive(ids,partialQty){
 document.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;
   if((el.dataset.act==='close-drawer'||el.dataset.act==='set-close')&&e.target.closest('[data-stop]')&&!e.target.closest('.x'))return;
-  var fn=A[el.dataset.act];if(fn)fn(el.dataset.v,el,e);
+  var fn=A[el.dataset.act]||LAY_ACT[el.dataset.act];if(fn)fn(el.dataset.v,el,e);
 });
 document.addEventListener('input',function(e){
   var t=e.target;
   if(t.id==='pt'){var v=t.value.replace(/\D/g,'').slice(0,8);if(v!==t.value)t.value=v;F.patient=v;var box=document.getElementById('pt-history');if(box)box.innerHTML=patientHistory(v)}
   if(t.id==='chg-q'){UI.chg.search=t.value;var cb=document.getElementById('chg-cands');if(cb)cb.innerHTML=chgCandHTML()}
   if(t.id==='rx-text'){UI.rx.text=t.value}
+  if(t.id==='lay-q'){UI.lay.q=t.value;var lr=document.getElementById('lay-res');if(lr)lr.innerHTML=layResHTML()}
   if(t.id==='rx-doc'){UI.rx.doctor=t.value}
   if(t.id==='rx-pt'){var pv=t.value.replace(/\D/g,'').slice(0,8);if(pv!==t.value)t.value=pv;UI.rx.patient=pv}
   if(t.id==='pt2'){var v2=t.value.replace(/\D/g,'').slice(0,8);if(v2!==t.value)t.value=v2}
@@ -3478,11 +3819,14 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&e.target.id==='pt'){A['pt-next']()}
+  if(e.key==='Enter'&&e.target.id==='pin-in'){pinSubmit()}
+  if(e.key==='Escape'&&UI.pin){UI.pin=null;render()}
   if(e.key==='Enter'&&e.target.id==='chg-pt'){A['chg-pt']()}
   if(e.key==='Escape'&&UI.drawer){UI.drawer=null;render()}
 });
 
 load();render();aiBoot();
+window.renewGo=function(v){go(v)};window.renewRole=function(v){A.role(v)};
 window.renewCatalog=function(){return S.parts.map(function(x){var a=x.sbHead==='io'?'SBIO':partArt(x);var md=x.type==='mua'?muaDims(x):null;return {id:x.id,type:x.type,level:x.level,maker:x.maker,name:partName(x),pn:x.pn,real:!!x.real,fit:ctx(x),bin:x.bin||'',stocked:!!x.stocked,art:a,k:x.k||'',sys:x.sys,plat:x.plat,ang:md?md[0]:null,gh:md?md[1]:null,eng:!isNonEngP(x),ak:akind(x),D:x.level==='mua'?null:platMM(x),sbHead:x.sbHead||''}})};
 window.renewExo=function(){return {miss:EXO_MAP.filter(function(e){return !S.parts.some(function(p){return exoMatch(p,e.m)})}).map(function(e){return e.n}),parts:S.parts.filter(function(p){return exoFor(p).length}).map(function(p){return p.pn+' '+p.sys+' '+p.plat+' x'+exoFor(p).length}),p16217:S.parts.filter(function(p){return p.pn==='DESS 16.217'}).length,news:['DESS 15.441','DESS 16.441','DESS 16.430','DESS 15.462','DESS 14.002','DESS 14.061'].map(function(n){var p=S.parts.filter(function(q){return q.pn===n})[0];return n+(p?' '+p.sys+' '+p.plat+' '+p.k+' '+partName(p):' MISSING')})}};
 window.renewArt=function(){var out={n:S.parts.length,empty:0,err:[],kinds:{}};S.parts.forEach(function(x){try{var a=partArt(x);if(!a)out.empty++;var key=x.type+'|'+x.level+'|'+(x.k||'')+'|'+(x.maker==='dess'?'dess':'oem');if(!out.kinds[key])out.kinds[key]={id:x.id,name:x.pn+' '+(x.v||''),svg:a}}catch(e){out.err.push(x.id+': '+e.message)}});return out};
