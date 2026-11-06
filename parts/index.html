@@ -124,6 +124,8 @@ input.big{font-size:22px;font-weight:600;width:min(260px,100%);letter-spacing:.0
 .p-acc{background:var(--accent-soft);color:var(--accent)}
 
 /* Finder */
+.back-btn{display:inline-flex;align-items:center;gap:4px;border:0;background:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;padding:6px 8px 6px 0;margin:0 0 6px;cursor:pointer;min-height:40px}
+.back-btn:hover{text-decoration:underline}
 .crumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .crumbs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:14px;cursor:pointer}
 .crumbs button b{font-weight:700}
@@ -492,8 +494,8 @@ var SYSTEMS=[
   {id:'bsb-mua',brand:'bsb',level:'mua',name:'Multi-unit',plats:['Standard']},
   {id:'hio-et',brand:'hiossen',level:'implant',name:'ET',plats:['Mini','Regular']},
   {id:'hio-mua',brand:'hiossen',level:'mua',name:'Multi-unit',plats:['Standard']},
-  {id:'id-legacy',brand:'implantdirect',level:'implant',name:'Legacy (internal hex)',plats:['3.5','4.5','5.7']},
-  {id:'id-inter',brand:'implantdirect',level:'implant',name:'InterActive (conical)',plats:['3.4','4.3']},
+  {id:'id-legacy',brand:'implantdirect',level:'implant',name:'Legacy (internal hex)',plats:['3.5','4.5','5.7'],uses:{'3.5':['zv-tsv','3.5'],'4.5':['zv-tsv','4.5'],'5.7':['zv-tsv','5.7']},usesNote:'Implant Direct makes Legacy to match the Zimmer Tapered Screw-Vent connection. DESS does not list Implant Direct, so these are the Tapered Screw-Vent parts for the same platform. Confirm with your lead before you use them.'},
+  {id:'id-inter',brand:'implantdirect',level:'implant',name:'InterActive (conical)',plats:['3.4','4.3'],uses:{'3.4':['nobel-cc','NP'],'4.3':['nobel-cc','RP']},usesNote:'Implant Direct makes InterActive to match the NobelActive conical connection. 3.2 and 3.7 mm implants take the NobelActive NP parts. 4.3 and 5.0 mm implants take the RP parts. DESS does not list Implant Direct. Confirm with your lead before you use them.'},
   {id:'id-mua',brand:'implantdirect',level:'mua',name:'Multi-unit',plats:['Standard']},
   {id:'neo-gm',brand:'neodent',level:'implant',name:'Grand Morse (GM)',plats:['GM'],note:'One connection for every GM implant size.'},
   {id:'neo-mini',brand:'neodent',level:'mua',name:'GM Mini Conical Abutment',plats:['Mini Conical']},
@@ -828,9 +830,13 @@ function buildSeed(){
 
 /* ---------- State ---------- */
 var S, UI;
+/* Systems made to match another system (Implant Direct). Their parts are the matched system's parts, shown with a note. */
+function applyUses(){SYSTEMS.forEach(function(sy){if(!sy.uses)return;Object.keys(sy.uses).forEach(function(pl){var t=sy.uses[pl];S.parts.forEach(function(p){if(fitsAt(p,t[0],t[1])&&!fitsAt(p,sy.id,pl)){if(!p.fits)p.fits=[[p.sys,p.plat]];p.fits.push([sy.id,pl])}})})})}
+function usesNoteHTML(sys){var sy=sys&&sysById(sys);return sy&&sy.usesNote?'<div class="note low" style="margin:0 0 12px">'+esc(sy.usesNote)+'</div>':''}
 function load(){
   try{var raw=localStorage.getItem(STORE);if(raw){var o=JSON.parse(raw);if(o&&o.v===1&&o.parts){S=o}}}catch(e){}
   if(!S)S=buildSeed();
+  applyUses();
   S.returns=S.returns||[];S.retired=S.retired||[];S.changes=S.changes||[];S.tests=S.tests||[];
   UI={chg:{pt:'',sel:null,q:1,reason:null,newId:null,none:false,search:'',done:null},retAsk:null,rx:{kind:'arch',final:'none',text:'',arch:{},step:'none',patient:'',doctor:'',ov:{},read:false,ex:null},view:'find',role:'tech',stockQ:'',stockBrand:'all',stockStatus:'stocked',rqTab:'pull',repRange:'12m',repBrand:'all',repPart:'all',drawer:null,help:null};
   try{var u=localStorage.getItem(STORE+'-ui');if(u){var uo=JSON.parse(u);UI.view=uo.view||UI.view;UI.findMode=uo.findMode||null}}catch(e){}
@@ -1903,6 +1909,7 @@ function viewFind(){
   var c=finderStepsDone();
   if(c.length&&F.step!=='patient'){h+='<div class="crumbs">';c.forEach(function(x){h+='<button data-act="goto" data-v="'+x[0]+'">'+esc(x[1])+' <span class="muted">change</span></button>'});h+='<button data-act="restart">Start over</button></div>'}
   var body='';
+  if(F.sys&&F.step!=='patient'&&F.step!=='done')h+=usesNoteHTML(F.sys);
   if(F.step==='patient'){
     body+=stepHead('Patient number');
     body+='<div class="row"><input id="pt" class="big" type="text" inputmode="numeric" autocomplete="off" placeholder="Patient number" value="'+esc(F.patient)+'" aria-label="Patient number"><button class="btn" data-act="pt-next">Continue</button></div>';
@@ -2541,6 +2548,7 @@ var DIAM_PLAT={
   'str-blx':{'3.5':'RB/WB','3.75':'RB/WB','4.0':'RB/WB','4.5':'RB/WB','5.0':'WB','5.5':'WB','6.5':'WB'},
   'str-tl':{'4.1':'RN'},
   'id-legacy':{'3.7':'3.5','4.2':'3.5','4.7':'4.5','5.7':'5.7'},
+  'id-inter':{'3.2':'3.4','3.7':'3.4','4.3':'4.3','5.0':'4.3'},
   'bh-ti':{'3.0':'3.0','3.4':'3.5','3.8':'3.5','4.6':'4.5','5.8':'5.7'},
   'astra-ev':{'3.0':'3.0','3.6':'3.6','4.2':'4.2','4.8':'4.8','5.4':'5.4'}
 };
@@ -2817,6 +2825,7 @@ function rxCard(it,idx){
   if(it.sites.length&&r.qty&&it.sites.length!==r.qty)cks.push('<span class="ck as">'+it.sites.length+' teeth listed but quantity '+r.qty+'. Check which is right.</span>');
   if(!cks.length)cks.push('<span class="ck ok">Everything read from the Rx</span>');
   h+='<div class="checks">'+cks.join('')+'</div>';
+  h+=usesNoteHTML(r.sys||(r.level!=='mua'&&it.implSys));
   if(it.sugg&&(it.sugg.brand||it.sugg.sys)&&r.missing.indexOf('brand')>=0){var sg=[];if(it.sugg.brand)sg.push(brandName(it.sugg.brand));if(it.sugg.sys)sg.push(sysById(it.sugg.sys).name);if(it.sugg.plat)sg.push(it.sugg.plat);h+='<div class="rx-q"><b>Claude is not sure. Its best reading: '+esc(sg.join(', '))+'</b><div class="opts"><button class="opt opt-guess" data-act="rx-accept" data-v="'+idx+'">Yes, use that</button></div><p class="small muted" style="margin:6px 0 0">Or answer the questions below.</p></div>'}
   if(it.notes.length)h+='<ul class="rx-notes">'+it.notes.map(function(n){return '<li>'+esc(n)+'</li>'}).join('')+'</ul>';
   if(rxKind()==='arch')h+=rxPrefBox(r,idx);
@@ -3296,6 +3305,19 @@ function badgeFor(v){
   if(v==='receive')return S.lines.filter(function(l){return l.status==='ordered'}).length;
   return 0;
 }
+/* Back button (Nov 5 2026). Each new screen is a browser history entry, so the phone or browser back button
+   steps back one screen inside the app. Stock data is never undone, only what is on screen. */
+var HIST={key:null,restoring:false,depth:0};
+function navKey(){var s=UI.stk||{},rx=UI.rx||{},c=UI.chg||{};
+  return JSON.stringify([UI.view,UI.findMode,UI.learnTab,UI.stockTab,UI.repTab,UI.rqTab,F.step,F.type,F.partId,F.kind,UI.drawer,UI.help,s.step,s.sys,s.plat,s.mua,s.top,s.screw,s.vw,rx.read,rx.kind,c.sel,c.done,c.pt,UI.lay&&UI.lay.bin,UI.drill&&UI.drill.qs?UI.drill.i:null])}
+function histSnap(){return {rp:1,ui:JSON.stringify(UI,function(k,v){return (k==='photo'||k==='pin')?undefined:v}),f:JSON.stringify(F),d:HIST.depth}}
+function histSync(){try{var k=navKey();
+  if(HIST.restoring||HIST.key===null){HIST.restoring=false;HIST.key=k;history.replaceState(histSnap(),'');return}
+  if(k!==HIST.key){HIST.key=k;HIST.depth++;history.pushState(histSnap(),'');var b=document.querySelector('.back-btn');if(!b)renderBackBtn()}else history.replaceState(histSnap(),'')}catch(e){}}
+function renderBackBtn(){var m=document.getElementById('main');if(!m||m.querySelector('.back-btn'))return;m.insertAdjacentHTML('afterbegin','<button class="back-btn" data-act="hist-back" aria-label="Go back"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</button>')}
+window.addEventListener('popstate',function(e){var st=e.state;if(!st||!st.rp)return;
+  try{var photo=UI.rx&&UI.rx.photo;UI=JSON.parse(st.ui);if(UI.rx)UI.rx.photo=photo||null;UI.pin=null;F=JSON.parse(st.f);HIST.depth=st.d||0}catch(err){return}
+  HIST.restoring=true;if(STK)STK.built='';save();render();window.scrollTo(0,0)});
 function render(){
   UI.role=ADMIN?'lead':'tech';UI.view=normView(UI.view);
   var views={change:viewChange,patient:viewChange,find:viewFindHub,learn:viewLearn,stockhub:viewStockHub,reports:viewReportsHub,layout:viewLayout};
@@ -3306,12 +3328,13 @@ function render(){
   navl.forEach(function(n,ix){if(ADMIN&&ix===TECH_NAV.length)h+='<div class="nav-sec">Admin</div>';var b=n[0]==='stockhub'?(badgeFor('requests')+badgeFor('orders')+badgeFor('receive')):0;h+='<button data-act="nav" data-v="'+n[0]+'"'+(UI.view===n[0]||(n[0]==='patient'&&UI.view==='change')?' aria-current="page"':'')+'><span>'+n[1]+'</span>'+(b?'<span class="badge">'+b+'</span>':'')+'</button>'});
   h+='</nav><div class="side-foot">'+(ADMIN?'<span class="mode-tag">Admin view</span><button class="link" data-act="admin-off">Back to tech view</button><button class="link" data-act="pin-change">Change PIN</button><button class="link" data-act="reset">Reset sample data</button>':'<button class="set-btn" data-act="pin-open"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Admin view</span></button>')+'</div></aside>';
   h+='<div>';
-  h+='<main class="content" id="main">'+views[UI.view]()+'</main></div></div>';
+  h+='<main class="content" id="main">'+(HIST.depth>0?'<button class="back-btn" data-act="hist-back" aria-label="Go back"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>Back</button>':'')+views[UI.view]()+'</main></div></div>';
   if(UI.drawer)h+=viewDrawer();
   if(UI.pin)h+=pinHTML();
   document.getElementById('app').innerHTML=h;
   if(UI.view==='learn'&&UI.learnTab==='stack')stkMount();
   if(UI.pin)focusPin();
+  histSync();
 }
 var tTimer;
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tTimer);tTimer=setTimeout(function(){t.classList.remove('on')},3600)}
@@ -3336,6 +3359,7 @@ var STK_THREE='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 var STK=null; /* the 3D state; kept outside render() so the canvas survives redraws */
 var STK_LAYERS=[['mua','Multi-unit'],['top','On top'],['screw','Screw']];
 var BRAND_MUA={nobel:['nobel-mua','Regular'],straumann:['str-sra','Standard'],neodent:['neo-mini','Mini Conical'],biohorizons:['bh-mua','Standard'],hiossen:['hio-mua','Standard'],implantdirect:['id-mua','Standard'],noris:['noris-mua','Standard'],uris:['uris-mua','Standard'],bsb:['bsb-mua','Standard']};
+function stkView(){var s=stkState();return s.vw||'model'}
 function stkState(){if(!UI.stk)UI.stk={brand:null,sys:null,plat:null,mode:'final',step:'pick',mua:null,top:null,screw:null,n:1};return UI.stk}
 function stkMuaSys(mua){
   if(!mua||mua==='skip')return null;
@@ -3516,13 +3540,28 @@ function stkTraced(p,g){
   });
   /* a multi-unit seats the next part on its widest shoulder: move the seat there so parts sit where they do in the photo */
   if(p.type==='mua'&&g.userData.anchor&&g.userData.anchor.parent===g){var best=0.5,bw=0;for(y=0.4;y<=0.95;y+=0.005){var w=hw(y);if(w>bw+1e-6){bw=w;best=y}}
-    var ya=y0+best*Hm;g.userData.anchor.position.y=ya;g.userData.coneTop=Math.max(0.5,y0+Hm-ya)}
+    var ya=y0+best*Hm;g.userData.anchor.position.y=ya;g.userData.coneTop=Math.max(0.5,y0+Hm-ya);g.userData.seatR=bw}
   return g;
 }
 var STK_MUA0=stkMua,STK_TOP0=stkTop,STK_SCREW0=stkScrew;
 stkMua=function(p){return stkTraced(p,STK_MUA0(p))};
 stkTop=function(p,D){return stkTraced(p,STK_TOP0(p,D))};
 stkScrew=function(p){return stkTraced(p,STK_SCREW0(p))};
+/* Analogs (Nov 5 2026, per Richard): on the model the stack sits on the analog, not an implant.
+   Drawn from the traced DESS photo, scaled so the top matches the platform, top placed at topY. */
+function stkAnalogPart(sys,plat){var c=['an-d','an'].map(function(k){return findPart(sys,plat,k)}).filter(function(p){return p&&trGet(p)});return c[0]||null}
+function stkAnalogMesh(p,topR,topY){
+  var t=trGet(p);if(!t||!window.THREE)return null;
+  function hw(y){return Math.max(0.01,(trAt(t.R,y)-trAt(t.L,y))/2)}
+  var mx=0,y;for(y=0.75;y<=1.0001;y+=0.01)mx=Math.max(mx,hw(Math.min(1,y)));if(!(mx>0))return null;
+  var sc=topR/mx,y0=topY-sc,g=stkGroup(),ys=[];for(y=0;y<=1.0001;y+=1/90)ys.push(Math.min(1,y));
+  t.L.concat(t.R).forEach(function(q){ys.push(q[0])});ys=ys.filter(function(v){return v>=0&&v<=1}).sort(function(a,b){return a-b}).filter(function(v,i,a){return !i||v-a[i-1]>1e-4});
+  t.mat.forEach(function(b,i){var a0=i===0?0:b[0],a1=i===t.mat.length-1?1:t.mat[i+1][0],pts=[];if(i===0)pts.push([y0,0.001]);
+    ys.forEach(function(v){if(v>=a0-1e-6&&v<=a1+1e-6)pts.push([y0+v*sc,hw(v)*sc])});
+    if(i===t.mat.length-1){var rt=hw(1)*sc;pts.push([topY,rt*0.45]);pts.push([topY-sc*0.18,rt*0.45]);pts.push([topY-sc*0.18,0.001])}
+    if(pts.length>1)g.add(stkLathe(pts,stkTrMat(b[2])))});
+  g.userData.analog=p;return g;
+}
 /* ---- scene ---- */
 /* ---- Polish pass (Oct 27): studio reflections, spring motion, weighted drop, sound ---- */
 var STK_RM=(function(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}})();
@@ -3693,7 +3732,13 @@ function stkBuildStack(){
   /* rebuild the placed layers from the saved choices */
   var s=stkState(),g=STK.stack;while(g.children.length)g.remove(g.children[0]);
   var D=platMM({sys:s.sys,plat:s.plat}),imp=stkImplant(D);g.add(imp);var anchor=imp.userData.anchor,mua=null,top=null,muaG=null,topG=null;
-  if(s.mua&&s.mua!=='skip'){mua=partById(s.mua);muaG=stkMua(mua);anchor.add(muaG);anchor=muaG.userData.anchor}
+  var model=stkView()==='model',ia=model&&stkAnalogPart(s.sys,s.plat),am;STK.base=null;
+  if(ia&&(am=stkAnalogMesh(ia,D/2,0))){imp.children.filter(function(o){return o.isMesh}).forEach(function(o){imp.remove(o)});imp.add(am);STK.base=ia}
+  if(s.mua&&s.mua!=='skip'){mua=partById(s.mua);muaG=stkMua(mua);anchor.add(muaG);anchor=muaG.userData.anchor;
+    /* on the model there is no implant and no multi-unit: the multi-unit analog takes their place */
+    var mp=model?stkMuaAnalog(mua):null;
+    var ma=mp&&stkAnalogMesh(mp,muaG.userData.seatR||2.4,muaG.userData.coneTop||1.78);
+    if(ma){muaG.traverse(function(o){if(o.isMesh)o.visible=false});imp.traverse(function(o){if(o.isMesh)o.visible=false});muaG.userData.anchor.add(ma);STK.base=mp}}
   if(s.top&&s.top!=='direct'){top=partById(s.top);topG=stkTop(top,D);anchor.add(topG);if(s.step==='screw'||s.step==='done')topG.traverse(function(o){if(o.material){o.material=o.material.clone();o.material.transparent=true;o.material.opacity=0.38;o.material.depthWrite=false}})}
   if(s.screw){var sp=partById(s.screw),sg=stkScrew(sp);(muaG?muaG.userData.anchor:imp.userData.anchor).add(sg);sg.position.y=muaG?(s.top==='direct'?muaG.userData.coneTop:Math.max(-0.36,(muaG.userData.coneTop||1.78)-2.14)):-3.6}
   STK.socket=stkSocket();
@@ -3750,6 +3795,11 @@ function stkMount(){
   STK.built='';stkSync();
 }
 var STK_LOADING=false;
+function stkMuaAnalog(m){var ms=stkMuaSys(m);return ms?stkAnalogPart(ms[0],ms[1]):null}
+function stkBaseText(){var s=stkState();if(stkView()==='mouth')return 'Implant shape is generic for now. Real implant drawings are planned.';
+  var m=s.mua&&s.mua!=='skip'?partById(s.mua):null,mp=m?stkMuaAnalog(m):null;
+  if(m)return mp?'On the model, the multi-unit analog ('+mp.pn+') takes the place of the implant and multi-unit.':'No drawn multi-unit analog for this multi-unit yet.';
+  var a=stkAnalogPart(s.sys,s.plat);return a?'Sits on the analog: '+a.pn+'.':'No drawn analog for this platform yet, so a generic shape is shown.'}
 function viewStack(){
   var s=stkState(),h='<header class="vh"><h1>Build the stack</h1><p class="lede">Pick the implant. Then the parts that fit hover above it. Swipe through them and stop on one: it clicks into place. Layer by layer, down to the screw.</p></header>';
   if(s.step==='pick'||!s.sys){
@@ -3765,7 +3815,8 @@ function viewStack(){
   var sy=sysById(s.sys),chips='<div class="stk-chips"><button class="chip" data-act="stk-back" data-v="pick">'+esc(brandById(sy.brand).name.replace(/ \(.*\)$/,''))+' '+esc(sy.name.replace(/ \(.*\)$/,''))+', '+esc(s.plat)+'</button>';
   STK_LAYERS.forEach(function(L){var v=s[L[0]],lab=v==='skip'?'No multi-unit':(v==='direct'?'Direct':(v?vName(partById(v)):''));if(v)chips+='<span class="sep">›</span><button class="chip" data-act="stk-back" data-v="'+L[0]+'">'+esc(L[1])+': '+esc(lab)+'</button>'});
   chips+='<span class="pill p-none" style="margin-left:auto">'+(STK_MODE[s.mode]||'Final')+(s.dess?' · DESS only':'')+'</span></div>';
-  h+=chips;
+  h+=chips+usesNoteHTML(s.sys);
+  var vw=stkView();h+='<div class="row" style="gap:10px;align-items:center;margin:0 0 10px;flex-wrap:wrap"><span class="seg"><button data-act="stk-vw" data-v="model" aria-pressed="'+(vw==='model')+'">On the model</button><button data-act="stk-vw" data-v="mouth" aria-pressed="'+(vw==='mouth')+'">In the mouth</button></span><span id="stk-base" class="small muted">'+stkBaseText()+'</span></div>';
   var layer=STK_LAYERS.filter(function(L){return L[0]===s.step})[0];
   h+='<div class="stk-wrap"><div id="stk-stage" class="stk-stage"><div id="stk-dwell" class="stk-dwell" hidden><span>Placing…</span></div><button class="stk-mute" data-act="stk-mute" aria-pressed="'+STK_MUTE+'" aria-label="'+(STK_MUTE?'Turn sound on':'Mute sound')+'" title="'+(STK_MUTE?'Sound off':'Sound on')+'">'+(STK_MUTE?'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>':'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>')+'</button>';
   if(layer)h+='<div class="stk-layer">Layer '+(STK_LAYERS.indexOf(layer)+1)+' of 3: <b>'+esc(layer[1])+'</b></div><button class="stk-nav l" data-act="stk-step" data-v="-1" aria-label="Previous part">‹</button><button class="stk-nav r" data-act="stk-step" data-v="1" aria-label="Next part">›</button>';
@@ -3791,6 +3842,7 @@ function stkDoneHTML(){
 
 /* ---------- Events ---------- */
 var A={
+  'hist-back':function(){try{history.back()}catch(e){}},
   nav:function(v){if(v==='find'&&UI.view==='find')UI.findMode='guided';go(v)},
   'stock-more':function(){UI.stockLimit=(UI.stockLimit||200)+200;var el=document.getElementById('stock-list');if(el)el.innerHTML=stockListHTML()},
   'find-mode':function(v){UI.findMode=v;save();render()},
@@ -3812,7 +3864,7 @@ var A={
   'set-open':function(){UI.settings=true;render()},
   'pt-more':function(v){F=newFinder(v);F.step='level';UI.chg.sel=null;go('find')},
   'set-close':function(){UI.settings=false;render()},
-  reset:function(){if(confirm('Reset all sample data? Your demo changes will be lost.')){S=buildSeed();F=newFinder();save();render();toast('Sample data reset.')}},
+  reset:function(){if(confirm('Reset all sample data? Your demo changes will be lost.')){S=buildSeed();applyUses();F=newFinder();save();render();toast('Sample data reset.')}},
   'pt-next':function(){var el=document.getElementById('pt');F.patient=(el?el.value:'').replace(/\D/g,'');if(!F.patient){toast('Enter a patient number, or pick "Just looking up a part."');return}F.step='level';render()},
   'pt-skip':function(){F.patient='';F.step='level';render()},
   same:function(v){var p=partById(v);F.level=p.level;F.brand=p.brand;F.sys=p.sys;F.plat=p.plat;F.step='type';render()},
@@ -3848,6 +3900,7 @@ var A={
     F.done=['Patient '+F.patient+': '+partName(p)+'. '+r.msg];F.step='done';render();toast(r.msg);
   },
   'stk-dess':function(v){var s=stkState();s.dess=v==='1';if(s.dess&&s.sys&&!stkHasD(s.sys)){s.sys=null;s.plat=null}if(s.dess&&s.brand&&!SYSTEMS.some(function(x){return x.brand===s.brand&&x.level==='implant'&&stkHasD(x.id)})){s.brand=null;s.sys=null;s.plat=null}if(s.dess&&s.sys&&s.plat&&!stkHasD(s.sys,s.plat))s.plat=null;STK&&(STK.built='');save();render()},
+  'stk-vw':function(v){stkState().vw=v;save();render()},
   'stk-mode':function(v){stkState().mode=v;STK&&(STK.built='');save();render()},
   'stk-start':function(){var s=stkState();if(!s.sys||!s.plat)return;s.step='mua';s.mua=s.top=s.screw=null;save();render()},
   'stk-back':function(v){var s=stkState();if(v==='pick'){s.step='pick'}else if(v==='mua'){s.mua=s.top=s.screw=null;s.step='mua'}else if(v==='top'){s.top=s.screw=null;s.step='top'}else if(v==='screw'){s.screw=null;s.step='screw'}save();render()},
