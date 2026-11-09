@@ -184,6 +184,20 @@ input.big{font-size:22px;font-weight:600;width:min(260px,100%);letter-spacing:.0
 .opt:hover{background:var(--accent-soft)}
 .opt-guess{border-style:dashed}
 .rx-parts{margin-top:12px}
+.opts-card{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.opt-card{display:flex;align-items:center;gap:10px;text-align:left;min-height:56px}
+.opt-card .opt-art{flex:none;display:flex;align-items:flex-end;gap:4px;max-height:56px}
+.opt-card .opt-art svg{height:52px;width:auto;max-width:56px;display:block}
+.opt-card .opt-art svg.conn{height:30px}
+.opt-card .opt-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.opt-card small{color:var(--muted);font-size:12.5px;line-height:1.3}
+.opt-idk{color:var(--muted)}
+.rx-alt{margin-top:6px}
+.rx-alt summary{cursor:pointer;color:var(--accent);font-size:13.5px;font-weight:600}
+.rx-alt .list{margin-top:6px}
+.rx-alt button.li{width:100%;text-align:left;font:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;cursor:pointer}
+.rx-miss .nm{color:var(--low)}
+@media (max-width:640px){.rx-parts>.li{grid-template-columns:minmax(0,1fr);gap:8px}.rx-parts>.li>span:first-child{justify-self:start}.rx-parts>.li>span:first-child:empty{display:none}.rx-parts>.li>.rt{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;text-align:left}}
 .rx-next{margin:12px 0 0;color:var(--muted)}
 .rx-save{margin-top:14px}
 .rx-save input{flex:1 1 240px}
@@ -492,7 +506,7 @@ var SYSTEMS=[
   {id:'bh-mua',brand:'biohorizons',level:'mua',name:'Multi-unit',plats:['Standard']},
   {id:'bsb-max',brand:'bsb',level:'implant',name:'BIO | Max',plats:['NP','RP'],compat:{RP:{sys:'nobel-cc',plat:'RP'}},note:'BIO | Max RP takes Nobel conical connection RP parts.'},
   {id:'bsb-mua',brand:'bsb',level:'mua',name:'Multi-unit',plats:['Standard']},
-  {id:'hio-et',brand:'hiossen',level:'implant',name:'ET',plats:['Mini','Regular']},
+  {id:'hio-et',brand:'hiossen',level:'implant',name:'Osstem TS / Hiossen ET',plats:['Mini','Regular']},
   {id:'hio-mua',brand:'hiossen',level:'mua',name:'Multi-unit',plats:['Standard']},
   {id:'id-legacy',brand:'implantdirect',level:'implant',name:'Legacy (internal hex)',plats:['3.5','4.5','5.7'],uses:{'3.5':['zv-tsv','3.5'],'4.5':['zv-tsv','4.5'],'5.7':['zv-tsv','5.7']},usesNote:'Implant Direct makes Legacy to match the Zimmer Tapered Screw-Vent connection. DESS does not list Implant Direct, so these are the Tapered Screw-Vent parts for the same platform. Confirm with your lead before you use them.'},
   {id:'id-inter',brand:'implantdirect',level:'implant',name:'InterActive (conical)',plats:['3.4','4.3'],uses:{'3.4':['nobel-cc','NP'],'4.3':['nobel-cc','RP']},usesNote:'Implant Direct makes InterActive to match the NobelActive conical connection. 3.2 and 3.7 mm implants take the NobelActive NP parts. 4.3 and 5.0 mm implants take the RP parts. DESS does not list Implant Direct. Confirm with your lead before you use them.'},
@@ -522,7 +536,6 @@ var SYSTEMS=[
   {id:'mis-seven',brand:'mis',level:'implant',name:'Seven',plats:['NP','SP','WP','3.5','4.5'],note:'DESS also lists internal hex 3.5 and 4.5 parts for Seven.'},
   {id:'mis-v3',brand:'mis',level:'implant',name:'V3',plats:['NP','SP']},
   {id:'mis-mua',brand:'mis',level:'mua',name:'Multi-unit',plats:['Standard'],note:'MIS multi-unit top for V3, C1 and Seven. Not the Nobel-style top.'},
-  {id:'hio-et',brand:'hiossen',level:'implant',name:'Osstem TS / Hiossen ET',plats:['Mini','Standard']},
   {id:'locator',brand:'zest',level:'mua',name:'Locator attachment',plats:['Standard']},
   {id:'biotech-x',brand:'biotech',level:'implant',name:'System not confirmed',plats:['Unknown'],note:'Drawer B16 says Biotech. Which system is open question 4.'},
   {id:'sin-mua',brand:'sin',level:'mua',name:'SIN multi-unit (fit not confirmed)',plats:['Standard'],note:'Which SIN system these fit is open question 13.'},
@@ -2535,7 +2548,9 @@ function rxPrefBox(r,idx){
 }
 
 /* ---------- Rx reader ---------- */
-var BRAND_ALIAS=[['blue sky','bsb'],['bio max','bsb'],['biohorizons','biohorizons'],['bio horizons','biohorizons'],['astra','astra'],['xive','dentsply'],['friadent','dentsply'],['nobel','nobel'],['zimvie','zimvie'],['zimmer','zimvie'],['biomet','zimvie'],['3i','zimvie'],['straumann','straumann'],['strauman','straumann'],['nobelactive','nobel'],['nobel active','nobel'],['nobelreplace','nobel'],['nobel replace','nobel'],['legacy','implantdirect'],['interactive','implantdirect'],['certain','zimvie'],['screw vent','zimvie'],['screwvent','zimvie'],['tsv','zimvie'],['grand morse','neodent'],['helix','neodent'],['blx','straumann'],['blt','straumann'],['bone level','straumann'],['tissue level','straumann'],['osseospeed','astra'],['neodent','neodent'],['implant direct','implantdirect'],['hiossen','hiossen'],['noris','noris'],['uris','uris'],['truabutment','uris'],['tru abutment','uris'],['omni','uris'],['smart path','uris']];
+var BRAND_ALIAS=[['blue sky','bsb'],['bio max','bsb'],['biohorizons','biohorizons'],['bio horizons','biohorizons'],['astra','astra'],['xive','dentsply'],['friadent','dentsply'],['nobel','nobel'],['zimvie','zimvie'],['zimmer','zimvie'],['biomet','zimvie'],['3i','zimvie'],['straumann','straumann'],['strauman','straumann'],['nobelactive','nobel'],['nobel active','nobel'],['nobelreplace','nobel'],['nobel replace','nobel'],['legacy','implantdirect'],['interactive','implantdirect'],['certain','zimvie'],['screw vent','zimvie'],['screwvent','zimvie'],['tsv','zimvie'],['grand morse','neodent'],['helix','neodent'],['blx','straumann'],['blt','straumann'],['bone level','straumann'],['tissue level','straumann'],['osseospeed','astra'],['neodent','neodent'],['implant direct','implantdirect'],['hiossen','hiossen'],['noris','noris'],['uris','uris'],['truabutment','uris'],['tru abutment','uris'],['omni','uris'],['smart path','uris'],['dentium','dentium'],['superline','dentium'],['super line','dentium'],['nr line','dentium'],['megagen','megagen'],['mega gen','megagen'],['anyridge','megagen'],['any ridge','megagen'],['mis implants','mis'],['mis','mis'],['camlog','camlog'],['screw line','camlog'],['screwline','camlog'],['ankylos','dentsply'],['osstem','hiossen'],['ts iii','hiossen'],['tsiii','hiossen'],['et iii','hiossen']]
+/* brands doctors write that the catalog does not have (Nov 9 2026). The reader names them instead of guessing. */
+var OTHER_BRANDS=[['neoss','Neoss'],['keystone','Keystone'],['paltop','Paltop'],['glidewell','Glidewell'],['hahn','Hahn'],['inclusive','Inclusive'],['alpha bio','Alpha-Bio'],['alphabio','Alpha-Bio'],['southern implants','Southern Implants'],['sweden martina','Sweden & Martina'],['bredent','Bredent'],['thommen','Thommen'],['adin','Adin'],['anthogyr','Anthogyr'],['bego','BEGO'],['zeramex','Zeramex'],['bicon','Bicon'],['ritter','Ritter'],['cortex','Cortex'],['nobel n1','Nobel N1']];;
 var MUA_RE=/\b(mua|mu|multi[\s-]?units?|multiunits?|multi[\s-]?base|uni\s?abutments?|low profile|lpa|tapered abutments?|mini conical|sra)\b/;
 var TSV_DIAM={'37':'3.5','41':'3.5','47':'4.5','60':'5.7'};
 /* Implant diameter to prosthetic platform, from maker pages. Used when the Rx gives a diameter, not a platform. */
@@ -2616,9 +2631,37 @@ function rxKey(raw){
 function rxSites(raw){
   var out=[],m=raw.match(/^\s*(?:(?:maxilla|mandible|upper|lower)\s*:\s*)?((?:\d{1,2}\s*(?:,|&|and)\s*)*\d{1,2})\s*-\s+/i);
   if(m)m[1].split(/,|&|and/).forEach(function(x){var n=parseInt(x,10);if(n>=1&&n<=32)out.push(n)});
-  var re=/#\s?(\d{1,2})\b/g,mm;while((mm=re.exec(raw))){var n2=+mm[1];if(n2>=1&&n2<=32&&out.indexOf(n2)<0)out.push(n2)}
+  var re=/#\s?(\d{1,2}(?:\s*(?:,|&|and)\s*#?\s*\d{1,2})*)\b/g,mm;while((mm=re.exec(raw))){mm[1].split(/,|&|and/).forEach(function(x){var n2=parseInt(x.replace('#',''),10);if(n2>=1&&n2<=32&&out.indexOf(n2)<0)out.push(n2)})}
   return out;
 }
+/* Part numbers on the Rx (Nov 9 2026). A DESS number names one system and platform, so it fills in what the words leave out.
+   When the words and the number disagree, the platform question comes back so a person decides. */
+function rxPnHits(raw){var out=[],seen={},re=/\b(\d{2}\.\d{3}[a-z]?\d{0,3})\b/gi,m;
+  while((m=re.exec(raw))){var n='DESS '+m[1].toUpperCase();if(seen[n])continue;seen[n]=1;
+    var c=S.parts.filter(function(p){return String(p.pn).replace(/-P\d+$/,'').toUpperCase()===n});if(c.length)out.push(c[0])}
+  return out}
+function rxPnFit(p,brand){var f=p.fits&&p.fits.length?p.fits:[[p.sys,p.plat]],sy={},pl={};
+  if(brand){var fb=f.filter(function(x){var y=sysById(x[0]);return y&&y.brand===brand});if(fb.length)f=fb}
+  /* a system made to match another (Implant Direct) borrows parts; the part's own system wins */
+  var own=f.filter(function(x){var y=sysById(x[0]);return y&&!y.uses});if(own.length)f=own;f.forEach(function(x){if(x[0]){sy[x[0]]=1;pl[x[0]+'|'+x[1]]=x}});
+  var ks=Object.keys(sy);if(ks.length!==1)return null;var ps=Object.keys(pl);return {sys:ks[0],plat:ps.length===1?pl[ps[0]][1]:null}}
+function rxApplyRefs(it,raw){
+  it._pnN=it._pnN||[];rxPnHits(raw).forEach(function(p){var f=rxPnFit(p,it.brand),nb=it.notes.length;
+    if(!f){var all=(p.fits&&p.fits.length?p.fits:[[p.sys,p.plat]]).filter(function(x){var y=sysById(x[0]);return y&&!y.uses}),bs={};all.forEach(function(x){bs[sysById(x[0]).brand]=1});
+      var desc=all.map(function(x){return brandName(sysById(x[0]).brand)+' '+sysById(x[0]).name+' '+x[1]}).join(' and ');
+      if(!it.brand&&Object.keys(bs).length>1){it.pnBrands=Object.keys(bs);it.notes.push(p.pn+' fits '+desc+'. Pick the brand.')}
+      else if(it.brand&&!bs[it.brand]&&all.length)it.notes.push('Check: '+p.pn+' fits '+desc+', not '+brandName(it.brand)+'.');it.notes.slice(nb).forEach(function(n){it._pnN.push(n)});return}
+    if(!sysById(f.sys))return;var sy=sysById(f.sys),tl=TYPE_LABEL[p.type]||p.type,what=p.pn+' is the '+sy.name+(f.plat&&sy.plats.length>1?' '+f.plat:'')+' '+String(tl).toLowerCase();
+    it.fromPn=it.fromPn||[];it._pnN=it._pnN||[];var n0=it.notes.length;
+    if(it.brand&&sy.brand!==it.brand){it.notes.push('Check: '+what+', but the Rx names '+brandName(it.brand)+'.');return}
+    if(!it.brand)it.brand=sy.brand;
+    if(sy.level==='mua'){if(it.muaSys&&it.muaSys!==f.sys&&it.level==='mua'){it.notes.push('Check: '+what+', but the Rx text reads as '+sysById(it.muaSys).name+'.');return}
+      it.muaSys=f.sys;it.level='mua';if(f.plat&&!it.muaPlat)it.muaPlat=f.plat;it.fromPn.push(what);return}
+    if(it.implSys&&it.implSys!==f.sys){it.notes.push('Check: '+what+', but the Rx text reads as '+sysById(it.implSys).name+'.');return}
+    it.implSys=f.sys;
+    if(f.plat){if(it.implPlat&&it.implPlat!==f.plat){it.notes.push('Check: the Rx says platform '+it.implPlat+', but '+what+'. Pick the platform below.');it.implPlat=null;it.pnClash=true}else if(!it.pnClash)it.implPlat=f.plat}
+    if(!it.level&&['scanbody','tibase','tempcyl','analog','abutment'].indexOf(p.type)>=0)it.level='implant';
+    it.fromPn.push(what)})}
 function rxParseLine(raw){
   var t=rxLow(raw),it={raw:raw.trim(),key:rxKey(raw),sites:rxSites(raw),arch:null,brand:null,implSys:null,muaSys:null,level:null,implPlat:null,muaPlat:null,notes:[],refs:[],history:false};
   function has(re){return re.test(t)}
@@ -2627,14 +2670,19 @@ function rxParseLine(raw){
   if(MUA_RE.test(t))it.level='mua';
   var b=it.brand;
   if(b==='astra'){if(!has(/\bev\b/)&&has(/osseo ?speed|\btx\b/)){it.implSys='astra-os';it.muaSys='astra-uni'}else{it.implSys='astra-ev';it.muaSys=has(/uni ?abut/)?'astra-mb':(has(/multi ?base/)?'astra-mbev':null)}}
-  else if(b==='dentsply'){it.implSys='xive'}
+  else if(b==='dentsply'){it.implSys=has(/ankylos/)?'ankylos':'xive'}
+  else if(b==='dentium'){it.implSys='dentium'}
+  else if(b==='megagen'){it.implSys='mg-ar'}
+  else if(b==='camlog'){it.implSys='camlog'}
+  else if(b==='mis'){it.muaSys='mis-mua';if(has(/\bc ?1\b/))it.implSys='mis-c1';else if(has(/\bv ?3\b/))it.implSys='mis-v3';else if(has(/\bseven\b|\bm7\b/))it.implSys='mis-seven'}
   else if(b==='nobel'){it.muaSys='nobel-mua';if(has(/replace (cc|conical)|\bcc\b|conical|active|parallel/))it.implSys='nobel-cc';else if(has(/replace|tri ?channel|\btcc\b|trilobe|select/))it.implSys='nobel-tcc';if(has(/\bn1\b/)){it.implSys=null;it.notes.push('Nobel N1 has its own connection (Trioval). It is not in the catalog yet. Ask a lead.')}}
-  else if(b==='zimvie'){if(has(/\btsv\b|\btsx|screw ?vent/)){it.implSys='zv-tsv';it.muaSys='zv-ta'}else if(has(/osseotite/)&&has(/ext(ernal)? ?hex/)){it.notes.push('3i Osseotite external hex has its own connection. It is not in the catalog yet. Ask a lead.')}else if(has(/certain|\b3i\b/)){it.implSys='zv-certain';it.muaSys='zv-lpa'}else if(has(/internal hex|\bhex\b/)){it.implSys='zv-tsv';it.muaSys='zv-ta'}if(has(/low profile|\blpa\b/))it.muaSys='zv-lpa';if(has(/tapered abutment/))it.muaSys='zv-ta'}
+  else if(b==='zimvie'){if(has(/\btsv\b|\btsx|screw ?vent/)){it.implSys='zv-tsv';it.muaSys='zv-ta'}else if(has(/osseotite/)&&has(/ext(ernal)? ?hex/)){it.implSys='zv-osx'}else if(has(/certain|\b3i\b/)){it.implSys='zv-certain';it.muaSys='zv-lpa'}else if(has(/internal hex|\bhex\b/)){it.implSys='zv-tsv';it.muaSys='zv-ta'}if(has(/low profile|\blpa\b/))it.muaSys='zv-lpa';if(has(/tapered abutment/))it.muaSys='zv-ta'}
+  if(b==='zimvie'&&!it.implSys&&has(/zimmer/)&&!has(/\b3i\b|biomet|certain|osseotite|ext(ernal)? ?hex/)){it.implSys='zv-tsv';it.muaSys=it.muaSys||'zv-ta';it.zimNote='Zimmer (not 3i) implants use the Screw-Vent internal hex, so the system is Tapered Screw-Vent'}
   else if(b==='straumann'){it.muaSys=has(/multi ?base/)?'str-mb':'str-sra';if(has(/\bblx\b/))it.implSys='str-blx';else if(has(/tissue level|synocta|\btl\b|\brn\b|\bwn\b|\bnnc\b/))it.implSys='str-tl';else if(has(/\bblt\b|bone level|\bnc\b|\brc\b/))it.implSys='str-blt'}
   else if(b==='neodent'){it.muaSys='neo-mini';if(has(/\bgm\b|grand morse|helix/))it.implSys='neo-gm'}
   else if(b==='biohorizons'){it.muaSys='bh-mua';if(has(/conical/))it.implSys='bh-con';else if(has(/tapered internal|internal/))it.implSys='bh-ti'}
   else if(b==='implantdirect'){it.muaSys='id-mua';if(has(/legacy/))it.implSys='id-legacy';else if(has(/interactive|inter ?active/))it.implSys='id-inter'}
-  else if(b==='hiossen'){it.muaSys='hio-mua';if(has(/\bet\b|\bet ?iii\b|\bet3\b/))it.implSys='hio-et'}
+  else if(b==='hiossen'){it.muaSys='hio-mua';if(has(/\bet\b|\bet ?iii\b|\bet3\b|\bts\b|\bts ?iii\b|osstem|hiossen/))it.implSys='hio-et'}
   else if(b==='noris'){it.muaSys='noris-mua';it.implSys='noris-ih'}
   else if(b==='bsb'){it.muaSys='bsb-mua';if(has(/max/))it.implSys='bsb-max'}
   else if(b==='uris'){it.muaSys='uris-mua';it.implSys='uris-omni';if(has(/\b1\.6\b/))it.muaPlat='1.6';else if(has(/\b1\.4\b|standard/))it.muaPlat='Standard'}
@@ -2651,6 +2699,9 @@ function rxParseLine(raw){
   if(/\bdess\b/i.test(raw)&&!dr)it.notes.push('The doctor mentions DESS'+(/scan ?body/i.test(raw)?' scan bodies':'')+'.');
   if(has(/compatible/))it.notes.push('The doctor wrote "compatible." The implant may not be the genuine brand. Confirm the connection.');
   if(has(/previously sent|sent before|on file|same as (before|last)/))it.history=true;
+  if(!it.brand){for(var ob=0;ob<OTHER_BRANDS.length;ob++){if(new RegExp('\\b'+OTHER_BRANDS[ob][0].replace(/ /g,'\\s?')+'\\b').test(t)){it.other=OTHER_BRANDS[ob][1];it.notes.push(it.other+' is not in the catalog. If a lead knows which system it matches, pick that brand below. If not, flag it for the front desk.');break}}}
+  it.w={brand:it.brand,implSys:it.implSys,level:it.level};
+  rxApplyRefs(it,raw);
   var qm=t.match(/\bx\s?(\d{1,2})\b/)||t.match(/\b(\d{1,2})\s?x\b/)||t.match(/\bqty\s?:?\s?(\d{1,2})\b/)||t.match(/\b(\d{1,2})\s?(?:implants|units|sites|pcs|pieces|each)\b/);if(qm&&+qm[1]>0&&+qm[1]<=12)it.qty=+qm[1];
   return it;
 }
@@ -2710,6 +2761,7 @@ function aiToItem(L){
   if(L.note)it.notes.push(String(L.note));
   if(/compatible/i.test(raw))it.notes.push('The doctor wrote "compatible." The implant may not be the genuine brand. Confirm the connection.');
   if(/previously sent|sent before|on file|same as (before|last)/i.test(raw))it.history=true;
+  rxApplyRefs(it,raw+' '+(L.dess_refs||[]).join(' ')+' '+(L.scanbody||''));
   /* low confidence: keep the reading as a suggestion, not a fact */
   if(it.conf==='low'){it.sugg={brand:it.brand,level:it.level,sys:it.level==='mua'?it.muaSys:it.implSys,plat:it.level==='mua'?it.muaPlat:it.implPlat};it.brand=null;it.level=null;it.implSys=null;it.muaSys=null;it.implPlat=null;it.muaPlat=null}
   return it;
@@ -2748,14 +2800,17 @@ function rxParse(text){
     var it=rxParseLine(l);
     if(it.arch)cur=it.arch;else it.arch=cur;
     var lab=l.match(/^\s*(scan ?body|prosthetic screw|abutment screw|screw)\s*:\s*(.+)$/i);
-    if(!it.brand&&!it.implSys&&!it.level&&!it.sites.length&&items.length&&(it.refs.length||lab||/scan ?body/i.test(l))){var p=items[items.length-1];
+    var w=it.w||it;if(!w.brand&&!w.implSys&&!w.level&&!it.sites.length&&items.length&&(it.refs.length||lab||/scan ?body/i.test(l))){var p=items[items.length-1];rxApplyRefs(p,l);
       if(lab&&!it.refs.length){p.refs.push((/scan/i.test(lab[1])?'Scan body: ':'Prosthetic screw: ')+lab[2].trim());if(!/scan/i.test(lab[1])&&!/dess|badger/i.test(lab[2]))p.notes.push('The screw "'+lab[2].trim()+'" is not in the catalog yet. Confirm it before ordering.')}
-      p.refs=p.refs.concat(it.refs);p.notes=p.notes.concat(it.notes);p.raw+=' / '+it.raw;return}
+      p.refs=p.refs.concat(it.refs);p.notes=p.notes.concat(it.notes.filter(function(n){return (it._pnN||[]).indexOf(n)<0}));p.raw+=' / '+it.raw;return}
     items.push(it);
   });
   return items;
 }
 function rxResolve(it,idx){
+  var ov0=UI.rx.ov[idx]||{};
+  /* the tech picked the brand for a part number that fits two brands: read the number again for that brand */
+  if(ov0.brand&&it.pnBrands){it._pn=it._pn||{};if(!it._pn[ov0.brand]){var c=Object.assign({},it,{brand:ov0.brand,pnBrands:null,notes:it.notes.slice(),fromPn:[],refs:it.refs.slice()});rxApplyRefs(c,it.raw);it._pn[ov0.brand]=c}it=it._pn[ov0.brand]}
   var ov=UI.rx.ov[idx]||{},pr=S.pairings[it.key]||null;
   var r={brand:ov.brand||it.brand||(pr&&pr.brand)||null,level:ov.level||it.level||(pr&&pr.level)||null,sys:null,plat:null,qty:ov.qty||it.sites.length||it.qty||null,pair:pr,refs:it.refs.slice(),screw:(pr&&pr.screw)||null};
   if(pr&&pr.ref)r.refs.unshift('Lab part: '+pr.ref);
@@ -2767,7 +2822,13 @@ function rxResolve(it,idx){
   }
   if(r.sys){var ps=sysById(r.sys).plats,pg=r.level==='mua'?it.muaPlat:it.implPlat;
     r.plat=ov.plat||pg||(pr&&pr.sys===r.sys?pr.plat:null)||(ps.length===1?ps[0]:null);if(r.plat&&ps.indexOf(r.plat)<0)r.plat=null}
-  r.assumed=[];if(r.pair&&!ov.brand&&!it.brand)r.assumed.push('Brand and system from a saved pairing');if(it.tsvNote)r.assumed.push(it.tsvNote);if(!ov.plat&&!(r.level==='mua'?it.muaPlat:it.implPlat)&&r.plat&&r.sys&&sysById(r.sys).plats.length>1)r.assumed.push('Platform '+r.plat+' from the saved pairing');
+  /* brand with no multi-unit system of its own: DESS multi-units made for its implants show which top they use */
+  if(r.brand&&r.level==='mua'&&!r.sys&&!SYSTEMS.some(function(x){return x.brand===r.brand&&x.level==='mua'})){var tops={},isys=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level==='implant'}).map(function(x){return x.id});
+    S.parts.forEach(function(p){if(p.type==='mua'&&isys.some(function(i){return p.sys===i||!!(p.fits&&p.fits.some(function(f){return f[0]===i}))})){var tp=stkMuaSys(p);if(tp)tops[tp[0]+'|'+tp[1]]=tp}});
+    var tk=Object.keys(tops);if(tk.length===1&&!ov.sys){r.sys=tops[tk[0]][0];r.plat=ov.plat||tops[tk[0]][1];r.muaVia=brandName(r.brand)}}
+  r.assumed=[];if(r.muaVia)r.assumed.push('DESS multi-units for '+r.muaVia+' implants use the '+sysById(r.sys).name+' top. Confirm the doctor used a DESS multi-unit');
+  r.fromPn=it.fromPn||[];
+  if(r.pair&&!ov.brand&&!it.brand)r.assumed.push('Brand and system from a saved pairing');if(it.tsvNote)r.assumed.push(it.tsvNote);if(it.zimNote&&!ov.sys)r.assumed.push(it.zimNote);if(!ov.plat&&!(r.level==='mua'?it.muaPlat:it.implPlat)&&r.plat&&r.sys&&sysById(r.sys).plats.length>1)r.assumed.push('Platform '+r.plat+' from the saved pairing');
   r.missing=[];if(!r.brand)r.missing.push('brand');if(!r.level)r.missing.push('level');else if(r.brand&&!r.sys)r.missing.push('system');if(r.sys&&!r.plat)r.missing.push('platform');if(!r.qty)r.missing.push('qty');
   r.docs=docMatches(UI.rx.doctor);r.doc=r.docs.length===1?r.docs[0]:null;r.attach=null;r.scr=null;
   r.needAttach=r.level==='mua'&&UI.rx.step==='final'&&rxKind()==='arch';
@@ -2783,15 +2844,39 @@ function rxCb(r,idx){return cbLines(r.sys,r.plat,r.level,rxKind(),((UI.rx.ov[idx
 /* a doctor screw on a ti-base: use the non-engaging multi-unit ti-base that DESS ships with that screw, if there is one */
 function tbForScrew(sys,plat,sc){var def=findPart(sys,plat,'tb-n');if(!sc)return def;var b=String(sc.pn).replace(/-P\d+$/,'');if(def&&def.withScrew===b)return def;
   var c=S.parts.filter(function(p){return p.type==='tibase'&&!p.ang&&!/-P\d+$/.test(p.pn)&&/^tb-n/.test(p.k)&&p.withScrew===b&&fitsAt(p,sys,plat)});c.sort(function(a,b){return b.stocked-a.stocked});return c[0]||def}
-function rxSetParts(r,idx){
-  if(rxKind()!=='arch'){if(!r.sys||!r.plat||!r.level)return null;return rxCb(r,idx).parts}
-  if(r.level!=='mua'||!r.sys||!r.plat)return null;
+/* Prototype screw when no Badger fits the multi-unit (Richard, Nov 9 2026: Astra Uni Abutment EV uses 19.058). */
+var PROTO_SCREW={'astra-mb':'DESS 19.058'};
+function partByPn(pn){return S.parts.filter(function(p){return p.pn===pn})[0]||null}
+/* The recommended set for a line, before any swap the tech makes. Each entry: {role, part}. */
+function rxRecParts(r,idx){
+  var ov=UI.rx.ov[idx]||{};
+  if(rxKind()!=='arch'){if(!r.sys||!r.plat||!r.level)return null;var CL=rxCb(r,idx);return [{role:'analog',part:CL.an},{role:'ti-base',part:CL.tb},{role:'screw',part:CL.sc}]}
+  if(!r.sys||!r.plat)return null;
   var st=UI.rx.step;if(st!=='proto'&&st!=='final')return null;
-  if(r.needAttach&&r.attach){var ls=[findPart(r.sys,r.plat,'an-d')||findPart(r.sys,r.plat,'an')];if(r.attach==='tibase')ls.push(tbForScrew(r.sys,r.plat,r.scr&&r.scr.part));if(r.scr&&r.scr.part)ls.push(r.scr.part);return ls.filter(Boolean)}
   var an=findPart(r.sys,r.plat,'an-d')||findPart(r.sys,r.plat,'an');
-  if(st==='proto')return [an,fitScrew('sc-bdg',r.sys,r.plat)].filter(Boolean); /* prototype is direct to MUA; temp cylinders are for conversions */
-  var tb=findPart(r.sys,r.plat,'tb-n');return [an,tb,screwFor(tb)||fitScrew('sc-p',r.sys,r.plat)].filter(Boolean);
+  if(r.level==='implant'){
+    /* full arch on the implants: like a bridge, the ti-bases are non-engaging so the arch seats on every implant */
+    if(st==='proto')return [{role:'analog',part:an},{role:'screw',part:findPart(r.sys,r.plat,'sc-a')||cbLines(r.sys,r.plat,'implant','bridge',null,null).sc||cbLines(r.sys,r.plat,'implant','crown',null,null).sc}];
+    if(UI.rx.final==='sleeve')return [{role:'analog',part:an},{role:'screw',part:findPart(r.sys,r.plat,'sc-a')||cbLines(r.sys,r.plat,'implant','bridge',null,null).sc}];
+    var L=cbLines(r.sys,r.plat,'implant','bridge',ov.tbId||null,null);return [{role:'analog',part:L.an},{role:'ti-base',part:L.tb},{role:'screw',part:L.sc}]}
+  if(r.level!=='mua')return null;
+  if(r.needAttach&&r.attach){var ls=[{role:'analog',part:an}];if(r.attach==='tibase'){var t=tbForScrew(r.sys,r.plat,r.scr&&r.scr.part);ls.push({role:'ti-base',part:t});ls.push({role:'screw',part:(r.scr&&r.scr.part)||screwFor(t)})}else ls.push({role:'screw',part:r.scr&&r.scr.part});return ls}
+  if(st==='proto')return [{role:'analog',part:an},{role:'screw',part:fitScrew('sc-bdg',r.sys,r.plat)||(PROTO_SCREW[r.sys]?partByPn(PROTO_SCREW[r.sys]):null)}]; /* prototype is direct to MUA; temp cylinders are for conversions */
+  var tb=findPart(r.sys,r.plat,'tb-n');return [{role:'analog',part:an},{role:'ti-base',part:tb},{role:'screw',part:screwFor(tb)||fitScrew('sc-p',r.sys,r.plat)}];
 }
+/* Other parts that do the same job on this system and platform (Nov 9 2026). The tech can swap; the pull uses the swap. */
+function rxAlts(p,r){if(!p)return [];var seen={};seen[String(p.pn).replace(/-P\d+$/,'')]=1;
+  return S.parts.filter(function(q){if(q.type!==p.type||q.id===p.id||/-P\d+$/.test(q.pn)||!fitsAt(q,r.sys,r.plat))return false;
+    if(p.type==='tibase'&&(String(q.k).slice(0,4)!==String(p.k).slice(0,4)||!!q.ang!==!!p.ang))return false;
+    if(p.type==='screw'){var aq=q.k==='sc-at'||(q.k==='sc-x'&&driverFor(q)==='tb06'),ap=p.k==='sc-at'||(p.k==='sc-x'&&driverFor(p)==='tb06');if(aq!==ap)return false}
+    var b=String(q.pn).replace(/-P\d+$/,'');if(seen[b])return false;seen[b]=1;return true})
+    .sort(function(a,b){return (b.stocked-a.stocked)||((b.onHand||0)-(a.onHand||0))})}
+function rxPick(r,idx){var rec=rxRecParts(r,idx);if(!rec)return null;var alt=(UI.rx.ov[idx]||{}).alt||{},tbSwap=false;
+  var out=rec.map(function(e){var a=e.part&&alt[e.role]?partById(alt[e.role]):null;if(a&&e.role==='ti-base')tbSwap=a;return {role:e.role,rec:e.part,part:a||e.part,swapped:!!a}});
+  /* a swapped ti-base brings the screw DESS ships with it, unless the screw was swapped too */
+  if(tbSwap&&!alt.screw){var sc=screwFor(tbSwap);out.forEach(function(e){if(e.role==='screw'&&sc){e.part=sc;e.follow=true}})}
+  return out}
+function rxSetParts(r,idx){var P=rxPick(r,idx);return P?P.map(function(e){return e.part}).filter(Boolean):null}
 function lev(a,b){var m=a.length,n=b.length,d=[];for(var i=0;i<=m;i++){d[i]=[i]}for(var j=1;j<=n;j++)d[0][j]=j;for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 function rxGuessBrand(raw){
   var words=rxLow(raw).trim().split(' ').filter(function(w){return w.length>=4&&!/^\d/.test(w)}),best=null;
@@ -2801,6 +2886,39 @@ function rxGuessBrand(raw){
 function rxQ(idx,label,field,opts){
   return '<div class="rx-q"><b>'+esc(label)+'</b><div class="opts">'+opts.map(function(o){return '<button class="opt" data-act="rx-pick" data-v="'+idx+'|'+field+'|'+esc(o[0])+'">'+esc(o[1])+'</button>'}).join('')+'</div></div>';
 }
+/* ---------- Rx questions with pictures (Nov 9 2026) ---------- */
+function rxOpt(idx,field,val,label,sub,art){return '<button class="opt opt-card" data-act="rx-pick" data-v="'+idx+'|'+field+'|'+esc(val)+'">'+(art?'<span class="opt-art">'+art+'</span>':'')+'<span class="opt-tx"><b>'+esc(label)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'}
+function rxQ2(idx,label,help,opts){return '<div class="rx-q"><b>'+esc(label)+'</b>'+(help?'<p class="small muted" style="margin:2px 0 8px">'+esc(help)+'</p>':'')+'<div class="opts opts-card">'+opts+'<button class="opt opt-idk" data-act="rx-flag" data-v="'+idx+'">I don’t know. Flag it.</button></div></div>'}
+function rxSmallArt(p){if(!p)return '';try{return partArt(p)||''}catch(e){return ''}}
+function rxLevelQ(it,r,idx){
+  var ms=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level==='mua'}),isy=it.implSys||(SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level==='implant'})[0]||{}).id;
+  var mp=S.parts.filter(function(p){return p.type==='mua'&&p.maker==='dess'&&(!isy||p.sys===isy||(p.fits||[]).some(function(f){return f[0]===isy}))&&!p.ang})[0]||S.parts.filter(function(p){return p.type==='mua'&&p.maker==='dess'&&!p.ang})[0];
+  var muaSub=ms.length?ms.map(function(x){return x.name}).join(' or '):(r.brand?'No '+brandName(r.brand)+' multi-unit in the catalog. DESS multi-units may fit.':'');
+  return rxQ2(idx,'Restores on what?','Check the scan. Multi-unit scan bodies sit on short, cone-shaped abutments. Implant scan bodies screw straight into the implant.',
+    rxOpt(idx,'level','mua','On multi-units',muaSub,rxSmallArt(mp))+rxOpt(idx,'level','implant','Straight on the implants',isy?sysById(isy).name:'',isy?impSvg(isy,44):''))}
+function rxSysQ(it,r,idx){
+  var c=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level===r.level});
+  if(!c.length)return '<div class="note low" style="margin:10px 0">No '+esc(brandName(r.brand))+' '+(r.level==='mua'?'multi-unit':'implant')+' system in the catalog. Ask a lead, or flag it.</div>';
+  return rxQ2(idx,'Which system?',r.level==='implant'?'Match the implant to the doctor’s notes or the implant sticker.':'',c.map(function(x){return rxOpt(idx,'sys',x.id,x.name,x.note||(x.plats.length>1?'Platforms: '+x.plats.join(', '):''),x.level==='implant'?impSvg(x.id,44)+connSvg(x.id,30):'')}).join(''))}
+function rxPlatSub(sys,pl){
+  if(sys==='nobel-mua')return pl==='Regular'?'For NP and RP implants':'For WP implants';
+  var d=DIAM_PLAT[sys];if(!d)return '';var ds=Object.keys(d).filter(function(k){return d[k]===pl});return ds.length?'For '+ds.join(', ')+' mm implants':''}
+function rxPlatQ(it,r,idx){var sy=sysById(r.sys);
+  return rxQ2(idx,r.level==='mua'&&sy.plats.indexOf('1.6')>=0?'Which multi-unit size?':'Which platform?',r.level==='implant'?'The implant sticker or the doctor’s notes give it. The implant diameter tells it too.':'',
+    sy.plats.map(function(pl){return rxOpt(idx,'plat',pl,pl,rxPlatSub(r.sys,pl),rxSmallArt(findPart(r.sys,pl,'an-d')||findPart(r.sys,pl,'an')))}).join(''))}
+function rxPastHTML(r,idx){var pt=UI.rx.patient,seen={},opts=[];
+  S.pulls.forEach(function(x){if(x.pt!==pt)return;var p=partById(x.p);if(!p||(r.brand&&p.brand!==r.brand))return;var k=p.sys+'|'+p.plat;if(!seen[k]){seen[k]=1;opts.push(p)}});
+  if(!opts.length)return '';
+  return '<div class="rx-q"><b>Parts pulled before for patient '+esc(pt)+'</b><div class="opts">'+opts.slice(0,4).map(function(p){return '<button class="opt opt-guess" data-act="rx-hist" data-v="'+idx+'|'+p.id+'">Use '+esc(sysById(p.sys).name+' '+p.plat)+'</button>'}).join('')+'</div></div>'}
+function rxPartRow(e,r,idx){
+  if(!e.part)return '<div class="li rx-miss"><span></span><div><div class="nm">No DESS '+esc(e.role)+' for this system in the catalog</div><div class="sb">Ask your lead before you order.</div></div><div class="rt"><span class="pill p-low">Missing</span></div></div>';
+  var p=e.part,w=!p.stocked?(orderStatusPill(p,UI.rx.patient)||'<span class="pill p-none">Not stocked</span>'+addOrderBtn(p,r.qty,'rx')):(isAsk(p)?'<span class="pill p-rest">Ask Maya’s team</span>':(p.onHand>=r.qty?'<span class="pill p-ok">'+p.onHand+' on hand</span>':'<span class="pill p-low">Only '+p.onHand+' on hand</span>'));
+  var tag=e.swapped?'<span class="pill p-acc">Your pick</span>':(e.follow?'<span class="pill p-acc">Ships with your ti-base</span>':'<span class="pill p-ok">Recommended</span>');
+  var alts=rxAlts(e.rec||p,r).filter(function(q){return q.id!==p.id}),ah='';
+  if(alts.length||e.swapped){ah='<details class="rx-alt"'+(((UI.rx.ov[idx]||{}).altOpen===e.role)?' open':'')+'><summary>'+(alts.length?alts.length+' other '+esc(e.role)+(alts.length>1?'s':'')+' fit':'Other choices')+'</summary><div class="list">'+
+    (e.swapped&&e.rec?'<button class="li click" data-act="rx-alt" data-v="'+idx+'|'+e.role+'|"><span></span><div><div class="nm">Use the recommended part</div><div class="sb">'+esc(pnLabel(e.rec))+'</div></div></button>':'')+
+    alts.slice(0,12).map(function(q){return '<button class="li click" data-act="rx-alt" data-v="'+idx+'|'+e.role+'|'+q.id+'"><span>'+locHTML(q)+'</span><div><div class="nm">'+icI(q)+esc(partName(q))+'</div><div class="sb">'+esc(pnLabel(q))+(q.stocked?' · '+(q.onHand||0)+' on hand':' · not stocked')+'</div></div></button>'}).join('')+'</div></details>'}
+  return '<div class="li"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+' '+tag+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb">'+esc(pnLabel(p))+' '+partLink(p)+'</div>'+ah+'</div><div class="rt"><span class="num">×'+r.qty+'</span>'+w+'</div></div>'}
 function rxCard(it,idx){
   var r=rxResolve(it,idx),h='<section class="card rx-item">';
   h+='<div class="rx-top"><p class="rx-raw">\u201c'+esc(it.raw)+'\u201d</p>'+(r.missing.length?'<span class="pill p-low">'+r.missing.length+(r.missing.length===1?' question':' questions')+'</span>':'<span class="pill p-ok">Ready</span>')+'</div>';
@@ -2820,6 +2938,7 @@ function rxCard(it,idx){
   if(it.ai)cks.push('<span class="ck '+(it.conf==='high'?'ok':'as')+'">Claude: '+(it.conf==='high'?'sure':(it.conf==='low'?'not sure':'fairly sure'))+'</span>');
   (it.unsure||[]).forEach(function(u){if(['brand','level','system','platform','qty'].indexOf(u)>=0&&r.missing.indexOf(u==='system'?'system':u)<0)cks.push('<span class="ck as">Check '+esc(u)+'</span>')});
   var ovv=UI.rx.ov[idx]||{};Object.keys(ovv).forEach(function(k){var lab={brand:'brand',level:'level',sys:'system',plat:'platform',qty:'quantity',attach:'attachment'}[k];if(lab)cks.push('<span class="ck ok">You picked: '+lab+'</span>')});
+  (r.fromPn||[]).forEach(function(a){cks.push('<span class="ck ok">From the part number: '+esc(a)+'</span>')});
   r.assumed.forEach(function(a){cks.push('<span class="ck as">Assumed: '+esc(a)+'</span>')});
   r.missing.forEach(function(m){cks.push('<span class="ck no">Missing: '+esc({brand:'brand',level:'implant or multi-unit',system:'system',platform:'platform',qty:'how many',attach:'ti-base, direct, or bar',screw:'screw'}[m]||m)+'</span>')});
   if(it.sites.length&&r.qty&&it.sites.length!==r.qty)cks.push('<span class="ck as">'+it.sites.length+' teeth listed but quantity '+r.qty+'. Check which is right.</span>');
@@ -2839,23 +2958,24 @@ function rxCard(it,idx){
     else h+='Past parts for patient '+esc(pt)+':<div class="opts" style="margin-top:8px">'+opts.slice(0,4).map(function(p){return '<button class="opt" data-act="rx-hist" data-v="'+idx+'|'+p.id+'">Use '+esc(ctx(p).replace(/^[A-Za-z ]+, fits /,''))+'</button>'}).join('')+'</div>';
     h+='</div>';
   }
+  if(!it.history&&UI.rx.patient&&r.missing.some(function(m){return ['brand','level','system','platform'].indexOf(m)>=0}))h+=rxPastHTML(r,idx);
   if(r.missing.indexOf('brand')>=0){var gb=rxGuessBrand(it.raw);if(gb)h+='<div class="rx-q"><b>Did you mean '+esc(brandName(gb.b))+'?</b><div class="opts"><button class="opt opt-guess" data-act="rx-pick" data-v="'+idx+'|brand|'+gb.b+'">Yes, '+esc(brandName(gb.b))+'</button></div><p class="small muted" style="margin:4px 0 0">The Rx says \u201c'+esc(gb.w)+'.\u201d This is a guess. Tap it only if you are sure.</p></div>'}
-  if(r.missing.indexOf('brand')>=0)h+=rxQ(idx,'Which brand?','brand',BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id})}).map(function(b){return [b.id,brandName(b.id)]}));
-  if(r.missing.indexOf('level')>=0)h+=rxQ(idx,'Restores on what?','level',[['mua','Multi-unit abutment'],['implant','Directly on the implant']]);
-  if(r.missing.indexOf('system')>=0)h+=rxQ(idx,'Which system?','sys',SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level===r.level}).map(function(x){return [x.id,x.name]}));
-  if(r.missing.indexOf('platform')>=0)h+=rxQ(idx,r.level==='mua'&&sysById(r.sys).plats.indexOf('1.6')>=0?'Which multi-unit size?':'Which platform?','plat',sysById(r.sys).plats.map(function(p){return [p,p]}));
+  if(r.missing.indexOf('brand')>=0&&it.pnBrands)h+=rxQ2(idx,'Which brand?','The part number fits more than one brand.',it.pnBrands.map(function(b){return rxOpt(idx,'brand',b,brandName(b))}).join(''));
+  else if(r.missing.indexOf('brand')>=0)h+=rxQ2(idx,'Which brand?',it.other?it.other+' is not in the catalog. Pick a brand only if a lead says it matches.':'',BRANDS.filter(function(b){return SYSTEMS.some(function(x){return x.brand===b.id})}).map(function(b){return rxOpt(idx,'brand',b.id,brandName(b.id))}).join(''));
+  if(r.missing.indexOf('level')>=0)h+=rxLevelQ(it,r,idx);
+  if(r.missing.indexOf('system')>=0)h+=rxSysQ(it,r,idx);
+  if(r.missing.indexOf('platform')>=0)h+=rxPlatQ(it,r,idx);
   if(r.missing.indexOf('qty')>=0)h+=rxQ(idx,'How many implants?','qty',[1,2,3,4,5,6].map(function(n){return [String(n),String(n)]}));
   if(!r.missing.length){
-    if(r.level==='mua'||rxKind()!=='arch'){
-      var ps=rxSetParts(r,idx);
+    var P=rxPick(r,idx),ps=P?P.map(function(e){return e.part}).filter(Boolean):null;
       if(rxKind()!=='arch'){var CL=rxCb(r,idx);h+='<p class="small muted" style="margin:10px 0 0">'+esc(KIND_LABEL[rxKind()])+', final. '+(r.level==='implant'?(rxKind()==='crown'?'Engaging ti-base, so the crown cannot turn.':'Non-engaging ti-base, so the bridge seats on all implants.'):'Non-engaging ti-base on the multi-unit.')+' The screw is the one made for this system. The doctor screw sheet is for full arch.</p>'+cbMissingHTML(CL,r.level,rxKind())+cbCollarHTML(CL,'rx-tb',idx)}
-      if(!ps){h+='<p class="rx-next">'+(UI.rx.step==='jig'?'Parts for a Renew Jig are not set up yet.':'Pick the step above to see the parts.')+'</p>'}
-      else{
-        h+='<div class="list rx-parts">'+ps.map(function(p){var w=!p.stocked?(orderStatusPill(p,UI.rx.patient)||'<span class="pill p-none">Not stocked</span>'+addOrderBtn(p,r.qty,'rx')):(isAsk(p)?'<span class="pill p-rest">Ask Maya\u2019s team</span>':(p.onHand>=r.qty?'<span class="pill p-ok">'+p.onHand+' on hand</span>':'<span class="pill p-low">Only '+p.onHand+' on hand</span>'));return '<div class="li"><span>'+locHTML(p)+'</span><div><div class="nm">'+icI(p)+esc(partName(p))+'</div><div class="sb">'+esc(ctx(p))+'</div><div class="sb">'+esc(pnLabel(p))+' '+partLink(p)+'</div></div><div class="rt"><span class="num">\u00d7'+r.qty+'</span>'+w+'</div></div>'}).join('')+'</div>';
+    if(rxKind()==='arch'&&r.level==='implant'&&P)h+='<p class="small muted" style="margin:10px 0 0">Full arch on the implants. '+(UI.rx.step==='proto'?'Prototype: the system screw goes straight into the implant. Confirm with a lead.':(UI.rx.final==='sleeve'?'Sleeve, so this is a bar on the implants. No ti-base.':'Non-engaging ti-bases, like a bridge, so the arch seats on every implant.'))+'</p>';
+    if(!P){h+='<p class="rx-next">'+(UI.rx.step==='jig'?'Parts for a Renew Jig are not set up yet.':'Pick the step above to see the parts.')+'</p>'}
+    else{
+      h+='<div class="list rx-parts">'+P.map(function(e){return rxPartRow(e,r,idx)}).join('')+'</div>';
         var dupe=0;if(UI.rx.patient){ps.forEach(function(p){S.pulls.forEach(function(x){if(x.p===p.id&&x.pt===UI.rx.patient&&x.d===iso(TODAY))dupe+=x.q})})}
-        h+='<div class="row" style="margin-top:12px;align-items:center"><button class="btn" data-act="rx-pull" data-v="'+idx+'">'+(dupe?'Pull again':'Pull these parts')+'</button>'+(dupe?'<span class="small" style="color:var(--low)">Already pulled today for patient '+esc(UI.rx.patient)+': '+dupe+' parts. Only pull again if the first set is gone.</span>':'')+'</div>';
-      }
-    } else h+='<div class="row" style="margin-top:12px"><button class="btn" data-act="rx-find" data-v="'+idx+'">Choose the part in Find a part</button><span class="small muted">Implant-level parts need one more choice, like engaging or not.</span></div>';
+      if(ps.length)h+='<div class="row" style="margin-top:12px;align-items:center"><button class="btn" data-act="rx-pull" data-v="'+idx+'">'+(dupe?'Pull again':'Pull these parts')+'</button>'+(dupe?'<span class="small" style="color:var(--low)">Already pulled today for patient '+esc(UI.rx.patient)+': '+dupe+' parts. Only pull again if the first set is gone.</span>':'')+'</div>';
+    }
     if(UI.role==='lead')h+='<div class="row rx-save"><input type="text" id="rx-ref-'+idx+'" placeholder="Lab part note, like DESS 15.058" value="'+esc(r.pair&&r.pair.ref||'')+'"><button class="btn sm ghost" data-act="rx-save" data-v="'+idx+'">'+(r.pair?'Update pairing':'Save as pairing')+'</button></div>';
     else h+='<p class="gate" style="margin-top:10px">The prosthodontist or a lead saves pairings (Leadership view).</p>';
   } else h+='<div class="row" style="margin-top:12px"><button class="btn sm warn" data-act="rx-flag" data-v="'+idx+'">Flag for the front desk to ask the doctor</button></div>';
@@ -4029,7 +4149,8 @@ A['rx-kind']=function(v){UI.rx.kind=v;UI.rx.ov=Object.keys(UI.rx.ov).reduce(func
 A['rx-final']=function(v){UI.rx.final=v;render()};
 A['rx-pick']=function(v){var a=v.split('|'),i=+a[0],f=a[1],val=a[2],o=UI.rx.ov[i]=UI.rx.ov[i]||{};
   if(f==='qty')val=+val;o[f]=val;
-  if(f==='brand'){delete o.sys;delete o.plat}if(f==='level'){delete o.sys;delete o.plat}if(f==='sys')delete o.plat;render()};
+  if(f==='brand'){delete o.sys;delete o.plat}if(f==='level'){delete o.sys;delete o.plat}if(f==='sys')delete o.plat;delete o.alt;render()};
+A['rx-alt']=function(v){var a=v.split('|'),i=+a[0],o=UI.rx.ov[i]=UI.rx.ov[i]||{};o.alt=o.alt||{};if(a[2])o.alt[a[1]]=a[2];else delete o.alt[a[1]];o.altOpen=null;render()};
 A['rx-hist']=function(v){var a=v.split('|'),i=+a[0],p=partById(a[1]);UI.rx.ov[i]={brand:p.brand,level:p.level,sys:p.sys,plat:p.plat};render();toast('Filled in from this patient\u2019s past parts.')};
 A['rx-flag']=function(v){var it=rxItems()[+v],r=rxResolve(it,+v);addRequest('info',null,0,UI.rx.patient,'Rx says "'+it.raw+'". Missing: '+r.missing.map(function(m){return {brand:'brand',level:'implant or multi-unit',system:'system',platform:'platform',qty:'number of implants'}[m]}).join(', ')+'.');save();render();toast('Flagged. The front desk will ask the doctor.')};
 A['rx-save']=function(v){var i=+v,it=rxItems()[i],r=rxResolve(it,i),el=document.getElementById('rx-ref-'+i),ref=el?el.value.trim():'';
@@ -4147,6 +4268,64 @@ window.renewFindAudit=function(){
     if(lv==='mua'){var t=findPart(sy.id,pl,'tb-n'),sc=screwFor(t)||fitScrew('sc-p',sy.id,pl);n++;if(t&&t.withScrew&&(!sc||base(sc.pn)!==t.withScrew))out.push(['arch final screw '+(sc?sc.pn:'none')+', DESS ships '+t.withScrew,sy.id+' '+pl+' | '+t.pn])}
   })});
   return {checked:n,issues:out};
+};
+/* Rx test bank (Nov 9 2026). R = Richard's real Rx forms, typed as written. S = harder lines.
+   Each line lists what the reader must find. "ans" answers the questions, then checks the parts. Run: renewRxAudit(). */
+var RX_BANK=[
+ {id:'R1',t:'Straumann, all of the specifics has been previously sent',step:'proto',L:[{b:'straumann',miss:['level','qty']}]},
+ {id:'R2',t:'6,7 - Astra EV Uni Abutments\n11 - Nobel MUA',step:'proto',L:[{b:'astra',l:'mua',s:'astra-mb',p:'Standard',miss:[],parts:['DESS 14.058','DESS 19.058']},{b:'nobel',l:'mua',s:'nobel-mua',miss:['platform']}],ans:[{i:1,ov:{plat:'Regular'},miss:[],full:1}]},
+ {id:'R3',t:'Straumann SRA x 5',step:'final',fin:'sleeve',L:[{b:'straumann',l:'mua',s:'str-sra',p:'Standard',miss:[],full:1}]},
+ {id:'R4',t:'Zimmer TSV 3.5 (Green)',step:'proto',L:[{b:'zimvie',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'zv-tsv',p:'3.5',miss:[],full:1}]},
+ {id:'R5',t:'Implant Brand: Neodent GM\nProsthetic screw: PRH 30 screw',step:'final',L:[{b:'neodent',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:4,attach:'tibase'},s:'neo-mini',miss:[],full:1}]},
+ {id:'R6',t:'Neodent',step:'proto',L:[{b:'neodent',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:5},s:'neo-mini',miss:[],full:1}]},
+ {id:'R7',t:'Implant type: ZimVie TSX47B10\nScan body: DESS 52.018',step:'final',L:[{b:'zimvie',l:'implant',s:'zv-tsv',p:'4.5',miss:['qty'],pn:1}],ans:[{i:0,ov:{qty:1},miss:[],parts:['DESS 14.018','DESS 15.018','DESS 19.042']}]},
+ {id:'R8',t:'Zimmer compatible 3.5 internal hex connection (DESS scanbody)',step:'proto',L:[{b:'zimvie',miss:['level','qty']}]},
+ {id:'R9',t:'Biohorizons Conical',step:'proto',L:[{b:'biohorizons',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'bh-con',miss:['platform']}]},
+ {id:'R10',t:'neodent GM mua',step:'proto',L:[{b:'neodent',l:'mua',s:'neo-mini',p:'Mini Conical',miss:['qty']}]},
+ {id:'R11',t:'Nobel Biocare MU RP',step:'proto',L:[{b:'nobel',l:'mua',s:'nobel-mua',p:'Regular',miss:['qty']}]},
+ {id:'R12',t:'Maxilla: Astra EV Uniabutment\nMandible: #19 - Astra EV 4.8\n#22 - Astra EV 4.2',step:'proto',L:[{s:'astra-mb',miss:['qty']},{b:'astra',miss:['level']},{b:'astra',miss:['level']}],ans:[{i:1,ov:{level:'implant'},s:'astra-ev',p:'4.8',miss:[],full:1}]},
+ {id:'R13',t:'3i Certain with MUA abutments',step:'final',fin:'mono',L:[{b:'zimvie',l:'mua',s:'zv-lpa',p:'Standard',miss:['qty','attach']}],ans:[{i:0,ov:{qty:4,attach:'tibase'},miss:[],full:1}]},
+ {id:'R14',t:'Biohorizons MUA',step:'proto',L:[{b:'biohorizons',l:'mua',s:'bh-mua',p:'Standard',miss:['qty']}]},
+ {id:'S1',t:'Dentium SuperLine 4.5',step:'proto',L:[{b:'dentium',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'dentium',p:'Standard',miss:[]}]},
+ {id:'S2',t:'MegaGen AnyRidge 4.5',step:'final',L:[{b:'megagen',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'mg-ar',p:'Standard',miss:[]}]},
+ {id:'S3',t:'MIS C1 4.2',step:'proto',L:[{b:'mis',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:4},s:'mis-mua',miss:[]}]},
+ {id:'S4',t:'Camlog Screw-Line 3.8',step:'final',L:[{b:'camlog',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'camlog',p:'3.8',miss:[]}]},
+ {id:'S5',t:'Ankylos C/X',step:'final',L:[{b:'dentsply',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'ankylos',p:'C/X',miss:[]}]},
+ {id:'S6',t:'Osstem TS III',step:'proto',L:[{b:'hiossen',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'hio-et',miss:['platform']}]},
+ {id:'S7',t:'Neoss ProActive 4.5',step:'proto',L:[{b:null,miss:['brand','level','qty'],other:1}]},
+ {id:'S8',t:'Zimmer 3.5 green',step:'final',L:[{b:'zimvie',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:6},s:'zv-tsv',p:'3.5',miss:[],full:1}]},
+ {id:'S9',t:'Nobel MUA x4',step:'proto',L:[{b:'nobel',l:'mua',s:'nobel-mua',miss:['platform']}]},
+ {id:'S10',t:'Scan body: DESS 52.018 x 2',step:'final',L:[{b:null,miss:['brand','level']}],ans:[{i:0,ov:{brand:'zimvie'},s:'zv-tsv',p:'4.5',miss:[],full:1}]},
+ {id:'S11',t:'Implant Direct Legacy 4.7',step:'final',L:[{b:'implantdirect',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'id-legacy',p:'4.5',miss:[],full:1}]},
+ {id:'S13',t:'#3,5,12,14 Zimmer TSV 4.7',step:'final',L:[{b:'zimvie',miss:['level']}],ans:[{i:0,ov:{level:'implant'},s:'zv-tsv',p:'4.5',miss:[],full:1,qty:4}]},
+ {id:'S12',t:'Zimmer TSV 3.5\nScan body: DESS 52.018',step:'final',L:[{b:'zimvie',l:'implant',s:'zv-tsv',miss:['platform','qty']}],ans:[{i:0,ov:{level:'implant',qty:2},s:'zv-tsv',miss:['platform']}]}
+];
+window.renewRxAudit=function(){
+  var keep=JSON.stringify({step:UI.rx.step,final:UI.rx.final,kind:UI.rx.kind,ov:UI.rx.ov,doctor:UI.rx.doctor,ai:UI.rx.ai}),fails=[],n=0;
+  function eq(a,b){return JSON.stringify((a||[]).slice().sort())===JSON.stringify((b||[]).slice().sort())}
+  function chk(id,lab,r,e,it){var bad=[];
+    if('b' in e&&(r.brand||null)!==e.b)bad.push('brand '+r.brand+' (want '+e.b+')');
+    if(e.l&&r.level!==e.l)bad.push('level '+r.level+' (want '+e.l+')');
+    if(e.s&&r.sys!==e.s&&!(r.level!==(sysById(e.s)||{}).level&&it&&(it.implSys===e.s||it.muaSys===e.s)))bad.push('system '+r.sys+' (want '+e.s+')');
+    if(e.p&&r.plat!==e.p&&!(it&&it.implPlat===e.p&&r.level!=='implant'))bad.push('platform '+r.plat+' (want '+e.p+')');
+    if(e.qty&&r.qty!==e.qty)bad.push('quantity '+r.qty+' (want '+e.qty+')');
+    if(e.miss&&!eq(r.missing,e.miss))bad.push('missing ['+r.missing.join(',')+'] (want ['+e.miss.join(',')+'])');
+    if(e.pn&&!(r.fromPn&&r.fromPn.length))bad.push('part number not used');
+    if(e.other&&!(it&&it.other))bad.push('brand not named as outside the catalog');
+    var P=null;try{P=rxPick(r,e.i==null?0:e.i)}catch(x){bad.push('parts error '+x.message)}
+    if(e.full&&(!P||P.some(function(x){return !x.part})))bad.push('parts incomplete: '+(P?P.map(function(x){return x.role+'='+(x.part?x.part.pn:'none')}).join(', '):'none'));
+    if(e.parts){var got=P?P.map(function(x){return x.part&&x.part.pn}).filter(Boolean):[];if(!eq(got,e.parts))bad.push('parts ['+got.join(', ')+'] (want ['+e.parts.join(', ')+'])')}
+    try{rxCard(it,e.i==null?0:e.i)}catch(x){bad.push('card error '+x.message)}
+    n++;if(bad.length)fails.push(id+' '+lab+': '+bad.join('; '))}
+  RX_BANK.forEach(function(c){
+    UI.rx.step=c.step;UI.rx.final=c.fin||'none';UI.rx.kind=c.kind||'arch';UI.rx.ov={};UI.rx.doctor='';UI.rx.ai=null;
+    var its=rxParse(c.t);
+    if(its.length!==c.L.length)fails.push(c.id+': '+its.length+' lines read (want '+c.L.length+')');
+    c.L.forEach(function(e,i){if(its[i]){var x=Object.assign({i:i},e);chk(c.id,'line '+(i+1),rxResolve(its[i],i),x,its[i])}});
+    (c.ans||[]).forEach(function(a){UI.rx.ov={};UI.rx.ov[a.i]=JSON.parse(JSON.stringify(a.ov));if(its[a.i])chk(c.id,'after answers, line '+(a.i+1),rxResolve(its[a.i],a.i),a,its[a.i])});
+  });
+  var k=JSON.parse(keep);UI.rx.step=k.step;UI.rx.final=k.final;UI.rx.kind=k.kind;UI.rx.ov=k.ov||{};UI.rx.doctor=k.doctor;UI.rx.ai=k.ai;
+  return {checked:n,fails:fails};
 };
 window.renewRole=function(v){A.role(v)};
 window.renewCatalog=function(){return S.parts.map(function(x){var a=x.sbHead==='io'?'SBIO':partArt(x);var md=x.type==='mua'?muaDims(x):null;return {id:x.id,type:x.type,level:x.level,maker:x.maker,name:partName(x),pn:x.pn,real:!!x.real,fit:ctx(x),bin:x.bin||'',stocked:!!x.stocked,art:a,k:x.k||'',sys:x.sys,plat:x.plat,ang:md?md[0]:null,gh:md?md[1]:null,eng:!isNonEngP(x),ak:akind(x),D:x.level==='mua'?null:platMM(x),sbHead:x.sbHead||''}})};
