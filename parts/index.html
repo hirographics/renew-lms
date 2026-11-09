@@ -2807,26 +2807,32 @@ function rxParse(text){
   });
   return items;
 }
+/* multi-unit systems that sit on a given implant system, where a brand has more than one */
+var MUA_FOR_IMPL={'astra-ev':['astra-mb','astra-mbev'],'astra-os':['astra-uni']};
+function rxSysCands(brand,level,implSys){var c=SYSTEMS.filter(function(x){return x.brand===brand&&x.level===level});if(level==='mua'&&implSys&&MUA_FOR_IMPL[implSys]){var f=c.filter(function(x){return MUA_FOR_IMPL[implSys].indexOf(x.id)>=0});if(f.length)c=f}return c}
 function rxResolve(it,idx){
   var ov0=UI.rx.ov[idx]||{};
   /* the tech picked the brand for a part number that fits two brands: read the number again for that brand */
   if(ov0.brand&&it.pnBrands){it._pn=it._pn||{};if(!it._pn[ov0.brand]){var c=Object.assign({},it,{brand:ov0.brand,pnBrands:null,notes:it.notes.slice(),fromPn:[],refs:it.refs.slice()});rxApplyRefs(c,it.raw);it._pn[ov0.brand]=c}it=it._pn[ov0.brand]}
   var ov=UI.rx.ov[idx]||{},pr=S.pairings[it.key]||null;
   var r={brand:ov.brand||it.brand||(pr&&pr.brand)||null,level:ov.level||it.level||(pr&&pr.level)||null,sys:null,plat:null,qty:ov.qty||it.sites.length||it.qty||null,pair:pr,refs:it.refs.slice(),screw:(pr&&pr.screw)||null};
+  /* Richard, Nov 9 2026: a prototype is almost always direct to the multi-unit with a Badger screw. So when the Rx names only the implant, assume multi-unit and let the tech change it. */
+  if(!r.level&&rxKind()==='arch'&&UI.rx.step==='proto'){r.level='mua';r.protoMua=true}
   if(pr&&pr.ref)r.refs.unshift('Lab part: '+pr.ref);
   if(r.brand&&r.level){
     var guess=r.level==='mua'?it.muaSys:it.implSys;if(guess&&sysById(guess).brand!==r.brand)guess=null;
-    var cands=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level===r.level});
+    var cands=rxSysCands(r.brand,r.level,it.implSys);
     r.sys=ov.sys||(pr&&pr.sys&&sysById(pr.sys).level===r.level&&sysById(pr.sys).brand===r.brand?pr.sys:null)||guess||(cands.length===1?cands[0].id:null);
     if(r.sys&&(sysById(r.sys).brand!==r.brand||sysById(r.sys).level!==r.level))r.sys=null;
   }
   if(r.sys){var ps=sysById(r.sys).plats,pg=r.level==='mua'?it.muaPlat:it.implPlat;
     r.plat=ov.plat||pg||(pr&&pr.sys===r.sys?pr.plat:null)||(ps.length===1?ps[0]:null);if(r.plat&&ps.indexOf(r.plat)<0)r.plat=null}
-  /* brand with no multi-unit system of its own: DESS multi-units made for its implants show which top they use */
-  if(r.brand&&r.level==='mua'&&!r.sys&&!SYSTEMS.some(function(x){return x.brand===r.brand&&x.level==='mua'})){var tops={},isys=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level==='implant'}).map(function(x){return x.id});
-    S.parts.forEach(function(p){if(p.type==='mua'&&isys.some(function(i){return p.sys===i||!!(p.fits&&p.fits.some(function(f){return f[0]===i}))})){var tp=stkMuaSys(p);if(tp)tops[tp[0]+'|'+tp[1]]=tp}});
-    var tk=Object.keys(tops);if(tk.length===1&&!ov.sys){r.sys=tops[tk[0]][0];r.plat=ov.plat||tops[tk[0]][1];r.muaVia=brandName(r.brand)}}
-  r.assumed=[];if(r.muaVia)r.assumed.push('DESS multi-units for '+r.muaVia+' implants use the '+sysById(r.sys).name+' top. Confirm the doctor used a DESS multi-unit');
+  /* no multi-unit system of its own, or the one read has no parts in the catalog: DESS multi-units made for the implant show which top they use */
+  function sysHasAny(sy){return sysById(sy).plats.some(function(pl){return !!(findPart(sy,pl,'an-d')||findPart(sy,pl,'an')||findPart(sy,pl,'tb-n')||fitScrew('sc-bdg',sy,pl)||fitScrew('sc-p',sy,pl))})}
+  if(r.brand&&r.level==='mua'&&!ov.sys&&(!r.sys||!sysHasAny(r.sys))){var tops={},was=r.sys,isys=it.implSys?[it.implSys]:SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level==='implant'}).map(function(x){return x.id});
+    S.parts.forEach(function(p){if(p.type==='mua'&&p.maker==='dess'&&!p.ang&&isys.some(function(i){return p.sys===i||!!(p.fits&&p.fits.some(function(f){return f[0]===i}))})){var tp=stkMuaSys(p);if(tp)tops[tp[0]+'|'+tp[1]]=tp}});
+    var tk=Object.keys(tops);if(tk.length===1){r.sys=tops[tk[0]][0];r.plat=ov.plat||tops[tk[0]][1];r.muaVia=it.implSys?sysById(it.implSys).name:brandName(r.brand);r.muaWas=was}}
+  r.assumed=[];if(r.protoMua)r.assumed.push('Prototype, so direct to the multi-unit with a Badger screw');if(r.muaVia)r.assumed.push((r.muaWas?'No parts in the catalog for '+sysById(r.muaWas).name+'. ':'')+'DESS multi-units for '+r.muaVia+' implants use the '+sysById(r.sys).name+' top. Confirm the doctor used a DESS multi-unit');
   r.fromPn=it.fromPn||[];
   if(r.pair&&!ov.brand&&!it.brand)r.assumed.push('Brand and system from a saved pairing');if(it.tsvNote)r.assumed.push(it.tsvNote);if(it.zimNote&&!ov.sys)r.assumed.push(it.zimNote);if(!ov.plat&&!(r.level==='mua'?it.muaPlat:it.implPlat)&&r.plat&&r.sys&&sysById(r.sys).plats.length>1)r.assumed.push('Platform '+r.plat+' from the saved pairing');
   r.missing=[];if(!r.brand)r.missing.push('brand');if(!r.level)r.missing.push('level');else if(r.brand&&!r.sys)r.missing.push('system');if(r.sys&&!r.plat)r.missing.push('platform');if(!r.qty)r.missing.push('qty');
@@ -2897,7 +2903,7 @@ function rxLevelQ(it,r,idx){
   return rxQ2(idx,'Restores on what?','Check the scan. Multi-unit scan bodies sit on short, cone-shaped abutments. Implant scan bodies screw straight into the implant.',
     rxOpt(idx,'level','mua','On multi-units',muaSub,rxSmallArt(mp))+rxOpt(idx,'level','implant','Straight on the implants',isy?sysById(isy).name:'',isy?impSvg(isy,44):''))}
 function rxSysQ(it,r,idx){
-  var c=SYSTEMS.filter(function(x){return x.brand===r.brand&&x.level===r.level});
+  var c=rxSysCands(r.brand,r.level,it.implSys);
   if(!c.length)return '<div class="note low" style="margin:10px 0">No '+esc(brandName(r.brand))+' '+(r.level==='mua'?'multi-unit':'implant')+' system in the catalog. Ask a lead, or flag it.</div>';
   return rxQ2(idx,'Which system?',r.level==='implant'?'Match the implant to the doctor’s notes or the implant sticker.':'',c.map(function(x){return rxOpt(idx,'sys',x.id,x.name,x.note||(x.plats.length>1?'Platforms: '+x.plats.join(', '):''),x.level==='implant'?impSvg(x.id,44)+connSvg(x.id,30):'')}).join(''))}
 function rxPlatSub(sys,pl){
@@ -2958,6 +2964,7 @@ function rxCard(it,idx){
     else h+='Past parts for patient '+esc(pt)+':<div class="opts" style="margin-top:8px">'+opts.slice(0,4).map(function(p){return '<button class="opt" data-act="rx-hist" data-v="'+idx+'|'+p.id+'">Use '+esc(ctx(p).replace(/^[A-Za-z ]+, fits /,''))+'</button>'}).join('')+'</div>';
     h+='</div>';
   }
+  if(r.protoMua)h+='<div class="row" style="margin:8px 0 0;align-items:center;gap:8px"><span class="small muted">Not on multi-units?</span><button class="btn sm ghost" data-act="rx-pick" data-v="'+idx+'|level|implant">It is on the implants</button></div>';
   if(!it.history&&UI.rx.patient&&r.missing.some(function(m){return ['brand','level','system','platform'].indexOf(m)>=0}))h+=rxPastHTML(r,idx);
   if(r.missing.indexOf('brand')>=0){var gb=rxGuessBrand(it.raw);if(gb)h+='<div class="rx-q"><b>Did you mean '+esc(brandName(gb.b))+'?</b><div class="opts"><button class="opt opt-guess" data-act="rx-pick" data-v="'+idx+'|brand|'+gb.b+'">Yes, '+esc(brandName(gb.b))+'</button></div><p class="small muted" style="margin:4px 0 0">The Rx says \u201c'+esc(gb.w)+'.\u201d This is a guess. Tap it only if you are sure.</p></div>'}
   if(r.missing.indexOf('brand')>=0&&it.pnBrands)h+=rxQ2(idx,'Which brand?','The part number fits more than one brand.',it.pnBrands.map(function(b){return rxOpt(idx,'brand',b,brandName(b))}).join(''));
@@ -2969,7 +2976,7 @@ function rxCard(it,idx){
   if(!r.missing.length){
     var P=rxPick(r,idx),ps=P?P.map(function(e){return e.part}).filter(Boolean):null;
       if(rxKind()!=='arch'){var CL=rxCb(r,idx);h+='<p class="small muted" style="margin:10px 0 0">'+esc(KIND_LABEL[rxKind()])+', final. '+(r.level==='implant'?(rxKind()==='crown'?'Engaging ti-base, so the crown cannot turn.':'Non-engaging ti-base, so the bridge seats on all implants.'):'Non-engaging ti-base on the multi-unit.')+' The screw is the one made for this system. The doctor screw sheet is for full arch.</p>'+cbMissingHTML(CL,r.level,rxKind())+cbCollarHTML(CL,'rx-tb',idx)}
-    if(rxKind()==='arch'&&r.level==='implant'&&P)h+='<p class="small muted" style="margin:10px 0 0">Full arch on the implants. '+(UI.rx.step==='proto'?'Prototype: the system screw goes straight into the implant. Confirm with a lead.':(UI.rx.final==='sleeve'?'Sleeve, so this is a bar on the implants. No ti-base.':'Non-engaging ti-bases, like a bridge, so the arch seats on every implant.'))+'</p>';
+    if(rxKind()==='arch'&&r.level==='implant'&&P)h+='<p class="small muted" style="margin:10px 0 0">Full arch on the implants. '+(UI.rx.step==='proto'?'Prototypes are almost always direct to the multi-unit with a Badger screw. This one is marked on the implants, so the system screw goes straight into the implant. Confirm with a lead.':(UI.rx.final==='sleeve'?'Sleeve, so this is a bar on the implants. No ti-base.':'Non-engaging ti-bases, like a bridge, so the arch seats on every implant.'))+'</p>';
     if(!P){h+='<p class="rx-next">'+(UI.rx.step==='jig'?'Parts for a Renew Jig are not set up yet.':'Pick the step above to see the parts.')+'</p>'}
     else{
       h+='<div class="list rx-parts">'+P.map(function(e){return rxPartRow(e,r,idx)}).join('')+'</div>';
@@ -4272,27 +4279,27 @@ window.renewFindAudit=function(){
 /* Rx test bank (Nov 9 2026). R = Richard's real Rx forms, typed as written. S = harder lines.
    Each line lists what the reader must find. "ans" answers the questions, then checks the parts. Run: renewRxAudit(). */
 var RX_BANK=[
- {id:'R1',t:'Straumann, all of the specifics has been previously sent',step:'proto',L:[{b:'straumann',miss:['level','qty']}]},
+ {id:'R1',t:'Straumann, all of the specifics has been previously sent',step:'proto',L:[{b:'straumann',l:'mua',s:'str-sra',miss:['qty']}]},
  {id:'R2',t:'6,7 - Astra EV Uni Abutments\n11 - Nobel MUA',step:'proto',L:[{b:'astra',l:'mua',s:'astra-mb',p:'Standard',miss:[],parts:['DESS 14.058','DESS 19.058']},{b:'nobel',l:'mua',s:'nobel-mua',miss:['platform']}],ans:[{i:1,ov:{plat:'Regular'},miss:[],full:1}]},
  {id:'R3',t:'Straumann SRA x 5',step:'final',fin:'sleeve',L:[{b:'straumann',l:'mua',s:'str-sra',p:'Standard',miss:[],full:1}]},
- {id:'R4',t:'Zimmer TSV 3.5 (Green)',step:'proto',L:[{b:'zimvie',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'zv-tsv',p:'3.5',miss:[],full:1}]},
+ {id:'R4',t:'Zimmer TSV 3.5 (Green)',step:'proto',L:[{b:'zimvie',l:'mua',s:'nobel-mua',p:'Regular',miss:['qty']}],ans:[{i:0,ov:{qty:4},full:1},{i:0,ov:{level:'implant',qty:4},s:'zv-tsv',p:'3.5',miss:[],full:1}]},
  {id:'R5',t:'Implant Brand: Neodent GM\nProsthetic screw: PRH 30 screw',step:'final',L:[{b:'neodent',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:4,attach:'tibase'},s:'neo-mini',miss:[],full:1}]},
- {id:'R6',t:'Neodent',step:'proto',L:[{b:'neodent',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:5},s:'neo-mini',miss:[],full:1}]},
+ {id:'R6',t:'Neodent',step:'proto',L:[{b:'neodent',l:'mua',s:'neo-mini',miss:['qty']}],ans:[{i:0,ov:{qty:5},s:'neo-mini',miss:[],full:1}]},
  {id:'R7',t:'Implant type: ZimVie TSX47B10\nScan body: DESS 52.018',step:'final',L:[{b:'zimvie',l:'implant',s:'zv-tsv',p:'4.5',miss:['qty'],pn:1}],ans:[{i:0,ov:{qty:1},miss:[],parts:['DESS 14.018','DESS 15.018','DESS 19.042']}]},
- {id:'R8',t:'Zimmer compatible 3.5 internal hex connection (DESS scanbody)',step:'proto',L:[{b:'zimvie',miss:['level','qty']}]},
- {id:'R9',t:'Biohorizons Conical',step:'proto',L:[{b:'biohorizons',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'bh-con',miss:['platform']}]},
+ {id:'R8',t:'Zimmer compatible 3.5 internal hex connection (DESS scanbody)',step:'proto',L:[{b:'zimvie',l:'mua',s:'nobel-mua',p:'Regular',miss:['qty']}],ans:[{i:0,ov:{qty:4},full:1}]},
+ {id:'R9',t:'Biohorizons Conical',step:'proto',L:[{b:'biohorizons',l:'mua',s:'bh-mua',miss:['qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'bh-con',miss:['platform']}]},
  {id:'R10',t:'neodent GM mua',step:'proto',L:[{b:'neodent',l:'mua',s:'neo-mini',p:'Mini Conical',miss:['qty']}]},
  {id:'R11',t:'Nobel Biocare MU RP',step:'proto',L:[{b:'nobel',l:'mua',s:'nobel-mua',p:'Regular',miss:['qty']}]},
- {id:'R12',t:'Maxilla: Astra EV Uniabutment\nMandible: #19 - Astra EV 4.8\n#22 - Astra EV 4.2',step:'proto',L:[{s:'astra-mb',miss:['qty']},{b:'astra',miss:['level']},{b:'astra',miss:['level']}],ans:[{i:1,ov:{level:'implant'},s:'astra-ev',p:'4.8',miss:[],full:1}]},
+ {id:'R12',t:'Maxilla: Astra EV Uniabutment\nMandible: #19 - Astra EV 4.8\n#22 - Astra EV 4.2',step:'proto',L:[{s:'astra-mb',miss:['qty']},{b:'astra',l:'mua',miss:['system']},{b:'astra',l:'mua',miss:['system']}],ans:[{i:1,ov:{sys:'astra-mb'},s:'astra-mb',miss:[],full:1},{i:1,ov:{level:'implant'},s:'astra-ev',p:'4.8',miss:[],full:1}]},
  {id:'R13',t:'3i Certain with MUA abutments',step:'final',fin:'mono',L:[{b:'zimvie',l:'mua',s:'zv-lpa',p:'Standard',miss:['qty','attach']}],ans:[{i:0,ov:{qty:4,attach:'tibase'},miss:[],full:1}]},
  {id:'R14',t:'Biohorizons MUA',step:'proto',L:[{b:'biohorizons',l:'mua',s:'bh-mua',p:'Standard',miss:['qty']}]},
- {id:'S1',t:'Dentium SuperLine 4.5',step:'proto',L:[{b:'dentium',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'dentium',p:'Standard',miss:[]}]},
+ {id:'S1',t:'Dentium SuperLine 4.5',step:'proto',L:[{b:'dentium',l:'mua',s:'nobel-mua',miss:['qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'dentium',p:'Standard',miss:[]}]},
  {id:'S2',t:'MegaGen AnyRidge 4.5',step:'final',L:[{b:'megagen',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'mg-ar',p:'Standard',miss:[]}]},
- {id:'S3',t:'MIS C1 4.2',step:'proto',L:[{b:'mis',miss:['level','qty']}],ans:[{i:0,ov:{level:'mua',qty:4},s:'mis-mua',miss:[]}]},
+ {id:'S3',t:'MIS C1 4.2',step:'proto',L:[{b:'mis',l:'mua',s:'mis-mua',miss:['qty']}],ans:[{i:0,ov:{level:'mua',qty:4},s:'mis-mua',miss:[]}]},
  {id:'S4',t:'Camlog Screw-Line 3.8',step:'final',L:[{b:'camlog',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'camlog',p:'3.8',miss:[]}]},
  {id:'S5',t:'Ankylos C/X',step:'final',L:[{b:'dentsply',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'ankylos',p:'C/X',miss:[]}]},
- {id:'S6',t:'Osstem TS III',step:'proto',L:[{b:'hiossen',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'hio-et',miss:['platform']}]},
- {id:'S7',t:'Neoss ProActive 4.5',step:'proto',L:[{b:null,miss:['brand','level','qty'],other:1}]},
+ {id:'S6',t:'Osstem TS III',step:'proto',L:[{b:'hiossen',l:'mua',s:'hio-mua',miss:['qty']}],ans:[{i:0,ov:{level:'implant',qty:4},s:'hio-et',miss:['platform']}]},
+ {id:'S7',t:'Neoss ProActive 4.5',step:'proto',L:[{b:null,l:'mua',miss:['brand','qty'],other:1}]},
  {id:'S8',t:'Zimmer 3.5 green',step:'final',L:[{b:'zimvie',miss:['level','qty']}],ans:[{i:0,ov:{level:'implant',qty:6},s:'zv-tsv',p:'3.5',miss:[],full:1}]},
  {id:'S9',t:'Nobel MUA x4',step:'proto',L:[{b:'nobel',l:'mua',s:'nobel-mua',miss:['platform']}]},
  {id:'S10',t:'Scan body: DESS 52.018 x 2',step:'final',L:[{b:null,miss:['brand','level']}],ans:[{i:0,ov:{brand:'zimvie'},s:'zv-tsv',p:'4.5',miss:[],full:1}]},
