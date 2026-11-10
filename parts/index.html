@@ -4388,6 +4388,34 @@ window.renewRxAudit=function(){
   var k=JSON.parse(keep);UI.rx.step=k.step;UI.rx.final=k.final;UI.rx.kind=k.kind;UI.rx.ov=k.ov||{};UI.rx.doctor=k.doctor;UI.rx.ai=k.ai;
   return {checked:n,fails:fails};
 };
+/* ---- Nov 10 2026: impression copings for maker parts. Drawn by Claude from the usual coping shapes, not traced.
+   Open tray (pick-up): body with a retention groove and a long guide screw out the top.
+   Closed tray (transfer): shorter body with flat sides and a short screw. Cap: small plastic snap cap. ---- */
+function copKind(p){var t=(partName(p)+' '+(p.v||'')+' '+(p.storeTitle||'')).toLowerCase();
+  if(/\bcap\b|snap|repositioning cap|plastic/.test(t)&&!/coping|post|pick/.test(t))return 'cap';
+  if(/open|pick[- ]?up|direct|long screw/.test(t)&&!/closed/.test(t))return 'open';
+  return 'closed'}
+function paArtCoping(kind,mu,D){
+  D=D||4;var r=Math.max(1.6,Math.min(2.6,D/2+0.15)),h='',cols=['ti','tig'];
+  var base=mu?[[0,r*1.05],[0.9,r*1.1],[1.0,r*0.98]]:[[-1.3,r*0.62],[-0.02,r*0.62]];
+  if(kind==='cap'){paFit(0,5.2);cols=['peek'];
+    h+=paTurned([[0,r*1.08],[0.3,r*1.15],[3.6,r*1.12],[4.4,r*0.95],[5.0,r*0.6],[5.2,r*0.3]],'G:peek');
+    return paSvg(h,cols,'Impression cap, plastic')}
+  if(kind==='open'){var top=mu?8.4:7.8;paFit(mu?0:-1.3,top+4.9);
+    if(!mu)h+=paTurned(base,'G:ti')+paFacets(-1.3,-0.02,r*0.62);
+    h+=paTurned((mu?base:[]).concat([[mu?1.0:0,r],[2.0,r],[2.05,r*0.8],[2.8,r*0.8],[2.85,r],[top-0.6,r],[top,r*0.86]]),'G:ti');
+    h+=paTurned([[top,0.72],[top+3.6,0.72],[top+3.7,1.05],[top+4.6,1.05],[top+4.9,0.85]],'G:tig');
+    h+=paHole(top+4.9,0.4,0.5);
+    return paSvg(h+(mu?'':paDia(D)),cols,'Open tray impression coping with a long guide screw')}
+  var top2=mu?8.4:8;paFit(mu?0:-1.3,top2+0.9);
+  if(!mu)h+=paTurned(base,'G:ti')+paFacets(-1.3,-0.02,r*0.62);
+  h+=paTurned((mu?base:[]).concat([[mu?1.0:0,r*0.95],[1.6,r*1.05],[top2-1.4,r*0.92],[top2-0.5,r*0.9],[top2,r*0.72]]),'G:ti');
+  h+='<rect x="'+paX(-r*0.38).toFixed(1)+'" y="'+paY(top2-1.6).toFixed(1)+'" width="'+(r*0.76*PA_PX).toFixed(1)+'" height="'+((top2-3.4)*PA_PX).toFixed(1)+'" fill="rgba(255,255,255,.32)" stroke="rgba(40,44,48,.35)" stroke-width=".6"/>';
+  h+=paTurned([[top2,0.95],[top2+0.9,0.95]],'G:tig')+paHole(top2+0.9,0.42,0.6);
+  return paSvg(h+(mu?'':paDia(D)),cols,'Closed tray impression coping with flat sides')}
+var PA_partArtCop=partArt;
+partArt=function(p){var a=PA_partArtCop(p);if(a||p.type!=='transfer')return a;return paArtCoping(copKind(p),p.level==='mua',p.level==='mua'?null:platMM(p))};
+
 window.renewRole=function(v){A.role(v)};
 window.renewCatalog=function(){return S.parts.map(function(x){var a=x.sbHead==='io'?'SBIO':partArt(x);var md=x.type==='mua'?muaDims(x):null;return {id:x.id,type:x.type,level:x.level,maker:x.maker,name:partName(x),pn:x.pn,real:!!x.real,fit:ctx(x),bin:x.bin||'',stocked:!!x.stocked,art:a,k:x.k||'',sys:x.sys,plat:x.plat,ang:md?md[0]:null,gh:md?md[1]:null,eng:!isNonEngP(x),ak:akind(x),D:x.level==='mua'?null:platMM(x),sbHead:x.sbHead||''}})};
 window.renewExo=function(){return {miss:EXO_MAP.filter(function(e){return !S.parts.some(function(p){return exoMatch(p,e.m)})}).map(function(e){return e.n}),parts:S.parts.filter(function(p){return exoFor(p).length}).map(function(p){return p.pn+' '+p.sys+' '+p.plat+' x'+exoFor(p).length}),p16217:S.parts.filter(function(p){return p.pn==='DESS 16.217'}).length,news:['DESS 15.441','DESS 16.441','DESS 16.430','DESS 15.462','DESS 14.002','DESS 14.061'].map(function(n){var p=S.parts.filter(function(q){return q.pn===n})[0];return n+(p?' '+p.sys+' '+p.plat+' '+p.k+' '+partName(p):' MISSING')})}};
