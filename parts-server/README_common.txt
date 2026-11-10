@@ -10,6 +10,8 @@ No data leaves the building.
 BEFORE YOU START
 1. Put this whole folder somewhere permanent on the server computer.
    Do not run it from the Downloads folder or from inside the zip file.
+   On Windows, do not put it in "Program Files". Windows blocks programs from saving data there.
+   A good place is a new folder such as C:\RenewParts.
 2. The server computer must stay on during lab hours.
 
 START IT
