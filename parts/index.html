@@ -2900,7 +2900,7 @@ function tbForScrew(sys,plat,sc){var def=findPart(sys,plat,'tb-n');if(!sc)return
 /* Prototype screw when no Badger fits the multi-unit (Richard, Nov 9 2026: Astra Uni Abutment EV uses 19.058). */
 var PROTO_SCREW={'astra-mb':'DESS 19.058'};
 /* Nov 9 2026 research: Badger is sold for Nobel-type multi-unit tops. DESS lists Nobel-type screws (19.006) for the 3i Low Profile but not for the SRA, so a Badger is not assumed on an SRA. The lab stocks a MIST Straumann screw (drawer C23). */
-var PROTO_KEY={'str-sra':'sc-mist'},PROTO_NOTE={'str-sra':'Prototype screw: the Badger screw is sold as Nobel compatible, and DESS does not list Nobel-type screws for the SRA. So the pick is the lab\u2019s MIST Straumann screw (drawer C23). Its part number is not on file yet'};
+var PROTO_KEY={},PROTO_NOTE={}; /* SRA prototype screw is open: DESS 19.098 (C17) or the MIST Straumann screw (C23). The Rx screen asks. */
 function partByPn(pn){return S.parts.filter(function(p){return p.pn===pn})[0]||null}
 /* The recommended set for a line, before any swap the tech makes. Each entry: {role, part}. */
 function rxRecParts(r,idx){
