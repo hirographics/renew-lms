@@ -23,4 +23,19 @@ s = once(s, "var fn=A[el.dataset.act]||LAY_ACT[el.dataset.act];if(fn)fn(el.datas
 s = once(s, "var LIVE_COLLS=['pulls','returns','retired','changes','requests','lines','tests'];", "var LIVE_COLLS=['pulls','returns','retired','changes','requests','lines','tests','flags'];")
 s = once(s, "function liveBlank(st){st.pulls=[];", "function liveBlank(st){st.flags=[];st.pulls=[];")
 s = once(s, "S.returns=S.returns||[];S.retired=S.retired||[];S.changes=S.changes||[];S.tests=S.tests||[];", "S.returns=S.returns||[];S.retired=S.retired||[];S.changes=S.changes||[];S.tests=S.tests||[];S.flags=S.flags||[];")
+
+# ---- icons on status pills, part card actions and the side menu footer (Nov 10 2026)
+s = once(s, """function pill(p){var s=status(p);return '<span class="pill p-'+s.k+'">'+s.t+'</span>'+(p.disc?' <span class="pill p-low">May be discontinued</span>':'')}""",
+            """function pill(p){var s=status(p);return '<span class="pill p-'+s.k+'">'+ico(STAT_ICON[s.k],13)+s.t+'</span>'+(p.disc?' <span class="pill p-low">'+ico(UI_ICON.warn,13)+'May be discontinued</span>':'')}""")
+s = once(s, """{requested:'<span class="pill p-rest">On order list</span>',ordered:'<span class="pill p-acc">Ordered</span>',received:'<span class="pill p-ok">Received, held for patient</span>'}""",
+            """{requested:'<span class="pill p-rest">'+ico(STAT_ICON.list,13)+'On order list</span>',ordered:'<span class="pill p-acc">'+ico(STAT_ICON.clock,13)+'Ordered</span>',received:'<span class="pill p-ok">'+ico(STAT_ICON.ok,13)+'Received, held for patient</span>'}""")
+for lab, key, n in (('Pull this part', 'pull', 1), ('Save link', 'link', 1), ('Add to order list', 'order', 1), ('Pull this set', 'set', 1), ('Place order', 'place', 1), ('Receive all', 'receive', 1), ('Hand out', 'hand', 1),
+                    ('Retire', 'retire', 1), ('Can\\u2019t reuse', 'retire', 1), ('Back to tech view', 'back', 1), ('Change PIN', 'key', 1), ('Reset sample data', 'reset', 2)):
+    a_ = '>' + lab + '</button>'; b_ = ">'+ico(ACT_ICON." + key + ",16)+'" + lab + '</button>'
+    if b_ not in s:
+        assert s.count(a_) == n, (lab, s.count(a_)); s = s.replace(a_, b_)
+for a_, b_ in (("""data-act="save-counts" data-v="'+p.id+'">Save</button>""", """data-act="save-counts" data-v="'+p.id+'">'+ico(ACT_ICON.save,16)+'Save</button>"""),
+               ("""data-act="recv" data-v="'+l.id+'">Receive</button>""", """data-act="recv" data-v="'+l.id+'">'+ico(ACT_ICON.receive,16)+'Receive</button>"""),
+               ("""<button class="btn sm ghost x" data-act="close-drawer">Close</button>';\n  h+='<div style="margin-bottom:12px">'+locHTML(p)""", """<button class="btn sm ghost x" data-act="close-drawer">'+ico(ACT_ICON.close,16)+'Close</button>';\n  h+='<div style="margin-bottom:12px">'+locHTML(p)""")):
+    s = once(s, a_, b_)
 open(P, 'w').write(s); print('written', len(s))

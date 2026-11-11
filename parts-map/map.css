@@ -62,6 +62,9 @@
 .map-list.parts.art .pthumb{width:34px;height:44px;display:flex;align-items:center;justify-content:center}
 .map-list.parts.art .pthumb svg,.map-list.parts.art .pthumb img{max-width:100%;max-height:100%;width:auto;height:100%}
 .k-part::before{width:7px;height:7px;background:var(--muted)}
+.pill .ico{display:inline-block;vertical-align:-2px;margin-right:4px}
+.side-foot button.link{display:flex;align-items:center;gap:7px;margin-top:7px}
+.side-foot .ico{opacity:.85}
 @media (max-width:900px){
   .map-wrap{grid-template-columns:minmax(0,1fr)}
   .map-stage{height:56dvh;min-height:320px}

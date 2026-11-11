@@ -4,6 +4,8 @@
    Dashed = two platforms list the same part. Orange = a shared-part link that deserves a check.
    Anyone can flag a link, platform or part as wrong. A flag is a note for review. It never changes the catalog. */
 var MAPG=null,MAP_AUDIT=null,MAP_CAP=40,MAP_RAF=0;
+/* Lab copies of an abutment or an attachment. They sit on the abutment, so one copy can serve more than one implant connection. */
+var MAP_ABUT=/abutment replica|abutment analog|lockit|locator|ball analog/i;
 var MAP_IMG={},MAP_SOON=0;
 function mapDrawSoon(){if(MAP_SOON)return;MAP_SOON=requestAnimationFrame(function(){MAP_SOON=0;mapDraw()})}
 function mapImg(key,make){var c=MAP_IMG[key];if(c)return c.ok?c.img:null;c=MAP_IMG[key]={ok:false,img:null};var src=null;try{src=make()}catch(e){}if(!src)return null;
@@ -48,14 +50,14 @@ function mapBuild(){
     if(p.type==='mua'){var t=stkMuaSys(p);f.forEach(function(x){var sy=sysById(x[0]);if(!sy||sy.level!=='implant')return;var n=G.by['p:'+x[0]+'|'+x[1]];if(!n)return;
       if(!t||!G.by['p:'+t[0]+'|'+t[1]]){n.noTop++;return}var k=n.id+'>p:'+t[0]+'|'+t[1];mua[k]=(mua[k]||0)+1})}
     for(i=0;i<f.length;i++)for(j=i+1;j<f.length;j++){if(f[i][0]===f[j][0])continue;var a='p:'+f[i][0]+'|'+f[i][1],b='p:'+f[j][0]+'|'+f[j][1];if(!G.by[a]||!G.by[b])continue;
-      var k2=a<b?a+'~'+b:b+'~'+a,o=share[k2]||(share[k2]={n:0,pns:[],hard:0,ty:{}});o.n++;if(p.type!=='screw'){o.hard++;o.pns.unshift(p.pn)}else o.pns.push(p.pn);if(o.pns.length>8)o.pns.length=8;o.ty[p.type]=(o.ty[p.type]||0)+1}});
+      var k2=a<b?a+'~'+b:b+'~'+a,o=share[k2]||(share[k2]={n:0,pns:[],hard:0,abut:0,ty:{}});o.n++;if(p.type==='screw')o.pns.push(p.pn);else if(MAP_ABUT.test(p.v||'')){o.abut++;o.pns.push(p.pn)}else{o.hard++;o.pns.unshift(p.pn)}if(o.pns.length>8)o.pns.length=8;o.ty[p.type]=(o.ty[p.type]||0)+1}});
   Object.keys(mua).forEach(function(k){var ab=k.split('>');link(ab[0],ab[1],'mua',{n:mua[k]})});
   Object.keys(share).forEach(function(k){var ab=k.split('~'),o=share[k],A=G.by[ab[0]],B=G.by[ab[1]],why=[],sa=sysById(A.sys),sb=sysById(B.sys);
     var borrow=!!((sa.uses&&sa.uses[A.pl]&&sa.uses[A.pl][0]===B.sys&&sa.uses[A.pl][1]===B.pl)||(sb.uses&&sb.uses[B.pl]&&sb.uses[B.pl][0]===A.sys&&sb.uses[B.pl][1]===A.pl));
     if(!borrow&&o.hard){
       if(o.hard<=2)why.push('Only '+o.hard+' part'+(o.hard>1?'s':'')+' that '+(o.hard>1?'are':'is')+' not a screw link'+(o.hard>1?'':'s')+' these two platforms.');
       if(sa.level==='implant'&&sb.level==='implant'){var da=platMM({sys:A.sys,plat:A.pl}),db=platMM({sys:B.sys,plat:B.pl});if(Math.abs(da-db)>0.45)why.push('The platform sizes differ: '+da+' mm and '+db+' mm.')}}
-    link(ab[0],ab[1],'share',{n:o.n,pns:o.pns,hard:o.hard,ty:o.ty,borrow:borrow,why:why,warn:why.length>0,ref:'link:'+k,flag:flagged['link:'+k]})});
+    link(ab[0],ab[1],'share',{n:o.n,pns:o.pns,hard:o.hard,abut:o.abut,ty:o.ty,borrow:borrow,why:why,warn:why.length>0,ref:'link:'+k,flag:flagged['link:'+k]})});
   var famHub=G.by['p:nobel-mua|Regular'];
   if(famHub){var famN=S.parts.filter(isFam).length;SYSTEMS.forEach(function(s){if(!famDess(s.id))return;s.plats.forEach(function(pl){var id='p:'+s.id+'|'+pl;if(!G.by[id]||share[(id<famHub.id?id+'~'+famHub.id:famHub.id+'~'+id)])return;
     link(id,famHub.id,'share',{n:famN,pns:[],hard:famN,ty:{},fam:true,borrow:true,why:[],warn:false,ref:'link:'+(id<famHub.id?id+'~'+famHub.id:famHub.id+'~'+id),flag:flagged['link:'+(id<famHub.id?id+'~'+famHub.id:famHub.id+'~'+id)]})})})}
@@ -180,6 +182,7 @@ function mapFlagList(ref){var fl=mapFlags().filter(function(f){return f.ref===re
 function mapLinkRow(l,me){var o=l.a===me?l.b:l.a,nm=mapPlatName(o.sys,o.pl),h='<li class="'+(l.warn?'warn':'')+'"><button class="link" data-act="map-go" data-v="'+esc(o.id)+'">'+esc(nm)+'</button>';
   if(l.kind==='mua')h+=' <span class="muted">'+(l.a===me?'Multi-unit path to this top':'Multi-unit path from this implant')+', '+l.n+' abutment'+(l.n>1?'s':'')+'.</span>';
   else{h+=' <span class="muted">'+(l.fam?'Shares the 4.8 mm multi-unit top. The '+l.n+' DESS parts for that top fit here.':(l.borrow?'Borrowed fit. ':'')+l.n+' shared part'+(l.n>1?'s':'')+(l.pns.length?': '+esc(l.pns.slice(0,4).join(', '))+(l.n>4?', and more':''):'')+'.')+'</span>';
+    if(l.abut)h+='<div class="small muted">'+l.abut+' of these cop'+(l.abut>1?'y':'ies')+' an abutment or an attachment, not the implant. Such a part can fit more than one connection.</div>';
     if(l.warn)h+='<div class="map-why">'+ico(UI_ICON.warn,14)+esc(l.why.join(' '))+' Check the maker source.</div>';
     h+=mapFlagList(l.ref)+'<div>'+mapFlagBtn('link',l.ref.slice(5),'Link: '+mapPlatName(l.a.sys,l.a.pl)+' and '+mapPlatName(l.b.sys,l.b.pl))+'</div>'}
   return h+'</li>'}
