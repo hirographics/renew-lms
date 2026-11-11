@@ -477,6 +477,12 @@ section.card+section.card{margin-top:12px}
 .map-key i.k-l2::before{border-top-color:var(--rest)}
 .map-key i.k-l3::before{border-top:2px dashed var(--muted)}
 .map-key i.k-l4::before{border-top:2px dotted var(--low)}
+.map-art{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px;margin:0 0 10px;display:flex;justify-content:center}
+.map-art svg{height:150px;width:auto;display:block}
+.map-list.parts.art li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:center}
+.map-list.parts.art .pthumb{width:34px;height:44px;display:flex;align-items:center;justify-content:center}
+.map-list.parts.art .pthumb svg,.map-list.parts.art .pthumb img{max-width:100%;max-height:100%;width:auto;height:100%}
+.k-part::before{width:7px;height:7px;background:var(--muted)}
 @media (max-width:900px){
   .map-wrap{grid-template-columns:minmax(0,1fr)}
   .map-stage{height:56dvh;min-height:320px}
@@ -3778,6 +3784,15 @@ window.addEventListener('popstate',function(e){var st=e.state;if(!st||!st.rp)ret
    Dashed = two platforms list the same part. Orange = a shared-part link that deserves a check.
    Anyone can flag a link, platform or part as wrong. A flag is a note for review. It never changes the catalog. */
 var MAPG=null,MAP_AUDIT=null,MAP_CAP=40,MAP_RAF=0;
+var MAP_IMG={},MAP_SOON=0;
+function mapDrawSoon(){if(MAP_SOON)return;MAP_SOON=requestAnimationFrame(function(){MAP_SOON=0;mapDraw()})}
+function mapImg(key,make){var c=MAP_IMG[key];if(c)return c.ok?c.img:null;c=MAP_IMG[key]={ok:false,img:null};var src=null;try{src=make()}catch(e){}if(!src)return null;
+  var img=new Image();c.img=img;img.onload=function(){c.ok=true;mapDrawSoon()};img.src=src;return null}
+/* the part drawing (the traced outline the rest of the app shows), as a picture the map can draw */
+function mapArtImg(p){return mapImg('p'+p.id,function(){if(p.sbHead==='io'&&typeof SB_IO!=='undefined'&&SB_IO&&SB_IO.side)return SB_IO.side;var a=partArt(p);if(!a||a.indexOf('<svg')!==0)return null;
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(a.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="240" height="340" '))})}
+function mapTypeImg(t,color){return mapImg('t'+t+color,function(){if(!ICONS[t])return null;return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 48 48" fill="none" stroke="'+color+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'+ICONS[t]+'</svg>')})}
+function mapArtH(k){return k>=0.7?Math.max(24,Math.min(150,30*k)):0}
 function mapUI(){if(!UI.map)UI.map={sel:null,open:{},openG:{},q:'',prob:false,stock:false,panel:null,flagFor:null,pin:null,copy:null};return UI.map}
 function mapPartKey(p){return [p.maker,p.pn||'',p.sys,p.plat,p.k||''].join('|')}
 function mapToday(){var d=new Date();function z(n){return (n<10?'0':'')+n}return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())}
@@ -3831,13 +3846,13 @@ function mapBuild(){
       list.sort(function(x,y){return ((y.stocked?1:0)-(x.stocked?1:0))||((x.maker==='dess'?0:1)-(y.maker==='dess'?0:1))||String(x.pn).localeCompare(String(y.pn))});
       var g=add({id:gid,t:'grp',key:key,type:t,label:TYPE_LABEL[t]+' '+list.length,parts:list,more:0},P.x+Math.cos(a)*70,P.y+Math.sin(a)*70);link(P.id,gid,'h');
       if(u.openG[gid]){var show=list.slice(0,MAP_CAP);if(u.pin){var pp=list.filter(function(p){return p.id===u.pin})[0];if(pp&&show.indexOf(pp)<0)show.push(pp)}g.more=list.length-show.length;
-        show.forEach(function(p,j){var a2=a+(j-(show.length-1)/2)*(2.4/Math.max(show.length,6)),r=46+(j%3)*16;add({id:'x:'+p.id,t:'part',p:p,label:p.pn,flag:flagged['part:'+mapPartKey(p)]},g.x+Math.cos(a2)*r,g.y+Math.sin(a2)*r);link(gid,'x:'+p.id,'h')})}})});
+        show.forEach(function(p,j){var a2=a+(j-(show.length-1)/2)*(2.4/Math.max(show.length,6)),r=60+(j%3)*30;add({id:'x:'+p.id,t:'part',p:p,label:p.pn,flag:flagged['part:'+mapPartKey(p)]},g.x+Math.cos(a2)*r,g.y+Math.sin(a2)*r);link(gid,'x:'+p.id,'h')})}})});
   G.nodes.forEach(function(n){n.prob=n.t==='plat'&&(n.miss.length||n.noTop||n.gaps.length||!n.total)});
   G.probN=G.nodes.filter(function(n){return n.prob}).length+G.links.filter(function(l){return l.warn}).length;
   var first=!MAPG;MAPG=G;
   if(first){G.alpha=1;for(var i=0;i<420;i++)mapTick()}else if(G.nodes.some(function(n){return n.fresh})){G.alpha=0.5}
   return G}
-var MAP_Q={brand:95,sys:60,plat:34,grp:24,part:10},MAP_LEN={'brand-sys':125,'sys-plat':66,'plat-grp':58,'grp-part':40};
+var MAP_Q={brand:95,sys:60,plat:34,grp:34,part:27},MAP_LEN={'brand-sys':125,'sys-plat':66,'plat-grp':74,'grp-part':66};
 function mapTick(){var G=MAPG,N=G.nodes,n=N.length,i,j,a,b,dx,dy,d2,d,f,al=G.alpha;if(al<0.004){G.alpha=0;return false}
   for(i=0;i<n;i++){a=N[i];for(j=i+1;j<n;j++){b=N[j];dx=b.x-a.x;dy=b.y-a.y;d2=dx*dx+dy*dy;if(d2>490000)continue;if(d2<1){dx=(i%2?1:-1)*0.5;dy=(j%2?1:-1)*0.5;d2=0.5}
     f=MAP_Q[a.t]*MAP_Q[b.t]*1.5/d2*al;d=Math.sqrt(d2);dx=dx/d*f;dy=dy/d*f;a.vx-=dx;a.vy-=dy;b.vx+=dx;b.vy+=dy}}
@@ -3845,7 +3860,7 @@ function mapTick(){var G=MAPG,N=G.nodes,n=N.length,i,j,a,b,dx,dy,d2,d,f,al=G.alp
     var ex=B.x-A.x,ey=B.y-A.y,dd=Math.sqrt(ex*ex+ey*ey)||1,ff=(dd-rest)*k*al;ex=ex/dd*ff;ey=ey/dd*ff;A.vx+=ex;A.vy+=ey;B.vx-=ex;B.vy-=ey});
   for(i=0;i<n;i++){a=N[i];a.vx-=a.x*0.0022*al;a.vy-=a.y*0.0022*al;if(G.drag&&G.drag.node===a){a.vx=a.vy=0;continue}a.vx*=0.8;a.vy*=0.8;a.x+=Math.max(-30,Math.min(30,a.vx));a.y+=Math.max(-30,Math.min(30,a.vy))}
   G.alpha=al*0.985;return true}
-function mapR(n){return n.t==='brand'?15:n.t==='sys'?9:n.t==='plat'?Math.max(4.5,Math.min(11,4+Math.sqrt(n.n)/2.2)):n.t==='grp'?5.5:3.4}
+function mapR(n){return n.t==='brand'?15:n.t==='sys'?9:n.t==='plat'?Math.max(4.5,Math.min(11,4+Math.sqrt(n.n)/2.2)):n.t==='grp'?9:3.4}
 function mapFitView(only){var G=MAPG,cv=G.cv;if(!cv)return;var W=cv.clientWidth,H=cv.clientHeight,x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   (only||G.nodes).forEach(function(n){x0=Math.min(x0,n.x);x1=Math.max(x1,n.x);y0=Math.min(y0,n.y);y1=Math.max(y1,n.y)});
   var k=Math.min(W/(x1-x0+140),H/(y1-y0+120));G.view={x:(x0+x1)/2,y:(y0+y1)/2,k:Math.max(0.12,Math.min(only?1.6:2.2,k))}}
@@ -3881,12 +3896,15 @@ function mapDraw(){var G=MAPG,cv=G&&G.cv;if(!cv||!cv.isConnected)return;var u=ma
     else if(n.t==='sys'){c.fillStyle=n.lvl==='mua'?C.rest:C.acc;c.fill()}
     else if(n.t==='plat'){if(!n.total){c.fillStyle=C.surf;c.fill();c.setLineDash([2,2]);c.strokeStyle=C.muted;c.lineWidth=1.5;c.stroke();c.setLineDash([])}else{c.fillStyle=n.lvl==='mua'?C.restS:C.accS;c.fill();c.strokeStyle=n.lvl==='mua'?C.rest:C.acc;c.lineWidth=1.6;c.stroke()}
       if(n.prob){c.beginPath();c.arc(x,y,r+3.2,0,6.2832);c.strokeStyle=C.out;c.lineWidth=2.2;c.stroke()}}
-    else if(n.t==='grp'){c.fillStyle=C.s2;c.fill();c.strokeStyle=C.muted;c.lineWidth=1.4;c.stroke()}
-    else{c.fillStyle=n.p.stocked?C.ok:C.muted;c.fill()}
+    else if(n.t==='grp'){c.fillStyle=C.s2;c.fill();c.strokeStyle=C.muted;c.lineWidth=1.4;c.stroke();var ti=r>6.5?mapTypeImg(n.type,C.ink):null;if(ti)c.drawImage(ti,x-r*0.78,y-r*0.78,r*1.56,r*1.56)}
+    else{var ah=mapArtH(v.k),ai=ah?mapArtImg(n.p):null;
+      if(ai){var aw=ah*ai.width/ai.height;r=ah/2;c.beginPath();c.drawImage(ai,x-aw/2,y-ah/2,aw,ah);if(n.p.stocked){c.beginPath();c.arc(x+aw/2-1,y+ah/2-3,3.2,0,6.2832);c.fillStyle=C.ok;c.fill();c.strokeStyle=C.surf;c.lineWidth=1.2;c.stroke()}
+        if(sel||hov){c.beginPath();c.rect(x-aw/2-4,y-ah/2-4,aw+8,ah+8);c.strokeStyle=C.ink;c.lineWidth=sel?2:1;c.stroke()}n.art=1}
+      else{n.art=0;c.fillStyle=n.p.stocked?C.ok:C.muted;c.fill()}}
     if(n.flag){c.beginPath();c.arc(x+r*0.9,y-r*0.9,3.6,0,6.2832);c.fillStyle=C.label;c.fill();c.strokeStyle=C.ink;c.lineWidth=1;c.stroke()}
-    if(sel||hov){c.beginPath();c.arc(x,y,r+5.5,0,6.2832);c.strokeStyle=C.ink;c.lineWidth=sel?2:1;c.stroke()}
+    if((sel||hov)&&!(n.t==='part'&&n.art)){c.beginPath();c.arc(x,y,r+5.5,0,6.2832);c.strokeStyle=C.ink;c.lineWidth=sel?2:1;c.stroke()}
     if(n.t==='brand'&&v.k>0.3){c.fillStyle=C.surf;c.font='700 '+Math.round(Math.max(7,r*0.62))+'px '+col('--cond');c.textAlign='center';c.textBaseline='middle';c.fillText(n.code,x,y+0.5)}
-    var show=n.t==='brand'||sel||hov||(near&&near[n.id]&&n.t!=='part')||(n.t==='sys'&&v.k>0.34)||(n.t==='plat'&&v.k>0.8)||(n.t==='grp'&&v.k>0.5)||(n.t==='part'&&v.k>1.3);
+    var show=n.t==='brand'||sel||hov||(near&&near[n.id]&&n.t!=='part')||(n.t==='sys'&&v.k>0.34)||(n.t==='plat'&&v.k>0.8)||(n.t==='grp'&&v.k>0.5)||(n.t==='part'&&v.k>1.05);
     if(show&&!(d&&!sel))labels.push([n,x,y,r,(sel?0:hov?1:n.t==='brand'?2:(near&&near[n.id])?3:n.t==='sys'?4:n.t==='grp'?5:n.t==='plat'?6:7)])});
   c.globalAlpha=1;c.textAlign='center';c.textBaseline='top';c.lineJoin='round';
   var placed=[],ff=col('--font');labels.sort(function(a,b){return a[4]-b[4]});
@@ -3897,11 +3915,13 @@ function mapDraw(){var G=MAPG,cv=G&&G.cv;if(!cv||!cv.isConnected)return;var u=ma
     c.lineWidth=3.5;c.strokeStyle=C.surf;c.strokeText(n.label,a[1],by+1);c.fillStyle=n.t==='plat'||n.t==='part'||n.t==='grp'?C.muted:C.ink;c.fillText(n.label,a[1],by+1)})}
 function mapLoop(){if(MAP_RAF)return;function step(){MAP_RAF=0;var G=MAPG;if(!G||!G.cv||!G.cv.isConnected)return;var on=mapTick();if(on)mapTick();mapDraw();if(on||G.drag)MAP_RAF=requestAnimationFrame(step)}MAP_RAF=requestAnimationFrame(step)}
 function mapHit(mx,my){var G=MAPG,v=G.view,cv=G.cv,W=cv.clientWidth,H=cv.clientHeight,best=null,bd=1e9;
-  G.nodes.forEach(function(n){var x=(n.x-v.x)*v.k+W/2,y=(n.y-v.y)*v.k+H/2,r=mapR(n)*Math.max(0.55,Math.min(1.5,Math.sqrt(v.k)))+7,d=Math.hypot(mx-x,my-y);if(d<r&&d<bd){bd=d;best=n}});return best}
+  G.nodes.forEach(function(n){var x=(n.x-v.x)*v.k+W/2,y=(n.y-v.y)*v.k+H/2,r=(n.t==='part'&&n.art?mapArtH(v.k)/2:mapR(n)*Math.max(0.55,Math.min(1.5,Math.sqrt(v.k)))+7),d=Math.hypot(mx-x,my-y);if(d<r&&d<bd){bd=d;best=n}});return best}
 function mapToggle(n){var u=mapUI();if(n.t==='plat'){u.open[n.key]=!u.open[n.key];if(!u.open[n.key])Object.keys(u.openG).forEach(function(g){if(g.indexOf('g:'+n.key+'|')===0)delete u.openG[g]})}
   else if(n.t==='grp'){u.openG[n.id]=!u.openG[n.id]}else return;
   if(u.sel&&!/^[bsp]:/.test(u.sel)&&n.t==='plat'&&!u.open[n.key])u.sel=n.id;
-  mapBuild();MAPG.cv=document.getElementById('map-cv');mapPanel();mapLoop()}
+  mapBuild();MAPG.cv=document.getElementById('map-cv');
+  var on=n.t==='plat'?u.open[n.key]:u.openG[n.id];if(on){for(var i=0;i<90;i++)mapTick();var G=MAPG,kids=G.nodes.filter(function(x){return x.id===n.id||G.links.some(function(l){return l.kind==='h'&&l.a.id===n.id&&l.b===x})});if(kids.length>1){mapFitView(kids);G.view.k=Math.min(G.view.k,n.t==='grp'?1.25:1.1)}}
+  mapPanel();mapLoop()}
 function mapSelect(id){var u=mapUI();u.sel=id;u.panel=null;u.flagFor=null;mapPanel();mapDraw()}
 function mapMount(){var cv=document.getElementById('map-cv');if(!cv)return;var u=mapUI();if(!MAPG)mapBuild();var G=MAPG;G.cv=cv;
   var ptr={},moved=0,down=null;
@@ -3950,7 +3970,7 @@ function mapPanelHTML(){var u=mapUI(),G=MAPG,n=u.sel&&G.by[u.sel],h='';G.refs=[]
     h+='<p class="small muted">'+open.length+' open. A flag stays here until an admin marks it fixed.</p><div class="map-btns"><button class="btn sm ghost" data-act="map-copy">'+ico(UI_ICON.copy,16)+'Copy the open flags</button></div>';
     if(u.copy)h+='<textarea id="map-copytxt" rows="6" readonly>'+esc(u.copy)+'</textarea>';
     h+='<ul class="map-list">'+all.map(function(x){return '<li class="'+(x.status==='fixed'?'done':'')+'"><b>'+esc(x.label)+'</b><div class="small">'+esc(x.note)+'</div><div class="small muted">'+esc(x.by||'')+', '+esc(x.d)+(x.status==='fixed'?'. Fixed.':'')+'</div>'+(ADMIN&&x.status!=='fixed'?'<div><button class="link" data-act="map-flag-done" data-v="'+esc(x.id)+'">Mark fixed</button></div>':'')+'</li>'}).join('')+'</ul>';return h}
-  if(!n){h='<h2>How to read the map</h2><ul class="map-key"><li><i class="k-brand"></i>Maker</li><li><i class="k-sys"></i>Implant-level system</li><li><i class="k-mua"></i>Multi-unit system</li><li><i class="k-plat"></i>Platform. A bigger dot has more parts.</li><li><i class="k-prob"></i>Platform with a gap to check</li><li><i class="k-l1"></i>Belongs to</li><li><i class="k-l2"></i>Multi-unit path: implant to the top it gives</li><li><i class="k-l3"></i>Two platforms list the same part</li><li><i class="k-l4"></i>Shared-part link to check</li></ul>';
+  if(!n){h='<h2>How to read the map</h2><ul class="map-key"><li><i class="k-brand"></i>Maker</li><li><i class="k-sys"></i>Implant-level system</li><li><i class="k-mua"></i>Multi-unit system</li><li><i class="k-plat"></i>Platform. A bigger dot has more parts.</li><li><i class="k-prob"></i>Platform with a gap to check</li><li><i class="k-part"></i>Part. Zoom in to see its drawing. A green dot means it is in the drawers.</li><li><i class="k-l1"></i>Belongs to</li><li><i class="k-l2"></i>Multi-unit path: implant to the top it gives</li><li><i class="k-l3"></i>Two platforms list the same part</li><li><i class="k-l4"></i>Shared-part link to check</li></ul>';
     h+='<p class="small muted">Click a dot to see its links. Click a platform a second time to open its parts. Drag a dot to move it. Scroll or pinch to zoom.</p>';
     var pr=G.nodes.filter(function(x){return x.prob}),wl=G.links.filter(function(l){return l.warn});
     h+='<h3>To check ('+(pr.length+wl.length)+')</h3>'+(MAP_AUDIT?'':'<p class="small muted">Running the stack and finder checks…</p>')+'<ul class="map-list">'+pr.map(function(x){return '<li><button class="link" data-act="map-go" data-v="'+esc(x.id)+'">'+esc(mapPlatName(x.sys,x.pl))+'</button> <span class="muted">'+esc(mapProbText(x))+'</span></li>'}).join('')+wl.map(function(l){return '<li class="warn"><button class="link" data-act="map-go" data-v="'+esc(l.a.id)+'">'+esc(mapPlatName(l.a.sys,l.a.pl))+'</button> and '+esc(mapPlatName(l.b.sys,l.b.pl))+' <span class="muted">'+esc(l.why[0])+'</span></li>'}).join('')+'</ul>';return h}
@@ -3968,8 +3988,8 @@ function mapPanelHTML(){var u=mapUI(),G=MAPG,n=u.sel&&G.by[u.sel],h='';G.refs=[]
     if(ls.length)h+='<h3>Links to other platforms ('+ls.length+')</h3><ul class="map-list">'+ls.map(function(l){return mapLinkRow(l,n)}).join('')+'</ul>';
     h+='<div>'+mapFlagBtn('plat',n.key,'Platform: '+mapPlatName(n.sys,n.pl))+'</div>';return h}
   if(n.t==='grp'){var P2=G.by['p:'+n.key];h='<span class="eyebrow">'+esc(mapPlatName(P2.sys,P2.pl))+'</span><h2>'+esc(TYPE_LABEL[n.type])+' ('+n.parts.length+')</h2><div class="map-btns"><button class="btn sm" data-act="map-open" data-v="'+esc(n.id)+'">'+(u.openG[n.id]?'Close these parts':'Open these parts on the map')+'</button></div>'+(n.more>0?'<p class="small muted">The map shows the first '+MAP_CAP+'. The list below has all of them.</p>':'');
-    h+='<ul class="map-list parts">'+n.parts.map(function(p){return '<li><button class="link" data-act="open" data-v="'+esc(p.id)+'">'+esc(p.pn||'no number')+'</button> <span>'+esc(vName(p))+'</span> <span class="muted">'+esc(brandName(p.maker))+(p.stocked?', '+esc(p.bin||'in stock'):'')+'</span></li>'}).join('')+'</ul>';return h}
-  var p=n.p;h='<span class="eyebrow">'+esc(brandName(p.maker))+'</span><h2>'+esc(p.pn||'')+'</h2><p>'+esc(partName(p))+'</p><p class="small muted">'+esc(ctx(p))+'</p>'+(p.stocked?'<p class="small">In the drawers'+(p.bin?': '+esc(p.bin):'')+'.</p>':'<p class="small muted">Not stocked.</p>');
+    h+='<ul class="map-list parts art">'+n.parts.map(function(p){return '<li>'+icI(p)+'<div><button class="link" data-act="open" data-v="'+esc(p.id)+'">'+esc(p.pn||'no number')+'</button> <span>'+esc(vName(p))+'</span> <span class="muted">'+esc(brandName(p.maker))+(p.stocked?', '+esc(p.bin||'in stock'):'')+'</span></div></li>'}).join('')+'</ul>';return h}
+  var p=n.p,art='';try{art=p.sbHead==='io'?'':partArt(p)}catch(e){}h=(art?'<div class="map-art">'+art+'</div>':'')+'<span class="eyebrow">'+esc(brandName(p.maker))+'</span><h2>'+esc(p.pn||'')+'</h2><p>'+esc(partName(p))+'</p><p class="small muted">'+esc(ctx(p))+'</p>'+(p.stocked?'<p class="small">In the drawers'+(p.bin?': '+esc(p.bin):'')+'.</p>':'<p class="small muted">Not stocked.</p>');
   var fits=p.fits&&p.fits.length?p.fits:[[p.sys,p.plat]];if(fits.length>1)h+='<h3>Fits '+fits.length+' platforms</h3><ul class="map-list">'+fits.map(function(f){return '<li><button class="link" data-act="map-go" data-v="'+esc('p:'+f[0]+'|'+f[1])+'">'+esc(mapPlatName(f[0],f[1]))+'</button></li>'}).join('')+'</ul>';
   h+=mapFlagList('part:'+mapPartKey(p))+'<div class="map-btns"><button class="btn sm" data-act="open" data-v="'+esc(p.id)+'">Open the part card</button></div><div>'+mapFlagBtn('part',mapPartKey(p),'Part: '+(p.pn||'')+' '+partName(p)+' ('+mapPlatName(p.sys,p.plat)+')')+'</div>';return h}
 function mapProbText(n){var a=[];if(!n.total)return 'No parts are listed for this platform.';if(n.miss.length)a.push('No '+n.miss.join(', no ')+' is listed.');if(n.noTop)a.push(n.noTop+' multi-unit abutment'+(n.noTop>1?'s have':' has')+' no top system in the catalog.');if(n.gaps.length)a.push(n.gaps.length+' gap'+(n.gaps.length>1?'s':'')+' from the stack and finder checks.');return a.join(' ')}
