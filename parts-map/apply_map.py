@@ -38,4 +38,8 @@ for a_, b_ in (("""data-act="save-counts" data-v="'+p.id+'">Save</button>""", ""
                ("""data-act="recv" data-v="'+l.id+'">Receive</button>""", """data-act="recv" data-v="'+l.id+'">'+ico(ACT_ICON.receive,16)+'Receive</button>"""),
                ("""<button class="btn sm ghost x" data-act="close-drawer">Close</button>';\n  h+='<div style="margin-bottom:12px">'+locHTML(p)""", """<button class="btn sm ghost x" data-act="close-drawer">'+ico(ACT_ICON.close,16)+'Close</button>';\n  h+='<div style="margin-bottom:12px">'+locHTML(p)""")):
     s = once(s, a_, b_)
+
+# ---- catalog checks moved from the Map to Reports (second Map design)
+s = once(s, """return tabsHTML([['usage','Usage'],['checks','Checks']],t,'rep-tab','Report sections')+(t==='checks'?viewBench():viewReports());""",
+            """return tabsHTML([['usage','Usage'],['checks','Checks'],['catalog','Catalog checks']],t,'rep-tab','Report sections')+(t==='catalog'?viewMapChecks():t==='checks'?viewBench():viewReports());""")
 open(P, 'w').write(s); print('written', len(s))

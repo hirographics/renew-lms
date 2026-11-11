@@ -23,7 +23,8 @@ var TAB_ICON={
  orders:'<path d="M8 4.5H5.5v16h13v-16H16"/><rect x="8" y="3" width="8" height="3.5" rx="1"/><path d="M9 11h6M9 15h6"/>',
  receive:'<path d="M12 3.5v10M8 9.8l4 4 4-4"/><path d="M4 14.5v5h16v-5"/>',
  usage:'<path d="M3.5 4v16.5H20"/><path d="m6.5 16 4-5 3.2 2.6L19 7"/>',
- checks:'<circle cx="12" cy="12" r="8.5"/><path d="m8 12.3 2.7 2.7L16 9.5"/>'
+ checks:'<circle cx="12" cy="12" r="8.5"/><path d="m8 12.3 2.7 2.7L16 9.5"/>',
+ catalog:'<path d="M5.5 21V4M5.5 4.5h12l-2.6 4 2.6 4h-12"/>'
 };
 var UI_ICON={
  warn:'<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.3"/>',
