@@ -52,6 +52,10 @@ srv.kill();await sleep(600);await pull(A,'10601');await sleep(300);const q1=awai
 A.on('dialog',d=>d.accept());await A.goto('about:blank');srv=await start();await A.goto(B+'/');await A.waitForSelector('#live-badge',{timeout:20000});await sleep(2000);
 va=await view(A);ok(va.oh===2&&va.q===0,'after reopening: change was sent, count is '+va.oh);ok(await A.evaluate(()=>window.__t.byWho())==='Richard','still signed in after reopening');
 await sleep(4000);vb=await view(Bp);ok(vb.oh===2,'B agrees: '+vb.oh);
+// map flags travel between devices
+await Bp.evaluate(()=>{const S=window.__t.S();S.flags=S.flags||[];S.flags.push({id:window.__t.nextId('fl'),d:'2026-11-10',by:window.__t.byWho(),kind:'plat',ref:'plat:nobel-cc|NP',label:'Platform: test',note:'test flag',status:'open'});window.__t.save()});await sleep(1200);
+ok(await A.evaluate(()=>(window.__t.S().flags||[]).map(f=>f.by+':'+f.status+':'+f.ref).join())==='Will:open:plat:nobel-cc|NP','flag from B shows on A');
+await A.evaluate(()=>{const S=window.__t.S();S.flags[0].status='fixed';window.__t.save()});await sleep(1200);ok(await Bp.evaluate(()=>window.__t.S().flags[0].status)==='fixed','flag marked fixed on A shows on B');
 // office PIN
 ok(await A.evaluate(()=>window.__t.admin())===false,'tech view by default');
 const r1=await fetch(B+'/api/admin',{method:'POST',headers:{Authorization:'Bearer '+tokA,'Content-Type':'application/json'},body:JSON.stringify({pin:'4821'})});ok(r1.status===200,'office PIN accepted');
