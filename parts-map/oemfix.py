@@ -19,6 +19,8 @@ SNAPPY = {
 def fix_rows(rows):
     n = 0
     for o in rows:
+        # Neodent 116.288 is named "SCREW FOR GM TITANIUM BASE AS". The import filed it as a Ti-base. Found in the Nov 10 2026 drawing review.
+        if o[1] == 'neodent' and o[0] == '116.288' and o[3] != 'screw': o[3] = 'screw'; o[4] = 'sc-x'; o[6] = None; n += 1
         if o[1] == 'nobel' and o[0] in SNAPPY and o[3] == 'analog':
             fits, pages = SNAPPY[o[0]]
             title = o[5] if o[5].startswith('Snappy') else 'Snappy ' + o[5][0].lower() + o[5][1:]
