@@ -174,10 +174,21 @@ input.big{font-size:22px;font-weight:600;width:min(260px,100%);letter-spacing:.0
 .dm-g{display:grid;gap:3px;background:var(--line);padding:4px;border-radius:8px}
 .dm-c{height:26px;background:var(--surface);border-radius:3px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .dm-c.dm-empty{background:var(--surface2)}.dm-c.on{background:var(--label);color:var(--label-ink);outline:2px solid var(--label-ink)}
-@media print{.side,.top,.actions,.btn,.nav,.toast{display:none!important}.content{padding:0}.labels{display:grid;grid-template-columns:repeat(4,1fr);gap:6mm}.lbl{break-inside:avoid}}
-.labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.lbl{border:1.5px solid var(--ink);border-radius:6px;padding:8px 10px;background:#fff;color:#111;min-height:78px}
-.lbl .lb-a{font-size:22px;font-weight:800;line-height:1}.lbl .lb-n{font-size:13px;font-weight:700;margin-top:4px}.lbl .lb-s{font-size:11px;color:#444}
+@media print{.side,.top,.actions,.btn,.nav,.toast{display:none!important}.content{padding:0}}
+/* Drawer label: 50 mm x 17.5 mm, the size of the label spot on the drawer (Richard, Nov 18 2026). Sizes are in mm and pt so the screen and the paper match. */
+@page{size:letter;margin:10mm}
+.labels{display:flex;flex-wrap:wrap;gap:10px}
+.lbl{--k:1;width:50mm;height:17.5mm;box-sizing:border-box;flex:none;display:flex;overflow:hidden;border:.2mm solid #777;background:#fff;color:#111;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lbl .lb-a{flex:none;min-width:11.5mm;padding:0 1.2mm;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-family:var(--cond);font-weight:700;font-size:21pt;line-height:1;white-space:nowrap}
+.lbl .lb-a.w4{font-size:17pt}.lbl .lb-a.w5{font-size:14pt}
+.lbl .lb-t{flex:1;min-width:0;padding:.8mm 1.3mm;display:flex;flex-direction:column;justify-content:center;gap:.25mm;overflow:hidden}
+.lbl .lb-n{font-size:calc(7.6pt*var(--k));font-weight:700;line-height:1.12;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.lbl .lb-s{font-size:calc(6.4pt*var(--k));line-height:1.15;color:#333;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lbl .lb-p{font-size:calc(7.6pt*var(--k));font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lbl-page{width:150mm;break-after:page}.lbl-page:last-child{break-after:auto}
+.lbl-page .labels{gap:0;width:150mm}
+.lbl-head{display:flex;align-items:center;gap:3mm;height:6mm;font-size:7pt;color:#111;white-space:nowrap}
+.lbl-rule{flex:none;width:50mm;height:2.4mm;box-sizing:border-box;border:.2mm solid #111;border-top:0}
 .rx-q>b{display:block;margin-bottom:6px}
 .opts{display:flex;flex-wrap:wrap;gap:6px}
 .opt{border:1px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer;min-height:38px}
@@ -381,12 +392,12 @@ section.card+section.card{margin-top:12px}
 .lay-c.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .lay-panel{position:sticky;top:16px;display:flex;flex-direction:column;gap:10px}
 .lay-panel h4{margin:8px 0 0;font-size:14px}
-.lbl-prev{max-width:240px}
+.lbl-prev{flex:none}
 .stepper.sm button{width:30px;height:30px;font-size:16px}.stepper.sm output{min-width:30px;font-size:15px}
 #print-area{display:none}
 @media (max-width:900px){.lay-wrap{grid-template-columns:minmax(0,1fr)}.lay-panel{position:static}.nav-sec{display:none}.side-foot{display:block}}
 @media (max-width:560px){.lcard{grid-template-columns:1fr}.lc-art{flex-direction:row}}
-@media print{body.printing #app,body.printing .toast{display:none!important}body.printing #print-area{display:block}#print-area .labels{display:grid;grid-template-columns:repeat(4,1fr);gap:6mm}#print-area .lbl{break-inside:avoid}}
+@media print{body.printing #app,body.printing .toast{display:none!important}body.printing #print-area{display:block!important;position:static!important}body.printing{background:#fff!important}}
 
 .conn-c svg,.sys-head svg,.drv-c svg,.scr-d svg{flex:none}
 .hub-list{display:none}
@@ -3812,25 +3823,41 @@ function viewLearn(){
 function cabs(){if(!S.cabs)S.cabs=JSON.parse(JSON.stringify(CABS));return S.cabs}
 function layName(p){var v=vName(p);if(v===TYPE_LABEL[p.type]){var s=sysById(p.sys);return v+', '+(s?s.name.replace(/ \(.*\)$/,'')+' '+p.plat:'')}return v}
 function binParts(bin){return S.parts.filter(function(p){return p.bin===bin})}
+/* the short line on a label that says what the part fits. The long form is on the part card. */
+function lblCtx(p){if(isFam(p))return '4.8 mm multi-unit top';
+  function nm(f){var y=sysById(f[0]);return y?sysLabel(y)+(y.plats.length>1||f[1]!=='Standard'?' '+f[1]:''):f[0]+' '+f[1]}
+  var seen={},list=[[p.sys,p.plat]].concat(p.fits||[]).filter(function(f){var k=f[0]+'|'+f[1];if(seen[k])return false;seen[k]=1;return true}),a=nm(list[0]);
+  if(list.length===1)return a;var b=nm(list[1]);
+  if(list.length===2&&(a+b).length<=52)return a+' \u00b7 '+b;return a+' +'+(list.length-1)+'\u00a0more'}
 function labelHTML(bin){
-  var all=binParts(bin);if(!all.length)return '<div class="lbl"><div class="lb-a">'+esc(bin)+'</div><div class="lb-n">Empty</div><div class="lb-s"></div></div>';
-  var p=all[0],nm=all.length>1?all.map(vName).join(' / '):vName(p);
-  return '<div class="lbl"><div class="lb-a">'+esc(bin)+'</div><div class="lb-n">'+esc(nm.toLowerCase().indexOf(TYPE_LABEL[p.type].toLowerCase())>=0?nm:TYPE_LABEL[p.type]+': '+nm)+'</div><div class="lb-s">'+esc(ctx(p))+(p.real?' · '+esc(all.map(function(x){return x.pn}).join(', ')):'')+'</div></div>';
+  var all=binParts(bin),wc=String(bin).length>=5?' w5':String(bin).length===4?' w4':'';
+  if(!all.length)return '<div class="lbl"><div class="lb-a'+wc+'">'+esc(bin)+'</div><div class="lb-t"><div class="lb-n">Empty</div></div></div>';
+  var p=all[0],nm=all.map(vName).filter(function(x,i,a){return a.indexOf(x)===i}).join(' / '),pns=p.real?all.map(function(x){return x.pn}).filter(function(x,i,a){return x&&a.indexOf(x)===i}).join(', '):'';
+  return '<div class="lbl"><div class="lb-a'+wc+'">'+esc(bin)+'</div><div class="lb-t"><div class="lb-n">'+esc(nm.toLowerCase().indexOf(TYPE_LABEL[p.type].toLowerCase())>=0?nm:TYPE_LABEL[p.type]+': '+nm)+'</div><div class="lb-s">'+esc(lblCtx(p))+'</div>'+(pns?'<div class="lb-p">'+esc(pns)+'</div>':'')+'</div></div>';
 }
+/* make the text of each label smaller, step by step, until it all shows inside 50 x 17.5 mm */
+function fitLabels(root){if(!root)return;root.querySelectorAll('.lbl').forEach(function(l){var t=l.querySelector('.lb-t');if(!t||!l.clientHeight)return;
+  function ok(){if(t.scrollHeight>t.clientHeight+1)return false;var good=true;t.querySelectorAll('.lb-n,.lb-s,.lb-p').forEach(function(e){if(e.scrollWidth>e.clientWidth+1||e.scrollHeight>e.clientHeight+1)good=false});return good}
+  for(var k=1;k>=0.72;k-=0.04){l.style.setProperty('--k',k.toFixed(2));if(ok())break}})}
+var LBL_COLS=3,LBL_ROWS=14;
 function usedBins(cab){var out=[];S.parts.forEach(function(p){var m=p.bin&&String(p.bin).match(/^([A-Z])(\d+)$/);if(m&&m[1]===cab&&out.indexOf(+m[2])<0)out.push(+m[2])});return out}
 function printLabels(bins){
   var pa=document.getElementById('print-area');if(!pa){pa=document.createElement('div');pa.id='print-area';document.body.appendChild(pa)}
-  pa.innerHTML='<div class="labels">'+bins.map(labelHTML).join('')+'</div>';
+  var per=LBL_COLS*LBL_ROWS,h='';
+  for(var i=0;i<bins.length;i+=per)h+='<div class="lbl-page"><div class="lbl-head"><span class="lbl-rule"></span><span>This bar is 50 mm long. If it is not, set Scale to 100 in the print window. Each label is 50 x 17.5 mm. Cut on the lines.</span></div><div class="labels">'+bins.slice(i,i+per).map(labelHTML).join('')+'</div></div>';
+  pa.innerHTML=h;
+  /* the print area is hidden on the screen: show it off-screen for a moment so the text can be measured and fitted */
+  pa.style.cssText='display:block;position:absolute;left:-9999px;top:0';fitLabels(pa);pa.style.cssText='';
   document.body.classList.add('printing');
   var done=function(){document.body.classList.remove('printing');window.removeEventListener('afterprint',done)};
   window.addEventListener('afterprint',done);
   try{window.print()}catch(e){}
   setTimeout(done,1500);
-  toast((bins.length===1?'Printing the label for '+bins[0]+'.':'Printing '+bins.length+' labels.')+' If no print window opens, use the lab site. The Claude preview cannot print.');
+  toast((bins.length===1?'Printing the label for '+bins[0]+'.':'Printing '+bins.length+' labels.')+' Print at 100% scale. If no print window opens, use the lab site. The Claude preview cannot print.');
 }
 function viewLayout(){
   var C=cabs(),L=UI.lay||{},h='<header class="vh"><h1>Drawer layout</h1><p class="lede">The cabinets as they stand in the lab. Tap a drawer to see what is in it, move a part into it, or print its label. Change a cabinet here when the real drawers change.</p></header>';
-  h+='<div class="row" style="margin-bottom:14px;gap:8px"><button class="btn" data-act="lay-print-all">Print all labels</button><button class="btn ghost" data-act="lay-add-cab">Add a cabinet</button><span class="small muted">Labels print 4 across on letter paper.</span></div>';
+  h+='<div class="row" style="margin-bottom:14px;gap:8px"><button class="btn" data-act="lay-print-all">Print all labels</button><button class="btn ghost" data-act="lay-add-cab">Add a cabinet</button><span class="small muted">Each label prints at 50 x 17.5 mm, the size of the label spot on the drawer. They print 3 across on letter paper. Print at 100% scale.</span></div>';
   h+='<div class="lay-wrap"><div class="lay-cabs">';
   Object.keys(C).sort().forEach(function(k){
     var c=C[k],n=c.cols*c.rows,cells='';
@@ -3845,7 +3872,7 @@ function viewLayout(){
   if(L.bin){
     var ps=binParts(L.bin);
     h+='<aside class="card lay-panel"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Drawer '+esc(L.bin)+'</h3><button class="btn sm ghost" data-act="lay-close">Close</button></div>';
-    h+='<div class="lbl lbl-prev">'+labelHTML(L.bin).replace(/^<div class="lbl">|<\/div>$/g,'')+'</div><button class="btn sm" data-act="lay-print-one" data-v="'+L.bin+'">Print this label</button>';
+    h+='<div class="lbl-prevwrap">'+labelHTML(L.bin)+'</div><button class="btn sm" data-act="lay-print-one" data-v="'+L.bin+'">Print this label</button>';
     h+='<h4>In this drawer</h4>'+(ps.length?'<div class="list">'+ps.map(function(p){return '<div class="li"><span>'+icI(p)+'</span><div><div class="nm">'+esc(partName(p))+'</div><div class="sb">'+esc(p.pn)+' · '+esc(ctx(p))+'</div></div><div class="rt"><button class="btn sm ghost" data-act="lay-out" data-v="'+p.id+'">Take out</button></div></div>'}).join('')+'</div>':'<p class="small muted">Empty.</p>');
     h+='<h4>Put a part in this drawer</h4><input id="lay-q" type="search" autocomplete="off" placeholder="Part number or name" value="'+esc(L.q||'')+'" aria-label="Find a part to put in this drawer"><div id="lay-res">'+layResHTML()+'</div>';
     h+='</aside>';
@@ -4223,6 +4250,7 @@ function render(){
   document.getElementById('app').innerHTML=h;
   if(UI.view==='learn'&&UI.learnTab==='stack')stkMount();
   if(UI.view==='map')mapMount();
+  if(UI.view==='layout')fitLabels(document.getElementById('app'));
   if(UI.pin)focusPin();
   histSync();
 }
