@@ -9,7 +9,7 @@ To use a different port, open the .bat file in Notepad and change 8080.
 START IT AUTOMATICALLY WHEN THE COMPUTER TURNS ON
 Double-click "Start automatically at sign-in.bat" once. After that the server starts each time this Windows user signs in.
 To undo it, double-click "Stop starting automatically.bat".
-Note: Claude built and tested the server program on Linux. The Windows .bat files are simple, but they have not been run on a Windows computer yet. Tell Claude if one fails.""",
+Note: The server has been run on a Windows PC (Nov 2026). The "Start automatically at sign-in" script has not been tested yet. Tell Claude if it fails.""",
 'mac':"""Double-click "Start Renew Parts.command". A Terminal window opens and stays open. That window is the server.
 The first time, macOS may say the program is from an unidentified developer.
 If it does: right-click "Start Renew Parts.command", choose Open, then choose Open again.
